@@ -27,5 +27,6 @@ public class CreateShopDTO implements Serializable {
 	private String ownerId;
 	private String shopId;
 	private String userTypeId;
-
+	private Integer createdBy;
+	private String createdByName;
 }

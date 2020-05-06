@@ -52,7 +52,13 @@ public class InventorySecConfigAdapt extends WebSecurityConfigurerAdapter {
     		.authorizeRequests().antMatchers("/api/user/signIn").permitAll()
     		.and()
     		.authorizeRequests()
-    			.antMatchers("/api/shop/createShop").hasAnyRole("CHIEF","ROLE_CREATE_SHOP").anyRequest().authenticated()
+    			.antMatchers("/api/shop/createShop").hasAnyRole("CHIEF","CREATE_SHOP")
+    			.antMatchers("/api/driver/createDriver").hasAnyRole("CHIEF","CREATE_DRIVER","SHOP_CHIEF")
+    			.antMatchers("/api/vendor/createVendor").hasAnyRole("CHIEF","CREATE_VENDOR","SHOP_CHIEF")
+    			.antMatchers("/api/driver/getAllDriverByShop").hasAnyRole("CHIEF","SHOP_CHIEF","CHIEF_MANAGER","MANAGER")
+    			.antMatchers("/api/vendor/getAllVendorByShop").hasAnyRole("CHIEF","SHOP_CHIEF","CHIEF_MANAGER","MANAGER")
+    			.antMatchers("/api/operator/createOperator").hasAnyRole("CHIEF","SHOP_CHIEF","CREATE_OPERATOR")
+    			.anyRequest().authenticated()
     		.and()
     		.exceptionHandling().authenticationEntryPoint(unauthorizedHandler)
     		.and()
@@ -60,6 +66,7 @@ public class InventorySecConfigAdapt extends WebSecurityConfigurerAdapter {
 
     }
 
+    
     public BCryptPasswordEncoder encoder() {
     	return new BCryptPasswordEncoder();
     }

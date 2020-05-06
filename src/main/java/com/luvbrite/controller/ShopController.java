@@ -33,22 +33,36 @@ public class ShopController {
 	public ResponseEntity<CommonResponse> createShop(@RequestBody CreateShopDTO shopDTO,
 			Authentication authentication) {
 		CommonResponse commonResponse = new CommonResponse();
-		UserDetails userDetails = iUserService.getByUsername(authentication.getName());
-		if (userDetails != null) {
-			shopDTO.setOwnerId("1");
-			shopDTO.setUserTypeId("3");
-			log.info("Shop DTO is {}", shopDTO);
-			int addShop = iShopService.saveShop(shopDTO);
-			if (addShop > 0) {
-				commonResponse.setCode(201);
-				commonResponse.setStatus("CREATED");
-				commonResponse.setMessage("Shop Created Successfully");
+		try {
+			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
+			if (userDetails != null) {
+				shopDTO.setOwnerId("1");
+				shopDTO.setUserTypeId("3");
+				shopDTO.setCreatedBy(userDetails.getId());
+				log.info("Shop DTO is {}", shopDTO);
+				int addShop = iShopService.saveShop(shopDTO);
+				if (addShop > 0) {
+					commonResponse.setCode(201);
+					commonResponse.setStatus("CREATED");
+					commonResponse.setMessage("Shop Created Successfully");
+					return new ResponseEntity<>(commonResponse, HttpStatus.OK);
+				}
+				
+				commonResponse.setCode(400);
+				commonResponse.setStatus("Bad Request");
+				commonResponse.setMessage("Shop is Not Created ");
+				return new ResponseEntity<>(commonResponse,HttpStatus.OK);
 			}
+			commonResponse.setCode(401);
+			commonResponse.setStatus("Unauthorized");
+			commonResponse.setMessage("Please try to login and try again");
+			return new ResponseEntity<>(commonResponse,HttpStatus.OK);
+		} catch (Exception e) {
+			commonResponse.setCode(500);
+			commonResponse.setMessage("Shop is not created.please try again later.");
+			commonResponse.setStatus("SERVER ERROR");
+			log.error("Message is {} and exception is {}",e.getMessage(),e);
+			return new ResponseEntity<>(commonResponse,HttpStatus.OK);
 		}
-		commonResponse.setCode(400);
-		commonResponse.setStatus("Bad Request");
-		commonResponse.setMessage("Shop is Not Created ");
-
-		return new ResponseEntity<>(HttpStatus.OK);
 	}
 }

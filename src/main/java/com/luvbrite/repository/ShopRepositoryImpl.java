@@ -21,15 +21,15 @@ public class ShopRepositoryImpl implements IShopRepository {
 	@Override
 	public int saveShop(CreateShopDTO shopDTO) {
 		try {
-			String shopQuery = "INSERT INTO SHOPS (shop_name) VALUES (?) returning id";
-			Integer shopid = jdbcTemplate.queryForObject(shopQuery, new Object[] { shopDTO.getShopName() },
+			String shopQuery = "INSERT INTO SHOPS (shop_name,created_by) VALUES (?,?) returning id";
+			Integer shopid = jdbcTemplate.queryForObject(shopQuery, new Object[] { shopDTO.getShopName(),shopDTO.getCreatedBy() },
 					Integer.class);
 
 			String password = "{bcrypt}" + new BCryptPasswordEncoder().encode(shopDTO.getPassword());
 
 			StringBuilder userAddQry = new StringBuilder();
 			userAddQry.append("INSERT INTO user_details ")
-					.append(" ( email, password, username, owner_id, shop_id, user_type_id ) ")
+					.append(" ( email, password, username, owner_id, shop_id, user_type_id,created_by ) ")
 					.append("VALUES ( '")
 						.append(shopDTO.getEmail())
 					.append("' , '")
@@ -42,6 +42,8 @@ public class ShopRepositoryImpl implements IShopRepository {
 						.append(shopid.toString())
 					.append(" , ")
 						.append(shopDTO.getUserTypeId())
+					.append(" , ")
+					.append(shopDTO.getCreatedBy())
 					.append(" ) RETURNING id");
 
 			Integer userId = jdbcTemplate.queryForObject(userAddQry.toString(), Integer.class);
