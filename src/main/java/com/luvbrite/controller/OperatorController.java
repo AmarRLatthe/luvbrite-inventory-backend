@@ -60,18 +60,18 @@ public class OperatorController {
 				response.setCode(400);
 				response.setStatus("Bad Request");
 				response.setMessage("Operator is Not Created ");
-				return new ResponseEntity<>(response, HttpStatus.OK);
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 			}
 			response.setCode(401);
 			response.setStatus("Unauthorized");
 			response.setMessage("Please try to login and try again");
-			return new ResponseEntity<>(response, HttpStatus.OK);
+			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
 		} catch (Exception e) {
 			log.error("Message is {} and exception is {}", e.getMessage(), e);
 			response.setCode(500);
 			response.setMessage("Operator is not created.please try again later.");
 			response.setStatus("SERVER ERROR");
-			return new ResponseEntity<>(response, HttpStatus.OK);
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
 	}
