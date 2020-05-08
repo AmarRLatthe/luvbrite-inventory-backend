@@ -31,4 +31,5 @@ public class UserDetails {
 	private Integer createdBy;
 	private String createdByName;
 
+	private String createdAt;
 }

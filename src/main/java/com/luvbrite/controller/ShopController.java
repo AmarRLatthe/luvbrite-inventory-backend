@@ -1,5 +1,7 @@
 package com.luvbrite.controller;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,29 +42,41 @@ public class ShopController {
 				shopDTO.setUserTypeId("3");
 				shopDTO.setCreatedBy(userDetails.getId());
 				log.info("Shop DTO is {}", shopDTO);
-				int addShop = iShopService.saveShop(shopDTO);
-				if (addShop > 0) {
-					commonResponse.setCode(201);
-					commonResponse.setStatus("CREATED");
-					commonResponse.setMessage("Shop Created Successfully");
-					return new ResponseEntity<>(commonResponse, HttpStatus.OK);
-				}
-				
-				commonResponse.setCode(400);
-				commonResponse.setStatus("Bad Request");
-				commonResponse.setMessage("Shop is Not Created ");
-				return new ResponseEntity<>(commonResponse,HttpStatus.BAD_REQUEST);
+				return validateNCreateShop(shopDTO, commonResponse);
 			}
 			commonResponse.setCode(401);
 			commonResponse.setStatus("Unauthorized");
 			commonResponse.setMessage("Please try to login and try again");
-			return new ResponseEntity<>(commonResponse,HttpStatus.UNAUTHORIZED);
+			return new ResponseEntity<>(commonResponse,HttpStatus.OK);
 		} catch (Exception e) {
 			commonResponse.setCode(500);
 			commonResponse.setMessage("Shop is not created.please try again later.");
 			commonResponse.setStatus("SERVER ERROR");
 			log.error("Message is {} and exception is {}",e.getMessage(),e);
-			return new ResponseEntity<>(commonResponse,HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(commonResponse,HttpStatus.OK);
+		}
+	}
+
+	private ResponseEntity<CommonResponse> validateNCreateShop(CreateShopDTO shopDTO, CommonResponse commonResponse) {
+		Map<String, Object> isvalidate = iShopService.validateData(shopDTO);
+		if((boolean) isvalidate.get("isValid")) {
+			int addShop = iShopService.saveShop(shopDTO);
+			if (addShop > 0) {
+				commonResponse.setCode(201);
+				commonResponse.setStatus("CREATED");
+				commonResponse.setMessage("Shop Created Successfully");
+				return new ResponseEntity<>(commonResponse, HttpStatus.OK);
+			}
+			commonResponse.setCode(400);
+			commonResponse.setStatus("Bad Request");
+			commonResponse.setMessage("Shop is Not Created ");
+			return new ResponseEntity<>(commonResponse, HttpStatus.OK);
+		}else {
+			commonResponse.setCode(400);
+			commonResponse.setStatus("Bad Request");
+			commonResponse.setMessage("Invalid Details");
+			commonResponse.setData(isvalidate);
+			return new ResponseEntity<>(commonResponse, HttpStatus.OK);
 		}
 	}
 }

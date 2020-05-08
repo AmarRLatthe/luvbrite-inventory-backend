@@ -6,4 +6,10 @@ public interface IUserRepository {
 
 	UserDetails findByUsername(String username);
 
+	UserDetails findByEmail(String email);
+
+	int countUserByUserName(String userName);
+
+	int countUserByEmail(String email);
+
 }

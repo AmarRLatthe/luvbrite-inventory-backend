@@ -70,4 +70,39 @@ public class DriverRepositoryImpl implements IDriverRepository{
 		}
 	}
 
+	@Override
+	public DriverDTO findByDriverName(String driverName) {
+		try {
+			return jdbcTemplate.queryForObject("SELECT * FROM drivers WHERE LOWER(driver_name) = LOWER(?)", new Object[] {driverName},new RowMapper<DriverDTO>() {
+
+				@Override
+				public DriverDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
+					DriverDTO dto = new DriverDTO();
+					dto.setDriverName(rs.getString("driver_name"));
+					dto.setPhoneNumber(rs.getString("phone_number"));
+					dto.setStatus(rs.getInt("status"));
+					dto.setDateAdded(rs.getString("date"));
+					dto.setId(rs.getInt("id"));
+					dto.setCreatedBy(rs.getInt("created_by"));
+					
+					return dto;
+				}
+				
+			});
+		} catch (Exception e) {
+			log.error("message is {} and exception is {}",e.getMessage(),e);
+		}
+		return null;
+	}
+
+	@Override
+	public int countDriverByDriverName(String driverName) {
+		try {
+			return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM drivers WHERE LOWER(driver_name) = LOWER(?)",new Object[] {driverName} ,Integer.class);			
+		} catch (Exception e) {
+			log.error("message is {} and exception is {}",e.getMessage(),e);
+			return -1;
+		}
+	}
+
 }

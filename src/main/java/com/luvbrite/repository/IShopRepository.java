@@ -7,4 +7,19 @@ public interface IShopRepository{
 
 	int saveShop(CreateShopDTO shopDTO);
 
+
+
+	CreateShopDTO getByShopName(String shopName);
+
+
+
+	int countShopsByShopName(String shopName);
+
+	
+
+
+
+	
+	
+	 
 }
