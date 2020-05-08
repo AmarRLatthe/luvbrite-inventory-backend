@@ -52,18 +52,18 @@ public class VendorController {
 				response.setCode(400);
 				response.setStatus("Bad Request");
 				response.setMessage("Vendor is Not Created ");
-				return new ResponseEntity<>(response, HttpStatus.OK);
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 			}
 			response.setCode(401);
 			response.setStatus("Unauthorized");
 			response.setMessage("Please try to login and try again");
-			return new ResponseEntity<>(response, HttpStatus.OK);
+			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
 		} catch (Exception e) {
 			log.error("Message is {} and Exception is {}"+e.getMessage(), e);
 			response.setCode(500);
 			response.setMessage("Driver is not created.please try again later.");
 			response.setStatus("SERVER ERROR");
-			return new ResponseEntity<>(response, HttpStatus.OK);
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
@@ -84,18 +84,18 @@ public class VendorController {
 				response.setCode(400);
 				response.setStatus("Bad Request");
 				response.setMessage("something went wrong.please try again late");
-				return new ResponseEntity<>(response, HttpStatus.OK);
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 			}
 			response.setCode(401);
 			response.setStatus("Unauthorized");
 			response.setMessage("Please try to login and try again");
-			return new ResponseEntity<>(response, HttpStatus.OK);
+			return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
 		} catch (Exception e) {
 			log.error("Message is {} and Exception is {}"+e.getMessage(), e);
 			response.setCode(500);
 			response.setMessage("Vendor Data not able to get.please try again later.");
 			response.setStatus("SERVER ERROR");
-			return new ResponseEntity<>(response, HttpStatus.OK);
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 }

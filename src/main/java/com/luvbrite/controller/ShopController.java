@@ -51,18 +51,18 @@ public class ShopController {
 				commonResponse.setCode(400);
 				commonResponse.setStatus("Bad Request");
 				commonResponse.setMessage("Shop is Not Created ");
-				return new ResponseEntity<>(commonResponse,HttpStatus.OK);
+				return new ResponseEntity<>(commonResponse,HttpStatus.BAD_REQUEST);
 			}
 			commonResponse.setCode(401);
 			commonResponse.setStatus("Unauthorized");
 			commonResponse.setMessage("Please try to login and try again");
-			return new ResponseEntity<>(commonResponse,HttpStatus.OK);
+			return new ResponseEntity<>(commonResponse,HttpStatus.UNAUTHORIZED);
 		} catch (Exception e) {
 			commonResponse.setCode(500);
 			commonResponse.setMessage("Shop is not created.please try again later.");
 			commonResponse.setStatus("SERVER ERROR");
 			log.error("Message is {} and exception is {}",e.getMessage(),e);
-			return new ResponseEntity<>(commonResponse,HttpStatus.OK);
+			return new ResponseEntity<>(commonResponse,HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 }

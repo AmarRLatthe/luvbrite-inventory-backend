@@ -7,11 +7,4 @@ public interface IShopRepository{
 
 	int saveShop(CreateShopDTO shopDTO);
 
-	
-
-
-
-	
-	
-	 
 }
