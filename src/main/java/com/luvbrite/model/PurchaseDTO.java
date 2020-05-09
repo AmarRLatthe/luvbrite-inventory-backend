@@ -4,31 +4,41 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class PurchaseDTO {
+	
 	private int id = 0;
 	private int productId = 0;
 	private int quantity = 0;
 	private int vendorId = 0;
-	private int shop_id = 0;
+	private int shopId = 0;
 	private double weightInGrams = 0d;
 	private double unitPrice = 0d;
-		
-	private String operatorComments = "";
-	public int getShop_id() {
-		return shop_id;
-	}
-
-	public void setShop_id(int shop_id) {
-		this.shop_id = shop_id;
-	}
-
 	private String growthCondition = "";
 	private String dateAdded = "";
 	private String purchaseCode = "";
-	
 	private String productName = "";
 	private String vendorName = "";
-	
 	private int categoryId = 0;
+	private String operatorComments = "";
+    private int createdBy = 0;
+
+	
+
+
+	public int getShopId() {
+		return shopId;
+	}
+
+	public int getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(int createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	public void setShopId(int shopId) {
+		this.shopId = shopId;
+	}
 
 	public int getId() {
 		return id;

@@ -21,7 +21,7 @@ public class PurchaseRepositoryImpl implements IPurchaseRepository {
 	@Override
 	public PurchaseDTO addPurchase(PurchaseDTO purchase) throws Exception{
 		try {
-			log.info("Came in purchse Repository ");
+			log.info("Came in purchase Repository ");
 		
 
 			String formatted_date="";
@@ -30,9 +30,9 @@ public class PurchaseRepositoryImpl implements IPurchaseRepository {
 			StringBuilder _addPurchaseQry = new StringBuilder();
 			                         
 	     _addPurchaseQry.append("INSERT INTO purchase_inventory(product_id, growth_condition, quantity, weight_in_grams, ")
-			       .append("unit_price, vendor_id, operator_comments, date_added, purchase_code,shop_id) ")
-			       .append("VALUES (?,?,?,?,?,?,?,to_date(?,'yyyy-MM-dd'),?,?)")
-			       .append("RETURNING  TO_CHAR(date_added, 'MM/dd/yyyy') AS formatted_date;");
+			            .append("unit_price, vendor_id, operator_comments, date_added, purchase_code,shop_id,) ")
+			            .append("VALUES (?,?,?,?,?,?,?,to_date(?,'yyyy-MM-dd'),?,?)")
+			            .append("RETURNING  TO_CHAR(date_added, 'MM/dd/yyyy') AS formatted_date;");
 			
 			
 			 formatted_date = (String) jdbcTemplate.queryForObject(_addPurchaseQry.toString(),
@@ -45,7 +45,7 @@ public class PurchaseRepositoryImpl implements IPurchaseRepository {
 																			       purchase.getOperatorComments(), 
 																			       purchase.getDateAdded(), 
 																			       purchase.getPurchaseCode(),
-																			       purchase.getShop_id()},
+																			       purchase.getShopId()},
 																	               String.class);
 												
 			purchase.setDateAdded(formatted_date);
