@@ -24,6 +24,8 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 public class PurchaseController {
 
+
+	
 	@Autowired
 	private PurchaseServiceImpl purchaseService;
 
@@ -41,8 +43,8 @@ public class PurchaseController {
 			if (userDetails != null) {
 				purchaseDTO.setShopId(userDetails.getShopId());
 				purchaseDTO.setCreatedBy(userDetails.getId());
-
 				PurchaseDTO responsePurchaseDTO = purchaseService.addPurchase(purchaseDTO);
+
 
 				commonResponse.setCode(201);
 				commonResponse.setStatus("ADDED");
@@ -61,13 +63,12 @@ public class PurchaseController {
 			commonResponse.setMessage(e.getMessage());
 			commonResponse.setStatus("SERVER ERROR");
 			log.error("Message is {} and exception is {}", e.getMessage());
-
 			return new ResponseEntity<>(commonResponse, HttpStatus.OK);
-		
 
 		}
 
 	}
+
 
 	@GetMapping("/getpurchases")
 	public ResponseEntity<CommonResponse> getPurchases(@RequestParam(value = "sort", required = false) String orderBy,
@@ -115,5 +116,6 @@ public class PurchaseController {
 
 		
 	}
+
 
 }

@@ -16,7 +16,6 @@ import com.luvbrite.repository.IPurchaseRepository;
 import com.luvbrite.model.PaginationLogic;
 import com.luvbrite.model.PaginatedPurchase;
 import com.luvbrite.model.Pagination;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -36,10 +35,10 @@ public class PurchaseServiceImpl implements IPurchaseService {
 	public PurchaseDTO addPurchase(PurchaseDTO purchase) throws Exception {
 		return iPurchaseRepository.addPurchase(purchase);
 	}
-	
+
 	@Override
 	public List<PurchaseDTO> getAllPurchases() throws Exception {
-		// TODO Auto-generated method stub
+
 		return null;
 	}
 
@@ -56,7 +55,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
 			                              Integer productId, 
 			                              Boolean adjustmentsOnly,
 			                              Integer currentPage)  {
-		
+
 		
 		int offset = 0;
 		String caller = "";
@@ -216,14 +215,11 @@ public class PurchaseServiceImpl implements IPurchaseService {
 			}
 
 		});
-		
+
 		PaginatedPurchase	 pgPurchase = new PaginatedPurchase(pg, purchases);
 
 		return pgPurchase;
 	}
-
-
-
 
 
 }
