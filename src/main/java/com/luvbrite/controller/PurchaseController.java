@@ -48,14 +48,14 @@ public class PurchaseController {
 				commonResponse.setCode(401);
 				commonResponse.setStatus("Unauthorized");
 				commonResponse.setMessage("Please try to login and try again");
-				return new ResponseEntity<>(commonResponse, HttpStatus.UNAUTHORIZED);
+				return new ResponseEntity<>(commonResponse, HttpStatus.OK);
 			}
 		} catch (Exception e) {
 			commonResponse.setCode(500);
 			commonResponse.setMessage(e.getMessage());
 			commonResponse.setStatus("SERVER ERROR");
 			log.error("Message is {} and exception is {}", e.getMessage());
-			return new ResponseEntity<>(commonResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(commonResponse, HttpStatus.OK);
 		
 		}
 		
