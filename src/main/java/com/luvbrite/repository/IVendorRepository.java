@@ -10,5 +10,11 @@ public interface IVendorRepository {
 
 	List<VendorDTO> getVendorsDataByShopId(Integer shopId);
 
+	VendorDTO findByVendorName(String vendorName);
+
+	int countVendersByVendorName(String vendorName);
+
+	int countVendorByEmail(String email);
+
 
 }

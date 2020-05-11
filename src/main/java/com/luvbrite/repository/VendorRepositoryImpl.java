@@ -80,4 +80,54 @@ public class VendorRepositoryImpl implements IVendorRepository {
 		}
 	}
 
+	@Override
+	public VendorDTO findByVendorName(String vendorName) {
+		try {
+			return jdbcTemplate.queryForObject("SELECT * FROM VENDORS WHERE LOWER(vendor_name) = LOWER(?)", new Object[] {vendorName},new RowMapper<VendorDTO>() {
+				@Override
+				public VendorDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
+					VendorDTO dto = new VendorDTO();
+					dto.setVendorId(rs.getInt("id"));
+					dto.setVendorName(rs.getString("vendor_name"));
+					dto.setCompany(rs.getString("company"));
+					dto.setEmail(rs.getString("email"));
+					dto.setPhone(rs.getString("phone"));
+					dto.setAddress(rs.getString("address"));
+					dto.setCity(rs.getString("city"));
+					dto.setState(rs.getString("state"));
+					dto.setZipcode(rs.getString("zipcode"));
+					dto.setWebsite(rs.getString("website"));
+					dto.setDateAdded(rs.getString("date"));
+					dto.setCreatedBy(rs.getInt("created_by"));
+					return dto;
+				}
+				
+			});
+		} catch (Exception e) {
+			log.error("message is {} and exception is {}",e.getMessage(),e);
+		}
+		return null;
+	}
+
+	@Override
+	public int countVendersByVendorName(String vendorName) {
+		try {
+			return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM VENDORS WHERE LOWER(vendor_name) = LOWER(?)",new Object[] {vendorName} ,Integer.class);			
+		} catch (Exception e) {
+			log.error("message is {} and exception is {}",e.getMessage(),e);
+			return -1;
+		}
+
+	}
+
+	@Override
+	public int countVendorByEmail(String email) {
+		try {
+			return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM VENDORS WHERE LOWER(email) = LOWER(?)",new Object[] {email} ,Integer.class);			
+		} catch (Exception e) {
+			log.error("message is {} and exception is {}",e.getMessage(),e);
+			return -1;
+		}
+	}
+
 }

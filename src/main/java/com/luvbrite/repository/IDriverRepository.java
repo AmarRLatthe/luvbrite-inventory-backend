@@ -10,4 +10,8 @@ public interface IDriverRepository {
 
 	List<DriverDTO> getDriversByShopId(Integer shopId);
 
+	DriverDTO findByDriverName(String driverName);
+
+	int countDriverByDriverName(String driverName);
+
 }

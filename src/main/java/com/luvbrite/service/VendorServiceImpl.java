@@ -1,7 +1,9 @@
 package com.luvbrite.service;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,6 +40,38 @@ public class VendorServiceImpl implements IVendorService{
 		} catch (Exception e) {
 			log.error("Message is {} and exception is {}",e.getMessage(),e);
 			return Collections.emptyList();
+		}
+	}
+
+	@Override
+	public Map<String, Object> validateOperator(VendorDTO vendor) {
+		Map<String , Object> map = new HashMap<String, Object>();
+		try {
+			map.put("isValid", true);	
+			if(vendor.getVendorName()==null) {
+				map.put("vendorName", "vendorName should not be empty");
+				map.put("isValid", false);
+			}else {
+				int count = iVendorRepository.countVendersByVendorName(vendor.getVendorName());
+				if(count>0) {
+					map.put("vendorName", "vendorName is already available.please try with different vendorName");
+					map.put("isValid", false);
+				}
+			}
+			
+			if(vendor.getEmail()!=null) {
+				int count = iVendorRepository.countVendorByEmail(vendor.getEmail());
+				if(count>0) {
+					map.put("email", "email is already available.please try with different email");
+					map.put("isValid", false);
+				}
+			}
+			return map;
+		}catch (Exception e) {
+			log.error("Message is {} and Exception is {}",e.getMessage(),e);
+			map.put("isValid", false);
+			map.put("message","Something went Wrong. please try again later.");
+			return map;
 		}
 	}
 
