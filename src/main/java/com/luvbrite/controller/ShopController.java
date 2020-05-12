@@ -42,7 +42,22 @@ public class ShopController {
 				shopDTO.setUserTypeId("3");
 				shopDTO.setCreatedBy(userDetails.getId());
 				log.info("Shop DTO is {}", shopDTO);
+<<<<<<< HEAD
 				return validateNCreateShop(shopDTO, commonResponse);
+=======
+				int addShop = iShopService.saveShop(shopDTO);
+				if (addShop > 0) {
+					commonResponse.setCode(201);
+					commonResponse.setStatus("CREATED");
+					commonResponse.setMessage("Shop Created Successfully");
+					return new ResponseEntity<>(commonResponse, HttpStatus.OK);
+				}
+				
+				commonResponse.setCode(400);
+				commonResponse.setStatus("Bad Request");
+				commonResponse.setMessage("Shop is Not Created ");
+				return new ResponseEntity<>(commonResponse,HttpStatus.OK);
+>>>>>>> PurchaseController modified
 			}
 			commonResponse.setCode(401);
 			commonResponse.setStatus("Unauthorized");
@@ -54,6 +69,7 @@ public class ShopController {
 			commonResponse.setStatus("SERVER ERROR");
 			log.error("Message is {} and exception is {}",e.getMessage(),e);
 			return new ResponseEntity<>(commonResponse,HttpStatus.OK);
+<<<<<<< HEAD
 		}
 	}
 
@@ -77,6 +93,8 @@ public class ShopController {
 			commonResponse.setMessage("Invalid Details");
 			commonResponse.setData(isvalidate);
 			return new ResponseEntity<>(commonResponse, HttpStatus.OK);
+=======
+>>>>>>> PurchaseController modified
 		}
 	}
 }

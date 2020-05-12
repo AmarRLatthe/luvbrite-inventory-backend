@@ -113,7 +113,11 @@ public class OperatorController {
 				}
 				response.setCode(400);
 				response.setStatus("Bad Request");
+<<<<<<< HEAD
 				response.setMessage("something went wrong.please try again late");
+=======
+				response.setMessage("Operator is Not Created ");
+>>>>>>> PurchaseController modified
 				return new ResponseEntity<>(response, HttpStatus.OK);
 			}
 			response.setCode(401);

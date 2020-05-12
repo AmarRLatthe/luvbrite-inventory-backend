@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.luvbrite.model.PurchaseDTO;
 import com.luvbrite.repository.IPurchaseRepository;
 import com.luvbrite.model.PaginationLogic;
+import com.luvbrite.model.PaginatedPurchase;
 import com.luvbrite.model.Pagination;
 
 import lombok.extern.slf4j.Slf4j;
@@ -35,24 +36,26 @@ public class PurchaseServiceImpl implements IPurchaseService {
 	public PurchaseDTO addPurchase(PurchaseDTO purchase) throws Exception {
 		return iPurchaseRepository.addPurchase(purchase);
 	}
-
+	
 	@Override
 	public List<PurchaseDTO> getAllPurchases() throws Exception {
-
+		// TODO Auto-generated method stub
 		return null;
 	}
 
-	public List<PurchaseDTO> getPurchases(String orderBy, 
+
+
+	public PaginatedPurchase getPurchases(String orderBy, 
 			                              String sortDirection, 
 			                              String productName, 
 			                              String packetCode,
-			                              int vendorId, 
+			                              Integer vendorId, 
 			                              String startDate, 
 			                              String endDate, 
 			                              String source, 
-			                              int productId, 
-			                              boolean adjustmentsOnly,
-			                              int currentPage)  {
+			                              Integer productId, 
+			                              Boolean adjustmentsOnly,
+			                              Integer currentPage)  {
 		
 		
 		int offset = 0;
@@ -159,7 +162,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
 
 			countString.append("SELECT COUNT(*) ")
 			           .append("FROM purchase_inventory pi  ")
-					   .append("JOIN  products p ON p.id = pi.product_id")
+					   .append("JOIN  products p ON p.id = pi.product_id ")
 					   .append("JOIN  vendors v ON v.id = pi.vendor_id ").append(qWHERE);
 
 			Integer totalPurchase = jdbcTemplate.queryForObject(countString.toString(), Integer.class);
@@ -180,8 +183,12 @@ public class PurchaseServiceImpl implements IPurchaseService {
 		queryStringBuilder.append("SELECT pi.*, p.product_name, p.category_id, v.vendor_name, ")
 				          .append("TO_CHAR(pi.date_added, 'MM/dd/yyyy') as date ")
 				          .append("FROM purchase_inventory pi ")
-				          .append("JOIN  products p ON p.id = pi.product_id ").append("JOIN  vendors v ON v.id = pi.vendor_id ")
-				          .append(qWHERE).append(qORDERBY).append(qLIMIT).append(qOFFSET);
+				          .append("JOIN  products p ON p.id = pi.product_id ")
+				          .append("JOIN  vendors v ON v.id = pi.vendor_id ")
+				          .append(qWHERE)
+				          .append(qORDERBY)
+				          .append(qLIMIT)
+				          .append(qOFFSET);
 
 		jdbcTemplate.query(queryStringBuilder.toString(), new RowCallbackHandler() {
 			public void processRow(ResultSet resultSet) throws SQLException {
@@ -209,8 +216,14 @@ public class PurchaseServiceImpl implements IPurchaseService {
 			}
 
 		});
+		
+		PaginatedPurchase	 pgPurchase = new PaginatedPurchase(pg, purchases);
 
-		return purchases;
+		return pgPurchase;
 	}
+
+
+
+
 
 }
