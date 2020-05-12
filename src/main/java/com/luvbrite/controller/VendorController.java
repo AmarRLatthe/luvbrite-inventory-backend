@@ -43,22 +43,10 @@ public class VendorController {
 				log.info("user is {}",userDetails);
 				vendor.setShopId(userDetails.getShopId());
 				vendor.setCreatedBy(userDetails.getId());
-<<<<<<< HEAD
+
 				
 				return validateNCreateVendor(vendor, response);		
-=======
-				int addVendor=iVendorService.saveVendor(vendor);
-				if (addVendor > 0) {
-					response.setCode(201);
-					response.setStatus("CREATED");
-					response.setMessage("Vendor Created Successfully");
-					return new ResponseEntity<>(response, HttpStatus.OK);
-				}
-				response.setCode(400);
-				response.setStatus("Bad Request");
-				response.setMessage("Vendor is Not Created ");
-				return new ResponseEntity<>(response, HttpStatus.OK);
->>>>>>> PurchaseController modified
+
 			}
 			response.setCode(401);
 			response.setStatus("Unauthorized");
@@ -70,7 +58,7 @@ public class VendorController {
 			response.setMessage("Driver is not created.please try again later.");
 			response.setStatus("SERVER ERROR");
 			return new ResponseEntity<>(response, HttpStatus.OK);
-<<<<<<< HEAD
+
 		}
 	}
 
@@ -95,8 +83,7 @@ public class VendorController {
 			response.setMessage("Invalid Details");
 			response.setData(isvalidate);
 			return new ResponseEntity<>(response, HttpStatus.OK);
-=======
->>>>>>> PurchaseController modified
+
 		}
 	}
 	
