@@ -15,8 +15,8 @@ public class StatisticsServiceImpl implements IStatisticsService {
 	private IStatisticsRepository iStatisticsRepository;
 
 	@Override
-	public List<OrderBreakDownDTO> getBaseStatisticsData() {
-		return iStatisticsRepository.getBaseStatsData();
+	public List<OrderBreakDownDTO> getBaseStatisticsData(int shopId) {
+		return iStatisticsRepository.getBaseStatsData(shopId);
 	}
 
 	@Override

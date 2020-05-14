@@ -6,7 +6,7 @@ import com.luvbrite.model.OrderBreakDownDTO;
 
 public interface IStatisticsRepository {
 
-	public List<OrderBreakDownDTO> getBaseStatsData();
+	public List<OrderBreakDownDTO> getBaseStatsData(int shopId);
 	
 	public List<OrderBreakDownDTO> getProdStat(String startDate, String endDate);
 	

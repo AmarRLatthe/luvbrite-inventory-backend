@@ -31,13 +31,13 @@ public class StatisticsController {
 	private IUserService iUserService;
 	
 	@GetMapping("/getbasestats")
-	public ResponseEntity<CommonResponse> getBaseStatistics(Authentication authentication) {
+	public ResponseEntity<CommonResponse> getBaseStatistics(Authentication authentication, @RequestParam String shopId) {
 		CommonResponse response = new CommonResponse();
 
 		try {
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 			if (userDetails != null) {
-				List<OrderBreakDownDTO> list = iStatisticsService.getBaseStatisticsData();
+				List<OrderBreakDownDTO> list = iStatisticsService.getBaseStatisticsData(Integer.parseInt(shopId));
 				if (list != null && !list.isEmpty()) {
 					response.setCode(200);
 					response.setStatus("SUCCESS");
