@@ -38,7 +38,7 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 	private List<OrderBreakDownDTO> results = new ArrayList<>();
 
 	@Override
-	public List<OrderBreakDownDTO> getBaseStatsData() {
+	public List<OrderBreakDownDTO> getBaseStatsData(int shopId) {
 		log.info("Inside getBaseStatsData to get base statistics data ");
 		results = new ArrayList<>();
 		StatisticsDTO dto = (StatisticsDTO) jdbcTemplate.queryForObject(getExtractQuery(),
@@ -54,13 +54,13 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 			dow = 6;
 		else
 			dow = dow - 1;
-		getData("t");
-		getData("y");
-		getData("wd");
-		getData("w");
-		getData("md");
-		getData("m");
-		getData("rd");
+		getData("t", shopId);
+		getData("y", shopId);
+		getData("wd", shopId);
+		getData("w", shopId);
+		getData("md", shopId);
+		getData("m", shopId);
+		getData("rd", shopId);
 
 		return results;
 	}
@@ -495,7 +495,7 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 		return results;
 	}
 
-	private void getData(String parm) {
+	private void getData(String param, int shopId) {
 		log.info("Inside get data");
 		StringBuilder cqueryWhere = new StringBuilder();
 		String groupBy = " GROUP BY dis.payment_mode ";
@@ -516,27 +516,27 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 			 * 
 			 **/
 
-			if (parm.equals("t")) {
+			if (param.equals("t")) {
 				cqueryWhere.append(" >= current_date ");
 				odb.setName("Today");
-			} else if (parm.equals("y")) {
+			} else if (param.equals("y")) {
 				cqueryWhere.append(" >= (current_date - interval '1 day') AND date_sold < current_date ");
 				odb.setName("Yesterday");
-			} else if (parm.equals("wd")) {
+			} else if (param.equals("wd")) {
 				cqueryWhere.append(" >= (current_date - interval '" + dow + " days')");
 				odb.setName("Week to Date");
-			} else if (parm.equals("w")) {
+			} else if (param.equals("w")) {
 				cqueryWhere.append(" >= (current_date - interval '1 week " + dow);
 				cqueryWhere.append(" days') AND date_sold < (current_date - interval '" + dow + " days')");
 				odb.setName("Last Week");
-			} else if (parm.equals("md")) {
+			} else if (param.equals("md")) {
 				cqueryWhere.append(" >= (current_date - interval '" + (day - 1) + " days')");
 				odb.setName("Month to Date");
-			} else if (parm.equals("m")) {
+			} else if (param.equals("m")) {
 				cqueryWhere.append(" >= (current_date - interval '1 month " + (day - 1));
 				cqueryWhere.append(" days') AND date_sold < (current_date - interval '" + (day - 1) + " days')");
 				odb.setName("Last Month");
-			} else if (parm.equals("rd")) {
+			} else if (param.equals("rd")) {
 				cqueryWhere.append(" >= (current_date - interval '" + (doy - 1) + " days')");
 				odb.setName("Year to Date");
 			} else
@@ -546,9 +546,10 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 			vQuery.append(
 					"SELECT array_to_string(array_agg(dis.id), ',') As dis_ids, COUNT(DISTINCT pi.sales_id), SUM(pi.selling_price), ");
 			vQuery.append("dis.payment_mode FROM packet_inventory pi ");
-			vQuery.append("JOIN dispatch_sales_info dis ON dis.id = pi.sales_id WHERE sales_id <> 0 AND date_sold  ");
+			vQuery.append("JOIN dispatch_sales_info dis ON dis.id = pi.sales_id WHERE dis.shop_id = ? AND sales_id <> 0 AND date_sold  ");
 			vQuery.append(cqueryWhere + groupBy + "ORDER BY dis.payment_mode");
-			List<OrderStatisticDTO> dtos = jdbcTemplate.query(vQuery.toString(), new RowMapper<OrderStatisticDTO>() {
+			log.info("Executing query for base stats, query is: {} ", vQuery);
+			List<OrderStatisticDTO> dtos = jdbcTemplate.query(vQuery.toString(), new Object[] {shopId}, new RowMapper<OrderStatisticDTO>() {
 				@Override
 				public OrderStatisticDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
 					OrderStatisticDTO or = new OrderStatisticDTO();
@@ -576,6 +577,7 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 			results.add(odb);
 
 		} catch (Exception e) {
+			log.info("Exception while getting base stats based on shop id: {}, exception is: {}", shopId, e);
 		}
 	}
 
