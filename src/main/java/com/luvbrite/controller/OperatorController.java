@@ -113,7 +113,8 @@ public class OperatorController {
 				}
 				response.setCode(400);
 				response.setStatus("Bad Request");
-				response.setMessage("something went wrong.please try again late");
+				response.setMessage("something went wrong.please try again later");
+
 				return new ResponseEntity<>(response, HttpStatus.OK);
 			}
 			response.setCode(401);

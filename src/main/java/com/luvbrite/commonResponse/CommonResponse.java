@@ -20,6 +20,7 @@ public class CommonResponse implements Serializable{
 	private static final long serialVersionUID = 3209314339580785570L;
 
 	
+	
 	private Integer code;
 	private String status;
 	private String message;

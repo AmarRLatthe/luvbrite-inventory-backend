@@ -43,17 +43,19 @@ public class ShopController {
 				shopDTO.setCreatedBy(userDetails.getId());
 				log.info("Shop DTO is {}", shopDTO);
 				return validateNCreateShop(shopDTO, commonResponse);
+
 			}
 			commonResponse.setCode(401);
 			commonResponse.setStatus("Unauthorized");
 			commonResponse.setMessage("Please try to login and try again");
-			return new ResponseEntity<>(commonResponse,HttpStatus.OK);
+			return new ResponseEntity<>(commonResponse, HttpStatus.OK);
 		} catch (Exception e) {
 			commonResponse.setCode(500);
 			commonResponse.setMessage("Shop is not created.please try again later.");
 			commonResponse.setStatus("SERVER ERROR");
-			log.error("Message is {} and exception is {}",e.getMessage(),e);
-			return new ResponseEntity<>(commonResponse,HttpStatus.OK);
+			log.error("Message is {} and exception is {}", e.getMessage(), e);
+			return new ResponseEntity<>(commonResponse, HttpStatus.OK);
+
 		}
 	}
 
@@ -77,6 +79,7 @@ public class ShopController {
 			commonResponse.setMessage("Invalid Details");
 			commonResponse.setData(isvalidate);
 			return new ResponseEntity<>(commonResponse, HttpStatus.OK);
+
 		}
 	}
 }

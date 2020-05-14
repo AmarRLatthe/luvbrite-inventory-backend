@@ -20,6 +20,7 @@ public class ShopServiceImpl implements IShopService {
 
 	@Autowired
 	private IShopRepository iShopRepository;
+	
 	@Autowired
 	private IUserRepository iUserRepository;
 
@@ -34,7 +35,7 @@ public class ShopServiceImpl implements IShopService {
 		
 		try {
 			map.put("isValid", true);	
-			if(shopDTO.getUserName()==null) {
+			if(shopDTO.getUserName() == null) {
 				map.put("username", "username should not be empty");
 				map.put("isValid", false);
 			}else {

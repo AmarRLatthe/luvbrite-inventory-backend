@@ -35,7 +35,9 @@ public class UserRepositoryImpl implements IUserRepository {
 					.append("FROM  USER_DETAILS ")
 					.append("LEFT JOIN SHOPS ON USER_DETAILS.shop_id = SHOPS.id ")
 					.append(" LEFT JOIN USER_TYPE_DETAILS ON USER_TYPE_DETAILS.id = USER_DETAILS.user_type_id WHERE LOWER(USER_DETAILS.username) = ")
-					.append("LOWER('").append(username).append("')");
+					.append("LOWER('")
+					.append(username)
+					.append("')");
 			UserDetails userDetails = jdbcTemplate.queryForObject(builder.toString(), new RowMapper<UserDetails>() {
 
 				@Override
@@ -46,7 +48,6 @@ public class UserRepositoryImpl implements IUserRepository {
 					userDetails.setOwnerId(rs.getInt("owner_id"));
 					userDetails.setShopId(rs.getInt("shop_id"));
 					userDetails.setUserTypeId(rs.getInt("user_type_id"));
-
 					userDetails.setUsername(rs.getString("username"));
 					userDetails.setPassword(rs.getString("password"));
 					userDetails.setEmail(rs.getString("email"));
@@ -55,6 +56,7 @@ public class UserRepositoryImpl implements IUserRepository {
 					userDetails.setIsActive(rs.getBoolean("is_active"));
 					userDetails.setCreatedAt(rs.getString("date"));
 					String role = rs.getString("user_role_name");
+					
 					List<String> roles = new ArrayList<>();
 					roles.add(role);
 					userDetails.setUserRoles(roles);
@@ -64,10 +66,15 @@ public class UserRepositoryImpl implements IUserRepository {
 			});
 			StringBuilder custRoleQuery = new StringBuilder();
 			if (userDetails.getId() != null) {
-				custRoleQuery.append(" SELECT ").append(" func_role_name ").append(" FROM custom_roles_details ")
-						.append(" JOIN user_custom_roles ON custom_roles_details.id = user_custom_roles.custom_role_id ")
-						.append(" JOIN user_details ON user_details.id = user_custom_roles.user_id ").append(" WHERE ")
-						.append(" user_details.id = ").append(userDetails.getId());
+				custRoleQuery.append(" SELECT ")
+				             .append(" func_role_name ")
+				             .append(" FROM custom_roles_details ")
+					      	 .append(" JOIN user_custom_roles ON custom_roles_details.id = user_custom_roles.custom_role_id ")
+						     .append(" JOIN user_details ON user_details.id = user_custom_roles.user_id ")
+						     .append(" WHERE ")
+						     .append(" user_details.id = ")
+						     .append(userDetails.getId());
+		
 				List<String> customRoles = jdbcTemplate.queryForList(custRoleQuery.toString(), String.class);
 
 				if (customRoles != null && !customRoles.isEmpty()) {
