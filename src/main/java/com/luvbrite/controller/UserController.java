@@ -12,6 +12,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @RequestMapping("/api/user/")
 @Slf4j
+@CrossOrigin(allowedHeaders = "*",origins = "*")
 public class UserController {
 
 	@Autowired
@@ -58,9 +60,10 @@ public class UserController {
 					String token = jwtTokenProvider.createToken(username, userDetails.getUserRoles());
 
 					Map<Object, Object> model = new HashMap<>();
-					
+					model.put("isLoggedIn",true);
 					model.put("username", userDetails.getUsername());
 					model.put("token", token);
+					model.put("userType",userDetails.getUserType());
 					return ok(model);
 				}
 

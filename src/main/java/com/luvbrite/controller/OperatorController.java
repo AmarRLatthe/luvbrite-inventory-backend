@@ -8,7 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,8 +23,8 @@ import com.luvbrite.service.IUserService;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping("/api/operator/")
 @Slf4j
+@RequestMapping("/api/operator/")
 public class OperatorController {
 
 	@Autowired
@@ -95,6 +97,7 @@ public class OperatorController {
 		}
 	}
 
+	
 	@GetMapping("/getAllOperatorsByShop")
 	public ResponseEntity<CommonResponse> getAllOperatorsByShop(Authentication authentication) {
 		CommonResponse response = new CommonResponse();
@@ -124,5 +127,47 @@ public class OperatorController {
 			response.setStatus("SERVER ERROR");
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		}
+	}
+	
+	
+	@PutMapping("/updateOperatorById/{id}")
+	public ResponseEntity<CommonResponse> updateOperatorById(@PathVariable("id") int id ,@RequestBody UserDetails operator, Authentication authentication){
+		CommonResponse response = new CommonResponse();
+		try {
+			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
+			if (userDetails != null) {
+				if (userDetails.getId() == 1 || userDetails.getShopId() == 1) {
+					if (id!=1 && operator.getUserType().equals("MANAGER")) {
+						operator.setUserType("MAIN MANAGER");
+					}
+					if (id==1 && !operator.getUserType().equals("MAIN ADMIN")) {
+						operator.setUserType("MAIN ADMIN");
+					}
+					
+				} 
+				int update = iOperatorService.updateOperatorById(id, operator);
+				if(update>0) {
+					response.setCode(200);
+					response.setStatus("OK");
+					response.setMessage("operator data is updated Successfully");
+					return new ResponseEntity<>(response,HttpStatus.OK);
+				}
+				response.setCode(422);
+				response.setStatus("Unprocessable");
+				response.setMessage("Operator data is not updated");
+				return new ResponseEntity<>(response,HttpStatus.OK);
+			}
+			response.setCode(401);
+			response.setStatus("Unauthorized");
+			response.setMessage("Please try to login and try again");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (Exception e) {
+			response.setCode(500);
+			response.setMessage("Operator is not created.please try again later.");
+			response.setStatus("SERVER ERROR");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+		
+
 	}
 }

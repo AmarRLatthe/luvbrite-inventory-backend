@@ -10,4 +10,6 @@ public interface IOperatorRepository {
 
 	List<UserDetails> getOperatorsDataByShopId(Integer shopId);
 
+	int updateOperatorById(int id, UserDetails operator);
+
 }

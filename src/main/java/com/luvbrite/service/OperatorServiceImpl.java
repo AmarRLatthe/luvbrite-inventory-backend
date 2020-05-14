@@ -61,7 +61,7 @@ public class OperatorServiceImpl implements IOperatorService {
 				}
 			}
 			if(operator.getPassword()==null) {
-				map.put("password", "password should not be empty");
+				map.put("pwdErr", "password should not be empty");
 				map.put("isValid", false);
 			}
 			if(operator.getEmail()!=null){
@@ -78,6 +78,17 @@ public class OperatorServiceImpl implements IOperatorService {
 			map.put("message","Something went Wrong. please try again later.");
 			return map;
 		}
+	}
+
+	@Override
+	public int updateOperatorById(int id, UserDetails operator) {
+		try {
+			return iOperatorRepository.updateOperatorById(id,operator);
+		} catch (Exception e) {
+			log.info("message is {} and exception is {}",e.getMessage(),e);
+			return -1;
+		}
+
 	}
 
 }

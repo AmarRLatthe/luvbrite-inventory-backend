@@ -55,6 +55,7 @@ public class DriverRepositoryImpl implements IDriverRepository{
 				public DriverDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
 					DriverDTO dto = new DriverDTO();
 					dto.setDriverName(rs.getString("driver_name"));
+					dto.setUserName(rs.getString("user_name"));
 					dto.setPhoneNumber(rs.getString("phone_number"));
 					dto.setStatus(rs.getInt("status"));
 					dto.setDateAdded(rs.getString("date"));

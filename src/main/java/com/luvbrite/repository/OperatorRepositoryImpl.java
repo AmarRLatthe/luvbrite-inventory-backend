@@ -33,9 +33,9 @@ public class OperatorRepositoryImpl implements IOperatorRepository {
 		try {
 			StringBuilder saveOperatorQry = new StringBuilder();
 			saveOperatorQry.append(" INSERT INTO user_details ")
-					.append(" ( email, password, username, owner_id, shop_id, user_type_id,  created_by) ")
-					.append(" VALUES (?, ?, ?, ?, ?, (SELECT id FROM user_type_details WHERE user_type= ?), ?) ");
-			return jdbcTemplate.update(saveOperatorQry.toString(), operator.getEmail(),
+					.append(" ( name,email, password, username, owner_id, shop_id, user_type_id,  created_by) ")
+					.append(" VALUES (?,?, ?, ?, ?, ?, (SELECT id FROM user_type_details WHERE user_type= ?), ?) ");
+			return jdbcTemplate.update(saveOperatorQry.toString(), operator.getName(),operator.getEmail(),
 					"{bcrypt}"+bCryptPasswordEncoder.encode(operator.getPassword()), operator.getUsername(), operator.getOwnerId(),
 					operator.getShopId(), operator.getUserType(), operator.getCreatedBy());
 		} catch (Exception e) {
@@ -66,6 +66,7 @@ public class OperatorRepositoryImpl implements IOperatorRepository {
 					UserDetails user = new UserDetails();
 					
 					user.setId(rs.getInt("id"));
+					user.setName(rs.getString("name"));
 					user.setOwnerId(rs.getInt("owner_id"));
 					user.setShopId(rs.getInt("shop_id"));
 					user.setUserTypeId(rs.getInt("user_type_id"));
@@ -82,6 +83,35 @@ public class OperatorRepositoryImpl implements IOperatorRepository {
 			log.error("Message is {} and Exception is {}",e.getMessage(),e);
 			return Collections.emptyList();
 		}
+	}
+
+	@Override
+	public int updateOperatorById(int id, UserDetails operator) {
+		try {
+			StringBuilder updateOperator = new StringBuilder();
+			updateOperator.append("UPDATE user_details ")
+					.append(" SET ")
+					.append(" email= ?, ")
+					.append(" username= ?, ")
+					.append("  user_type_id= ")
+					.append(" ( SELECT id  ")
+					.append(" FROM user_type_details WHERE user_type = ? ) ,")
+					.append(" name=? ")
+					.append(" WHERE ")
+					.append(" id = ?");
+			
+			return jdbcTemplate.update(updateOperator.toString(),
+										new Object[] {
+												operator.getEmail(),
+												operator.getUsername(),
+												operator.getUserType(),
+												operator.getName(),
+												id
+										});
+		} catch (Exception e) {
+			log.error("Message is {} and Exception is {}",e.getMessage(),e);
+			return -1;
+		}	
 	}
 
 }

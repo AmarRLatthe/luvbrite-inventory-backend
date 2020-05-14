@@ -41,7 +41,7 @@ public class UserRepositoryImpl implements IUserRepository {
 				@Override
 				public UserDetails mapRow(ResultSet rs, int rowNum) throws SQLException {
 					UserDetails userDetails = new UserDetails();
-
+					userDetails.setName(rs.getString("name"));
 					userDetails.setId(rs.getInt("id"));
 					userDetails.setOwnerId(rs.getInt("owner_id"));
 					userDetails.setShopId(rs.getInt("shop_id"));

@@ -13,4 +13,6 @@ public interface IOperatorService {
 
 	Map<String, Object> validateOperator(UserDetails operator);
 
+	int updateOperatorById(int id, UserDetails operator);
+
 }

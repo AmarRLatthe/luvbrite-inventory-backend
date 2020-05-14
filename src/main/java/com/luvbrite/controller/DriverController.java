@@ -59,6 +59,9 @@ public class DriverController {
 	private ResponseEntity<CommonResponse> validateNSaveDriver(DriverDTO driver, CommonResponse response) {
 		Map<String, Object> isvalidate = iDriverService.validateOperator(driver);
 		if ((boolean) isvalidate.get("isValid")) {
+			if(driver.getUserName()==null) {
+				driver.setUserName(driver.getDriverName());
+			}
 			int addDriver = iDriverService.saveDriver(driver);
 			log.info("driver saved?? {}", addDriver);
 			if (addDriver > 0) {
