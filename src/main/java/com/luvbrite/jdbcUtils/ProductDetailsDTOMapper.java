@@ -16,7 +16,7 @@ public class ProductDetailsDTOMapper implements RowMapper<ProductDetailsDTO> {
 		productDetailsDTO.setCategory_id(rs.getInt("categoryId"));
 		productDetailsDTO.setTotal_purchase_weight(rs.getDouble("purchased"));
 		productDetailsDTO.setStrain_name(rs.getString("strain_name"));
-		productDetailsDTO.setStrainid(rs.getInt("id"));
+		productDetailsDTO.setStrainid(rs.getInt("strainid"));
 		productDetailsDTO.setCategoryName(rs.getString("category_name"));
 		productDetailsDTO.setTotal_purchase_qty(rs.getDouble("quantity"));
 		return productDetailsDTO;

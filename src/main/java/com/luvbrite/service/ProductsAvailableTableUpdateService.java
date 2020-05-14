@@ -17,6 +17,10 @@ public class ProductsAvailableTableUpdateService implements IProductsAvailableTa
 
 	public boolean updateProductsAvailable(ProductDetailsDTO productDetailsDTO,Integer shopId) throws Exception {
 
+		if(productDetailsDTO==null) {
+			log.error("ProductDetailsDTO is null");
+		}
+		
 		StringBuffer productsAvailableUpdateQry = new StringBuffer();
 		
 		productsAvailableUpdateQry
@@ -34,7 +38,7 @@ public class ProductsAvailableTableUpdateService implements IProductsAvailableTa
 	    .append("returned=?,")
 	    .append("adjusted=? ")
 	    .append("WHERE product_id=?")
-	    .append("AND")
+	    .append("AND ")
 	    .append("WHERE shop_id=?");
 
 		int i = jdbcTemplate.update(productsAvailableUpdateQry.toString(),
@@ -47,7 +51,7 @@ public class ProductsAvailableTableUpdateService implements IProductsAvailableTa
 					 	      productDetailsDTO.getReturned(), 
 					 	      productDetailsDTO.getAdjustment(),
 						      productDetailsDTO.getProduct_id(),
-						      shopId});
+						      shopId });
 
 		if (i == 0) {
 			log.error("was not able to update product_available table sucessfully");
