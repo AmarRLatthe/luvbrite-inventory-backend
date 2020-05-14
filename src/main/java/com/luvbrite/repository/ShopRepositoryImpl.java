@@ -25,18 +25,30 @@ public class ShopRepositoryImpl implements IShopRepository {
 	@Override
 	public int saveShop(CreateShopDTO shopDTO) {
 		try {
-			String shopQuery = "INSERT INTO SHOPS (shop_name,created_by) VALUES (?,?) returning id";
+			String shopQuery = "INSERT INTO SHOPS (shop_name,created_by,domain) VALUES (?,?,?) returning id";
 			Integer shopid = jdbcTemplate.queryForObject(shopQuery,
-					new Object[] { shopDTO.getShopName(), shopDTO.getCreatedBy() }, Integer.class);
+					new Object[] { shopDTO.getShopName(), shopDTO.getCreatedBy() ,shopDTO.getDomain()}, Integer.class);
 
 			String password = "{bcrypt}" + new BCryptPasswordEncoder().encode(shopDTO.getPassword());
 
 			StringBuilder userAddQry = new StringBuilder();
 			userAddQry.append("INSERT INTO user_details ")
-					.append(" ( email, password, username, owner_id, shop_id, user_type_id,created_by ) ")
-					.append("VALUES ( '").append(shopDTO.getEmail()).append("' , '").append(password).append("' , '")
-					.append(shopDTO.getUserName()).append("' , ").append(shopDTO.getOwnerId()).append(" , ")
-					.append(shopid.toString()).append(" , ").append(shopDTO.getUserTypeId()).append(" , ")
+					.append(" ( name,email, password, username, owner_id, shop_id, user_type_id,created_by ) ")
+					.append("VALUES ( '")
+					.append(shopDTO.getFullName())
+					.append("' , '")
+					.append(shopDTO.getEmail())
+					.append("' , '")
+					.append(password)
+					.append("' , '")
+					.append(shopDTO.getUserName())
+					.append("' , ")
+					.append(shopDTO.getOwnerId())
+					.append(" , ")
+					.append(shopid.toString())
+					.append(" , ")
+					.append(shopDTO.getUserTypeId())
+					.append(" , ")
 					.append(shopDTO.getCreatedBy()).append(" ) RETURNING id");
 
 			Integer userId = jdbcTemplate.queryForObject(userAddQry.toString(), Integer.class);

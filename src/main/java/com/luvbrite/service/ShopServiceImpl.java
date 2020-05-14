@@ -47,7 +47,7 @@ public class ShopServiceImpl implements IShopService {
 				}
 			}
 			if(shopDTO.getPassword()==null) {
-				map.put("password", "username should not be empty");
+				map.put("pwdErr", "username should not be empty");
 				map.put("isValid", false);
 			}
 			if(shopDTO.getShopName()==null) {
