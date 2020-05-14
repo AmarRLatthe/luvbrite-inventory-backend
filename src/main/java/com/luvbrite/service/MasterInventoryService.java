@@ -1,26 +1,16 @@
 package com.luvbrite.service;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowCallbackHandler;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
-
 import com.luvbrite.jdbcUtils.ProductCountAndWeightOfPurchaseMapper;
 import com.luvbrite.jdbcUtils.ProductDetailsDTOMapper;
 import com.luvbrite.jdbcUtils.ReturnedAndAdjustProductMapper;
 import com.luvbrite.model.AdjustedAndReturnedDTO;
 import com.luvbrite.model.ProductCountAndWeightOfPurchase;
 import com.luvbrite.model.ProductDetailsDTO;
-import com.luvbrite.model.PurchaseDTO;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -33,7 +23,7 @@ public class MasterInventoryService {
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
-	public boolean updateProductsAvailable(Integer salesID, Integer shopId) {
+	public boolean updateProductsAvailable(Integer salesID, Integer shopId) throws Exception {
 		List<Integer> listOfDistinctProdIds = new ArrayList<Integer>();
 
 		int tot_returnd = 0;
@@ -49,19 +39,18 @@ public class MasterInventoryService {
 		try {
 			ArrayList<ProductDetailsDTO> productDetailsList = new ArrayList<ProductDetailsDTO>();
 
-			StringBuffer sql_distinctPurchaseIdsForSalesId = new StringBuffer();
+			StringBuilder sql_distinctPurchaseIdsForSalesId = new StringBuilder();
 			sql_distinctPurchaseIdsForSalesId.append("SELECT DISTINCT purchase_id  FROM packet_inventory ")
-					.append("WHERE sales_id = ?");
-			// .append(" AND shop_id = ?");
+					.append("WHERE sales_id = ?")
+			.append(" AND shop_id = ?");
 
 			List<Integer> distinctPurchaseIdsForSalesIds = null;
 			distinctPurchaseIdsForSalesIds = jdbcTemplate.queryForList(sql_distinctPurchaseIdsForSalesId.toString(),
-					new Object[] { salesID }, Integer.class);
+					new Object[] { salesID ,shopId}, Integer.class);
 
 			log.info("Query  sql_distinctPurchaseIdsForSalesId :: "+sql_distinctPurchaseIdsForSalesId);
 			log.info("Size of list distinctPurchaseIdsForSalesIds :: " + distinctPurchaseIdsForSalesIds.size());
 
-			int count = 0;
 			for (Integer salesPurchaseId : distinctPurchaseIdsForSalesIds) {
 				String sql_productForPurchaseId = "SELECT product_id FROM purchase_inventory WHERE id = ?";
 
@@ -79,7 +68,6 @@ public class MasterInventoryService {
 					String sql_listOfPurchaseIdsForProd = "SELECT id FROM purchase_inventory WHERE product_id =  "
 							+ productId + " AND id > 204026  ";
 
-					log.info("Query sql_listOfPurchaseIdsForProd ::" + sql_listOfPurchaseIdsForProd);
 
 					List<Integer> listOfPurchaseIdsForProducts = jdbcTemplate.queryForList(sql_listOfPurchaseIdsForProd,
 							null, Integer.class);
@@ -88,7 +76,7 @@ public class MasterInventoryService {
 
 					for (Integer productPurchaseID : listOfPurchaseIdsForProducts) {
 
-						StringBuffer qryBuffer = new StringBuffer();
+						StringBuilder qryBuffer = new StringBuilder();
 
 						qryBuffer.append(
 								"SELECT pi.growth_condition, pi.quantity, (pi.quantity*pi.weight_in_grams) AS purchased, ")
@@ -104,14 +92,11 @@ public class MasterInventoryService {
 								.append("JOIN strains s on p.strain_id = s.id ")
 								.append("WHERE pi.id = ?");
 
-						log.info("qryBuffer :: "+qryBuffer.toString());
-						log.info("productPurchaseID :: "+productPurchaseID);
-						childProductDetailsDTO = (ProductDetailsDTO) jdbcTemplate.queryForObject(qryBuffer.toString(),
+						childProductDetailsDTO =  jdbcTemplate.queryForObject(qryBuffer.toString(),
 								new Object[] { productPurchaseID }, new ProductDetailsDTOMapper());
 
-						if (childProductDetailsDTO != null) {
-							log.error("childProductDetailsDTO is NOT null");
-						}
+						if (childProductDetailsDTO == null) {log.error("ProducDetails Object is null");  return false;}
+						
 
 						int soldCount = 0;
 
@@ -119,7 +104,7 @@ public class MasterInventoryService {
 
 						totpurchase_qty = childProductDetailsDTO.getTotal_purchase_qty() + totpurchase_qty;
 
-						StringBuffer strTotalCountAndWeightOfAProduct = new StringBuffer();
+						StringBuilder strTotalCountAndWeightOfAProduct = new StringBuilder();
 						strTotalCountAndWeightOfAProduct.append("SELECT COUNT(id), SUM(weight_in_grams) ")
 								.append("FROM packet_inventory ").append("WHERE purchase_id = ").append("?");
 
@@ -130,7 +115,7 @@ public class MasterInventoryService {
 						totpacked_wt = productCountAndPurchase.getTotalWeight() + totpacked_wt;
 						totpackets_qty = productCountAndPurchase.getCount() + totpackets_qty;
 
-						StringBuffer strTotalCountAndWeightOfAReturnedProduct = new StringBuffer();
+						StringBuilder strTotalCountAndWeightOfAReturnedProduct = new StringBuilder();
 						strTotalCountAndWeightOfAReturnedProduct.append("SELECT COUNT(id), SUM(weight_in_grams) ")
 								.append("FROM packet_inventory ").append("AND returns_detail_id = 0 ")
 								.append("AND purchase_id =  ").append("?");
@@ -143,8 +128,9 @@ public class MasterInventoryService {
 						totsold_wt = totsold_wt + soldProductCountAndWeight.getTotalWeight();
 						totsold_qty = totsold_qty + soldCount;
 
-						StringBuffer adjustedAndReturned = new StringBuffer();
-						adjustedAndReturned.append(" WITH ").append("returned AS  ")
+						StringBuilder adjustedAndReturned = new StringBuilder();
+						adjustedAndReturned.append(" WITH ")
+						        .append("returned AS  ")
 								.append("(SELECT COUNT(*) AS tot_returned ")
 								.append(" FROM packet_inventory ")
 								.append(" WHERE returns_detail_id > 0 AND purchase_id IN ")
@@ -171,8 +157,6 @@ public class MasterInventoryService {
 
 						childProductDetailsDTO.setReturned(tot_returnd);
 						childProductDetailsDTO.setReturned(tot_adjusted);
-
-						count++;
 					
 
 					}
@@ -200,11 +184,12 @@ public class MasterInventoryService {
 					tot_adjusted = 0;
 					tot_returnd = 0;
 				}
-//End
+
 			}
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Exception occured while maintaing master table ", e);
+			throw e;
 		}
 		return false;
 	}
@@ -224,7 +209,7 @@ public class MasterInventoryService {
 		ProductDetailsDTO childProductDetailsDTO = null;
 		ArrayList<ProductDetailsDTO> productDetailsList = new ArrayList<ProductDetailsDTO>();
 		
-		StringBuffer sql_listOfPurchaseIdsForProd  = new StringBuffer();
+		StringBuilder sql_listOfPurchaseIdsForProd  = new StringBuilder();
 		sql_listOfPurchaseIdsForProd
 		.append("SELECT")
 		.append("id ")
@@ -248,7 +233,7 @@ public class MasterInventoryService {
 
 		for (Integer productPurchaseID : listOfPurchaseIdsForProducts) {
 
-			StringBuffer qryBuffer = new StringBuffer();
+			StringBuilder qryBuffer = new StringBuilder();
 
 			qryBuffer.append(
 					"SELECT pi.growth_condition, pi.quantity, (pi.quantity*pi.weight_in_grams) AS purchased, ")
@@ -269,9 +254,7 @@ public class MasterInventoryService {
 			childProductDetailsDTO = (ProductDetailsDTO) jdbcTemplate.queryForObject(qryBuffer.toString(),
 					new Object[] { productPurchaseID }, new ProductDetailsDTOMapper());
 
-			if (childProductDetailsDTO != null) {
-				log.error("childProductDetailsDTO is NOT null");
-			}
+			if (childProductDetailsDTO == null) {log.error("ProducDetails Object is null");  return ;}
 
 			int soldCount = 0;
 
@@ -279,7 +262,7 @@ public class MasterInventoryService {
 
 			totpurchase_qty = childProductDetailsDTO.getTotal_purchase_qty() + totpurchase_qty;
 
-			StringBuffer strTotalCountAndWeightOfAProduct = new StringBuffer();
+			StringBuilder strTotalCountAndWeightOfAProduct = new StringBuilder();
 			strTotalCountAndWeightOfAProduct.append("SELECT COUNT(id), SUM(weight_in_grams) ")
 					.append("FROM packet_inventory ").append("WHERE purchase_id = ").append("?");
 
@@ -290,7 +273,7 @@ public class MasterInventoryService {
 			totpacked_wt = productCountAndPurchase.getTotalWeight() + totpacked_wt;
 			totpackets_qty = productCountAndPurchase.getCount() + totpackets_qty;
 
-			StringBuffer strTotalCountAndWeightOfAReturnedProduct = new StringBuffer();
+			StringBuilder strTotalCountAndWeightOfAReturnedProduct = new StringBuilder();
 			strTotalCountAndWeightOfAReturnedProduct.append("SELECT COUNT(id), SUM(weight_in_grams) ")
 					.append("FROM packet_inventory ").append("AND returns_detail_id = 0 ")
 					.append("AND purchase_id =  ").append("?");
@@ -303,7 +286,7 @@ public class MasterInventoryService {
 			totsold_wt = totsold_wt + soldProductCountAndWeight.getTotalWeight();
 			totsold_qty = totsold_qty + soldCount;
 
-			StringBuffer adjustedAndReturned = new StringBuffer();
+			StringBuilder adjustedAndReturned = new StringBuilder();
 			adjustedAndReturned.append(" WITH ").append("returned AS  ")
 					.append("(SELECT COUNT(*) AS tot_returned ")
 					.append(" FROM packet_inventory ")
@@ -340,6 +323,7 @@ public class MasterInventoryService {
 			double totalremaining_qty = totpackets_qty + tot_adjusted - totsold_qty - tot_returnd;
 			childProductDetailsDTO.setTotal_remain_qty(totalremaining_qty);
 
+			// Updating products available table
 			updateProductAvailableService.updateProductsAvailable(childProductDetailsDTO, shopId);
 		} else {
 			log.info("Product Details is  null");
@@ -347,15 +331,9 @@ public class MasterInventoryService {
 
 		productDetailsList.add(childProductDetailsDTO);
 
-		// Updating products available table
+		
 
-		totpurchase_qty = 0d;
-		totpackets_qty = 0d;
-		totsold_qty = 0d;
-		totpacked_wt = 0d;
-		totsold_wt = 0d;
-		tot_adjusted = 0;
-		tot_returnd = 0;
+	
 	}
 
 

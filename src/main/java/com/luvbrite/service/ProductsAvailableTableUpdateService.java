@@ -17,9 +17,7 @@ public class ProductsAvailableTableUpdateService implements IProductsAvailableTa
 
 	public boolean updateProductsAvailable(ProductDetailsDTO productDetailsDTO,Integer shopId) throws Exception {
 
-		if(productDetailsDTO==null) {
-			log.error("ProductDetailsDTO is null");
-		}
+		if(productDetailsDTO==null) {log.error("productDetailsDTO obj is null"); return false; }
 		
 		StringBuffer productsAvailableUpdateQry = new StringBuffer();
 		

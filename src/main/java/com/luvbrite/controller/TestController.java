@@ -17,7 +17,7 @@ MasterInventoryService masterService;
 	@GetMapping("/test/api")
 	public ResponseEntity<CommonResponse> TestApi(){
 		
-		masterService.updateProductsAvailable(37337, 0);
+		//masterService.updateProductsAvailable(37337, 0);
 		return null;
 		
 	}
