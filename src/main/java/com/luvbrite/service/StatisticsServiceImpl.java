@@ -45,6 +45,4 @@ public class StatisticsServiceImpl implements IStatisticsService {
 	public List<SalesProfitDataExtDTO> getSalesProfitInfo(String startDate, String endDate) {
 		return iStatisticsRepository.getSalesProfitData(startDate, endDate);
 	}
-	
-	
 }

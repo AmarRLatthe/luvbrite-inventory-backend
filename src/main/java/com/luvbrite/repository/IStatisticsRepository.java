@@ -5,6 +5,7 @@ import java.util.List;
 import com.luvbrite.model.OrderBreakDownDTO;
 import com.luvbrite.model.SalesProfitDataExtDTO;
 
+
 public interface IStatisticsRepository {
 
 	public List<OrderBreakDownDTO> getBaseStatsData(int shopId);

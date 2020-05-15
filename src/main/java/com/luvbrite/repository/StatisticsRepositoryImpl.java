@@ -15,7 +15,6 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-
 import com.luvbrite.model.CommonSalesProfitDTO;
 import com.luvbrite.model.DriverStatDTO;
 import com.luvbrite.model.OrderBreakDownDTO;
@@ -25,7 +24,6 @@ import com.luvbrite.model.StatisticsDTO;
 import com.luvbrite.model.Routine;
 import com.luvbrite.model.SalesProfitDataDTO;
 import com.luvbrite.model.SalesProfitDataExtDTO;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Repository

@@ -193,7 +193,7 @@ public class StatisticsController {
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		}
 	}
-	
+
 	@GetMapping("/getsalesprofit")
 	public ResponseEntity<CommonResponse> getSalesProfitData(@RequestParam String startDate, @RequestParam String endDate, 
 			Authentication authentication) {

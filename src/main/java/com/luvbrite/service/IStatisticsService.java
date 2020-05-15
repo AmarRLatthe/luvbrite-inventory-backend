@@ -5,6 +5,7 @@ import java.util.List;
 import com.luvbrite.model.OrderBreakDownDTO;
 import com.luvbrite.model.SalesProfitDataExtDTO;
 
+
 public interface IStatisticsService {
 
 	public List<OrderBreakDownDTO> getBaseStatisticsData(int shopId);
@@ -17,6 +18,6 @@ public interface IStatisticsService {
 
 	public List<OrderBreakDownDTO> getOrderStatData(String startDate, String endDate, String showFirstOrder,
 			String paymentMode);
-	
+
 	public List<SalesProfitDataExtDTO> getSalesProfitInfo(String startDate, String endDate);
 }
