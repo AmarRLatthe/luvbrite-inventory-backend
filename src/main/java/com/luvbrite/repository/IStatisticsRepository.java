@@ -3,6 +3,7 @@ package com.luvbrite.repository;
 import java.util.List;
 
 import com.luvbrite.model.OrderBreakDownDTO;
+import com.luvbrite.model.SalesProfitDataExtDTO;
 
 public interface IStatisticsRepository {
 
@@ -16,4 +17,6 @@ public interface IStatisticsRepository {
 			String paymentMode);
 	
 	public List<OrderBreakDownDTO> getCustomerStats(String startDate, String endDate);
+	
+	public List<SalesProfitDataExtDTO> getSalesProfitData(String startDate, String endDate);
 }

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.luvbrite.model.OrderBreakDownDTO;
+import com.luvbrite.model.SalesProfitDataExtDTO;
 import com.luvbrite.repository.IStatisticsRepository;
 
 @Service
@@ -38,6 +39,11 @@ public class StatisticsServiceImpl implements IStatisticsService {
 	public List<OrderBreakDownDTO> getOrderStatData(String startDate, String endDate, String showFirstOrder,
 			String paymentMode) {
 		return iStatisticsRepository.getOrderStats(startDate, endDate, showFirstOrder, paymentMode);
+	}
+	
+	@Override
+	public List<SalesProfitDataExtDTO> getSalesProfitInfo(String startDate, String endDate) {
+		return iStatisticsRepository.getSalesProfitData(startDate, endDate);
 	}
 	
 	

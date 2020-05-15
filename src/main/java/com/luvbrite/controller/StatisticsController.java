@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.luvbrite.commonResponse.CommonResponse;
 import org.springframework.web.bind.annotation.RequestParam;
 import com.luvbrite.model.OrderBreakDownDTO;
+import com.luvbrite.model.SalesProfitDataExtDTO;
 import com.luvbrite.model.UserDetails;
 import com.luvbrite.service.IStatisticsService;
 import com.luvbrite.service.IUserService;
@@ -94,7 +95,7 @@ public class StatisticsController {
 		}
 	}
 	
-	@GetMapping("getstatbydriverid")
+	@GetMapping("/getstatbydriverid")
 	public ResponseEntity<CommonResponse> getStatisticsByDriverId(@RequestParam String startDate, 
 			@RequestParam String endDate, @RequestParam String driverId, Authentication authentication) {
 		CommonResponse response = new CommonResponse();
@@ -127,7 +128,7 @@ public class StatisticsController {
 		}
 	}
 	
-	@GetMapping("getorderstats")
+	@GetMapping("/getorderstats")
 	public ResponseEntity<CommonResponse> getOrderStats(@RequestParam String startDate, @RequestParam String endDate, 
 			@RequestParam String showFirstOrder, @RequestParam(required = false) String paymentMode, Authentication authentication) {
 		CommonResponse response = new CommonResponse();
@@ -160,7 +161,7 @@ public class StatisticsController {
 		}
 	}
 	
-	@GetMapping("getcuststats")
+	@GetMapping("/getcuststats")
 	public ResponseEntity<CommonResponse> getCustStats(@RequestParam String startDate, @RequestParam String endDate, 
 			Authentication authentication) {
 		CommonResponse response = new CommonResponse();
@@ -188,6 +189,39 @@ public class StatisticsController {
 			log.error("Message is {} and Exception is {}" + e.getMessage(), e);
 			response.setCode(500);
 			response.setMessage("Customer statistics data is not able to get. please try again later.");
+			response.setStatus("SERVER ERROR");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+	}
+	
+	@GetMapping("/getsalesprofit")
+	public ResponseEntity<CommonResponse> getSalesProfitData(@RequestParam String startDate, @RequestParam String endDate, 
+			Authentication authentication) {
+		CommonResponse response = new CommonResponse();
+
+		try {
+			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
+			if (userDetails != null) {
+				List<SalesProfitDataExtDTO> list = iStatisticsService.getSalesProfitInfo(startDate, endDate);
+				if (list != null && !list.isEmpty()) {
+					response.setCode(200);
+					response.setStatus("SUCCESS");
+					response.setData(list);
+					return new ResponseEntity<>(response, HttpStatus.OK);
+				}
+				response.setCode(400);
+				response.setStatus("Bad Request");
+				response.setMessage("Something went wrong. Please try again later");
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}
+			response.setCode(401);
+			response.setStatus("Unauthorized");
+			response.setMessage("Please try to login and try again");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (Exception e) {
+			log.error("Message is {} and Exception is {}" + e.getMessage(), e);
+			response.setCode(500);
+			response.setMessage("Sales profit data is not able to get. please try again later.");
 			response.setStatus("SERVER ERROR");
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		}

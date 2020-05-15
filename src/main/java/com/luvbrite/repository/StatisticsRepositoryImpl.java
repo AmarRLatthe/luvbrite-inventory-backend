@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,12 +16,15 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import com.luvbrite.model.CommonSalesProfitDTO;
 import com.luvbrite.model.DriverStatDTO;
 import com.luvbrite.model.OrderBreakDownDTO;
 import com.luvbrite.model.OrderStatDTO;
 import com.luvbrite.model.OrderStatisticDTO;
 import com.luvbrite.model.StatisticsDTO;
 import com.luvbrite.model.Routine;
+import com.luvbrite.model.SalesProfitDataDTO;
+import com.luvbrite.model.SalesProfitDataExtDTO;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -495,6 +499,133 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 		return results;
 	}
 
+	@Override
+	public List<SalesProfitDataExtDTO> getSalesProfitData(String startDate, String endDate) {
+		List<SalesProfitDataExtDTO> results = new ArrayList<SalesProfitDataExtDTO>();
+		log.info("Inside get sales profit info ::::::::::::::: ");
+		String dateQuery = "TO_CHAR(date_sold, 'YYYY - MM') AS date_formatted, ";
+		SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyyy");
+
+		try {
+
+			Date startDt = sdf.parse(startDate);
+			Date endDt;
+
+			/**
+			 * Date calculations
+			 */
+			if (endDate.trim().equals("")) {
+				Calendar now = Calendar.getInstance();
+				endDt = now.getTime();
+				endDate = sdf.format(endDt);
+			} else {
+				endDt = sdf.parse(endDate);
+			}
+
+			/**
+			 * Since we have to list so many data, we change the grouping as the date range
+			 * increases. So if its < 20, we group by days if its < 140, we group by
+			 * month/week if its >= 140, we group by year/month
+			 *
+			 */
+			// Calculate the date difference
+			long timeDiff = endDt.getTime() - startDt.getTime();
+			long diffDays = timeDiff / (1000 * 60 * 60 * 24);
+			if (diffDays < 20) {
+				dateQuery = "TO_CHAR(pi.date_sold, 'MM/dd') AS date_formatted, ";
+			} else if (diffDays < 140) {
+				dateQuery = "TO_CHAR(pi.date_sold, 'YYYY-MM \"Week -\" W') AS date_formatted, ";
+			}
+			
+			/**
+			 * In the query we want to separate all flowers and non flowers - CASE
+			 * p.category_id WHEN 1 THEN 1 ELSE 2 END AS category_id does that separation.
+			 *
+			 * For flowers, unitPrice * weightInGrams gives the purchasePrice While for
+			 * non-floweres, its just unitPrice - CASE p.category_id WHEN 1 THEN
+			 * pur.unit_price*pi.weight_in_grams ELSE pur.unit_price END takes care of that
+			 *
+			 * In the subquery, we apply the selection criteria and get our rows. The main
+			 * query, we group the rows we got from subquery and find SUM of prices.
+			 *
+			 */
+			/*
+			 * Modification as of Dec 2016
+			 * 
+			 * After Nov 20th the flowers are added to the system as packets with SKU weight
+			 * and price per SKU, so the unit purchase price will just unitPrice The date
+			 * has been added to CASE to take care of this.
+			 */
+			
+			StringBuilder salesProfitSubQuery = new StringBuilder();
+			salesProfitSubQuery.append(" SELECT ").append(dateQuery).append("CASE p.category_id WHEN 1 THEN 1 ELSE 2 END ")
+			.append("AS category_id, pi.selling_price, CASE WHEN (p.category_id = 1 AND pur.date_added < '2016-11-30')")
+			.append("THEN pur.unit_price*pi.weight_in_grams ELSE pur.unit_price END AS purchase_price ")
+			.append("FROM packet_inventory pi JOIN purchase_inventory pur ON pur.id = pi.purchase_id ")
+			.append("JOIN products p ON p.id = pur.product_id WHERE pi.sales_id <> 0 AND pi.date_sold >= to_date('")
+			.append(startDate).append("', 'MM/dd/YYYY') ").append("AND  pi.date_sold < to_date('").append(endDate)
+			.append("', 'MM/dd/YYYY') + interval '1 day'");
+
+			SalesProfitDataExtDTO spdExt = new SalesProfitDataExtDTO();
+			String currentDate = "", previousDate = "";
+			double total = 0d, purchaseTotal = 0d, sellingTotal = 0d, profit = 0d;
+			StringBuilder vQuery = new StringBuilder();
+			vQuery.append("WITH sub AS (").append(salesProfitSubQuery).append(") SELECT date_formatted, category_id, ")
+			.append("SUM(selling_price) AS selling_price, SUM(purchase_price) AS purchase_price FROM sub ")
+			.append("GROUP BY date_formatted, category_id ORDER BY date_formatted ASC, category_id ASC");
+			List<CommonSalesProfitDTO> dtos = jdbcTemplate.query(vQuery.toString(), new RowMapper<CommonSalesProfitDTO>() {
+
+				@Override
+				public CommonSalesProfitDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
+					CommonSalesProfitDTO dto = new CommonSalesProfitDTO();
+					dto.setDate(rs.getString("date_formatted"));
+					dto.setPurchasePrice(rs.getDouble("purchase_price"));
+					dto.setSellingPrice(rs.getDouble("selling_price"));
+					dto.setCategoryId(rs.getInt("category_id"));
+					return dto;
+				}
+			});
+			for (CommonSalesProfitDTO salesProfitDTO : dtos) {
+				currentDate = salesProfitDTO.getDate();
+
+				if (!previousDate.equals(currentDate) && !previousDate.equals("")) {
+					spdExt.setDate(previousDate);
+					spdExt.setTotal(total);
+					spdExt.setPurchaseTotal(purchaseTotal);
+					spdExt.setSellingTotal(sellingTotal);
+
+					results.add(spdExt);
+
+					spdExt = new SalesProfitDataExtDTO();
+					total = 0d;
+					purchaseTotal = 0d;
+					sellingTotal = 0d;
+				}
+
+				profit = salesProfitDTO.getSellingPrice() - salesProfitDTO.getPurchasePrice();
+
+				purchaseTotal += salesProfitDTO.getPurchasePrice();
+				sellingTotal += salesProfitDTO.getSellingPrice();
+
+				total += profit;
+
+				SalesProfitDataDTO spd = new SalesProfitDataDTO();
+				spd.setFlower(salesProfitDTO.getCategoryId() == 1 ? true : false);
+				spd.setPurchasePrice(salesProfitDTO.getPurchasePrice());
+				spd.setSellingPrice(salesProfitDTO.getSellingPrice());
+				spd.setProfit(profit);
+
+				spdExt.addSpData(spd);
+
+				previousDate = currentDate;
+			}
+			return results;
+		} catch (Exception e) {
+			log.info("Exception while getting sales profile data, message is: {}, exception is {} ", e.getMessage(), e);
+		}
+		return results;
+	}
+	
 	private void getData(String param, int shopId) {
 		log.info("Inside get data");
 		StringBuilder cqueryWhere = new StringBuilder();
