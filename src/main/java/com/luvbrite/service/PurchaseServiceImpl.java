@@ -9,17 +9,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
 
-import com.luvbrite.model.PurchaseDTO;
-import com.luvbrite.repository.IPurchaseRepository;
-import com.luvbrite.model.PaginationLogic;
 import com.luvbrite.model.PaginatedPurchase;
 import com.luvbrite.model.Pagination;
-import lombok.extern.slf4j.Slf4j;
+import com.luvbrite.model.PaginationLogic;
+import com.luvbrite.model.PurchaseDTO;
+import com.luvbrite.repository.IPurchaseRepository;
 
 @Service
-@Slf4j
+//@Slf4j
 public class PurchaseServiceImpl implements IPurchaseService {
 
 	private Pagination pg;
