@@ -103,4 +103,15 @@ public class DriverServiceImpl implements IDriverService {
 		}
 	}
 
+	@Override
+	public int deleteDriverById(Integer id) {
+		try {
+			return iDriverRepository.deleteDriverById(id);
+		} catch (Exception e) {
+			log.info("message is {} and exception is {}",e.getMessage(),e);
+			return -1;
+		}
+
+	}
+
 }

@@ -175,4 +175,24 @@ public class ShopServiceImpl implements IShopService {
 		}
 	}
 
+	@Override
+	public int deleteShopById(Integer id) {
+		try {
+			return iShopRepository.deleteShopById(id);
+		} catch (Exception e) {
+			log.info("message is {} and exception is {}",e.getMessage(),e);
+			return -1;
+		}
+	}
+
+	@Override
+	public int updatePwdByshopId(Integer id, String password) {
+		try {
+			return iShopRepository.updatePwdByshopId(id,password);
+		} catch (Exception e) {
+			log.info("message is {} and exception is {}",e.getMessage(),e);
+			return -1;
+		}
+	}
+
 }
