@@ -1,6 +1,5 @@
 package com.luvbrite.commonresponse;
 
-
 import java.io.Serializable;
 
 import lombok.Getter;
