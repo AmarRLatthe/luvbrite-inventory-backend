@@ -52,6 +52,7 @@ public class InventorySecConfigAdapt extends WebSecurityConfigurerAdapter {
     			.antMatchers("/api/driver/getAllDriverByShop").hasAnyRole("CHIEF","SHOP_CHIEF","CHIEF_MANAGER","MANAGER")
     			.antMatchers("/api/vendor/getAllVendorByShop").hasAnyRole("CHIEF","SHOP_CHIEF","CHIEF_MANAGER","MANAGER")
     			.antMatchers("/api/operator/createOperator").hasAnyRole("CHIEF","SHOP_CHIEF","CREATE_OPERATOR")
+    			.antMatchers("/api/shop/getAllShops").hasAnyRole("CHIEF")
     			.anyRequest().authenticated()
     		.and()
     		.exceptionHandling().authenticationEntryPoint(unauthorizedHandler)

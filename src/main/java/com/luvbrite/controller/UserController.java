@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @RequestMapping("/api/user/")
 @Slf4j
-@CrossOrigin(allowedHeaders = "*",origins = "*")
+//@CrossOrigin(allowedHeaders = "*",origins = "*")
 public class UserController {
 
 	@Autowired

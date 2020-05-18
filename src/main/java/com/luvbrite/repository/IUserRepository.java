@@ -12,4 +12,8 @@ public interface IUserRepository {
 
 	int countUserByEmail(String email);
 
+	int countUserByUserNameNId(String shopOwnerUsername, Integer id);
+
+	int countUserByEmailNId(Integer id, String email);
+
 }

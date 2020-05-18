@@ -58,7 +58,10 @@ public class OperatorRepositoryImpl implements IOperatorRepository {
 							.append(" JOIN user_type_details ON user_details.user_type_id= user_type_details.id ")
 							.append(" LEFT JOIN user_details as ud ON user_details.created_by = ud.id ")
 							.append(" WHERE ")
-							.append(" user_details.shop_id = ? ");
+							.append(" user_details.shop_id = ? ")
+							.append(" AND")
+							.append(" user_details.is_active= true ")
+							.append(" ORDER BY user_details.created_at DESC  ");
 			return jdbcTemplate.query(operatorListQry.toString(), new Object[] {shopId}, new RowMapper<UserDetails>() {
 
 				@Override
