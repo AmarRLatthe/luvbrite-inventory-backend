@@ -9,7 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,25 +35,26 @@ public class VendorController {
 	private IUserService iUserService;
 	@Autowired
 	private IVendorService iVendorService;
-	
+
 	@PostMapping("/createVendor")
 	public ResponseEntity<CommonResponse> createVendor(@RequestBody VendorDTO vendor, Authentication authentication) {
-		CommonResponse response  = new CommonResponse();
+		CommonResponse response = new CommonResponse();
 		try {
+			log.info("came in vendor Controller.....");
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 			if (userDetails != null) {
 				log.info("user is {}", userDetails);
 				vendor.setShopId(userDetails.getShopId());
 				vendor.setCreatedBy(userDetails.getId());
-				
-				return validateNCreateVendor(vendor, response);		
+
+				return validateNCreateVendor(vendor, response);
 			}
 			response.setCode(401);
 			response.setStatus("Unauthorized");
 			response.setMessage("Please try to login and try again");
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			log.error("Message is {} and Exception is {}"+e.getMessage(), e);
+			log.error("Message is {} and Exception is {}" + e.getMessage(), e);
 			response.setCode(500);
 			response.setMessage("Vendor is not created.please try again later.");
 			response.setStatus("SERVER ERROR");
@@ -59,11 +62,10 @@ public class VendorController {
 		}
 	}
 
-
 	private ResponseEntity<CommonResponse> validateNCreateVendor(VendorDTO vendor, CommonResponse response) {
-		Map<String, Object> isvalidate = iVendorService.validateOperator(vendor);
+		Map<String, Object> isvalidate = iVendorService.validateVendor(vendor);
 		if ((boolean) isvalidate.get("isValid")) {
-			int addVendor=iVendorService.saveVendor(vendor);
+			int addVendor = iVendorService.saveVendor(vendor);
 			if (addVendor > 0) {
 				response.setCode(201);
 				response.setStatus("CREATED");
@@ -82,16 +84,15 @@ public class VendorController {
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		}
 	}
-	
-	
+
 	@GetMapping("/getAllVendorByShop")
-	public ResponseEntity<CommonResponse> getAllVendorsByShop(Authentication authentication){
+	public ResponseEntity<CommonResponse> getAllVendorsByShop(Authentication authentication) {
 		CommonResponse response = new CommonResponse();
 		try {
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 			if (userDetails != null) {
 				List<VendorDTO> list = iVendorService.getVendorsDataByShopId(userDetails.getShopId());
-				if(list!=null && !list.isEmpty()) {
+				if (list != null && !list.isEmpty()) {
 					response.setCode(200);
 					response.setStatus("SUCCESS");
 					response.setData(list);
@@ -112,6 +113,41 @@ public class VendorController {
 			response.setMessage("Vendor Data not able to get.please try again later.");
 			response.setStatus("SERVER ERROR");
 			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+	}
+
+	@PutMapping("/updateVendorById/{id}")
+	public ResponseEntity<CommonResponse> updateVendorById(@PathVariable("id") Integer id,
+			@RequestBody VendorDTO vendor) {
+		CommonResponse response = new CommonResponse();
+		try {
+			Map<String, Object> isValid = iVendorService.validateVendorForUpdate(id, vendor);
+			if ((boolean) isValid.get("isValid")) {
+				int update = iVendorService.updateVendorDataById(id, vendor);
+				if (update > 0) {
+					response.setCode(200);
+					response.setMessage("shop data updated successfully");
+					response.setStatus("Success");
+					return new ResponseEntity<>(response, HttpStatus.OK);
+				}
+				response.setCode(422);
+				response.setStatus("Unprocessable");
+				response.setMessage("Shop data is not updated");
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}
+			response.setCode(400);
+			response.setStatus("Bad Request");
+			response.setMessage("Invalid Details");
+			response.setData(isValid);
+			return new ResponseEntity<>(response, HttpStatus.OK);
+
+		} catch (Exception e) {
+			log.error("Message is {} and Exception is {}" + e.getMessage(), e);
+			response.setCode(500);
+			response.setMessage("Vendor Data not able to get.please try again later.");
+			response.setStatus("SERVER ERROR");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+
 		}
 	}
 

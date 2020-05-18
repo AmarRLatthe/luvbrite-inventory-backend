@@ -214,6 +214,7 @@ public class ShopRepositoryImpl implements IShopRepository {
 		}		
 	}
 
+<<<<<<< HEAD
 	@Transactional
 	@Override
 	public int deleteShopById(Integer id) {
@@ -244,4 +245,6 @@ public class ShopRepositoryImpl implements IShopRepository {
 		}
 	}
 
+=======
+>>>>>>> Operator roles are Updated By Dvs Mahajan
 }

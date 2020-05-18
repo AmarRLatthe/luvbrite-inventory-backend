@@ -18,6 +18,9 @@ public interface IDriverRepository {
 
 	int countDriverByDriverNameNId(int id, String driverName);
 
+<<<<<<< HEAD
 	int deleteDriverById(Integer id);
 
+=======
+>>>>>>> Operator roles are Updated By Dvs Mahajan
 }

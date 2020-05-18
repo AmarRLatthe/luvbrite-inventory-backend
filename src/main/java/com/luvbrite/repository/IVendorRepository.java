@@ -22,7 +22,10 @@ public interface IVendorRepository {
 
 	int updateVendorById(Integer id, VendorDTO vendor);
 
+<<<<<<< HEAD
 	int deleteVendorById(Integer id);
 
+=======
+>>>>>>> Operator roles are Updated By Dvs Mahajan
 
 }
