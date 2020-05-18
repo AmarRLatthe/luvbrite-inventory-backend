@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +26,7 @@ public class VendorServiceImpl implements IVendorService{
 	@Override
 	public int saveVendor(VendorDTO vendor) {
 		try {
-			return iVendorRepository.saveVendor(vendor);			
+			return iVendorRepository.saveVendor(vendor);
 		} catch (Exception e) {
 			log.error("Message is {} and exception is {}",e.getMessage(),e);
 			return -1;
@@ -36,7 +37,7 @@ public class VendorServiceImpl implements IVendorService{
 	@Override
 	public List<VendorDTO> getVendorsDataByShopId(Integer shopId) {
 		try {
-			return iVendorRepository.getVendorsDataByShopId(shopId);			
+			return iVendorRepository.getVendorsDataByShopId(shopId);
 		} catch (Exception e) {
 			log.error("Message is {} and exception is {}",e.getMessage(),e);
 			return Collections.emptyList();
@@ -68,7 +69,7 @@ public class VendorServiceImpl implements IVendorService{
 						map.put("isValid", false);
 					}
 				}
-					
+
 			}
 			return map;
 		}catch (Exception e) {
@@ -83,7 +84,7 @@ public class VendorServiceImpl implements IVendorService{
 	public Map<String, Object> validateVendorForUpdate(Integer id, VendorDTO vendor) {
 		Map<String , Object> map = new HashMap<String, Object>();
 		try {
-			map.put("isValid", true);	
+			map.put("isValid", true);
 			if(vendor.getVendorName()==null) {
 				map.put("vendorName", "vendorName should not be empty");
 				map.put("isValid", false);
@@ -104,7 +105,7 @@ public class VendorServiceImpl implements IVendorService{
 						map.put("isValid", false);
 					}
 				}
-					
+
 			}
 			return map;
 		}catch (Exception e) {
@@ -135,5 +136,5 @@ public class VendorServiceImpl implements IVendorService{
 		}
 	}
 
-	
+
 }
