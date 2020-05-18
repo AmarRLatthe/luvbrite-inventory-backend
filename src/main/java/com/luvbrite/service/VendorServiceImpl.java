@@ -69,6 +69,10 @@ public class VendorServiceImpl implements IVendorService{
 						map.put("isValid", false);
 					}
 				}
+<<<<<<< HEAD
+=======
+
+>>>>>>> operator-roles updated By Dvs Mahajan
 			}
 			return map;
 		}catch (Exception e) {
@@ -104,6 +108,10 @@ public class VendorServiceImpl implements IVendorService{
 						map.put("isValid", false);
 					}
 				}
+<<<<<<< HEAD
+=======
+
+>>>>>>> operator-roles updated By Dvs Mahajan
 			}
 			return map;
 		}catch (Exception e) {
@@ -124,6 +132,7 @@ public class VendorServiceImpl implements IVendorService{
 		}
 	}
 
+<<<<<<< HEAD
 	@Override
 	public int deleteVendorById(Integer id) {
 		try {
@@ -134,5 +143,7 @@ public class VendorServiceImpl implements IVendorService{
 		}
 	}
 
+=======
+>>>>>>> operator-roles updated By Dvs Mahajan
 
 }

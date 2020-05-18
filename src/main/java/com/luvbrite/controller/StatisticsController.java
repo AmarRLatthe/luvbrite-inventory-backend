@@ -8,9 +8,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import com.luvbrite.commonResponse.CommonResponse;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.luvbrite.commonresponse.CommonResponse;
 import com.luvbrite.model.OrderBreakDownDTO;
 import com.luvbrite.model.SalesProfitDataExtDTO;
 import com.luvbrite.model.UserDetails;
@@ -18,6 +19,7 @@ import com.luvbrite.service.IStatisticsService;
 import com.luvbrite.service.IUserService;
 
 import lombok.extern.slf4j.Slf4j;
+
 
 @RestController
 @RequestMapping("/api/statistics/")
@@ -29,7 +31,7 @@ public class StatisticsController {
 
 	@Autowired
 	private IUserService iUserService;
-	
+
 	@GetMapping("/getbasestats")
 	public ResponseEntity<CommonResponse> getBaseStatistics(Authentication authentication, @RequestParam String shopId) {
 		CommonResponse response = new CommonResponse();
@@ -38,7 +40,7 @@ public class StatisticsController {
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 			if (userDetails != null) {
 				List<OrderBreakDownDTO> list = iStatisticsService.getBaseStatisticsData(Integer.parseInt(shopId));
-				if (list != null && !list.isEmpty()) {
+				if ((list != null) && !list.isEmpty()) {
 					response.setCode(200);
 					response.setStatus("SUCCESS");
 					response.setData(list);
@@ -61,9 +63,9 @@ public class StatisticsController {
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		}
 	}
-	
+
 	@GetMapping("/getprodstat")
-	public ResponseEntity<CommonResponse> getProductStat(@RequestParam String startDate, 
+	public ResponseEntity<CommonResponse> getProductStat(@RequestParam String startDate,
 			@RequestParam String endDate, Authentication authentication) {
 		CommonResponse response = new CommonResponse();
 
@@ -71,7 +73,7 @@ public class StatisticsController {
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 			if (userDetails != null) {
 				List<OrderBreakDownDTO> list = iStatisticsService.getProdStat(startDate, endDate);
-				if (list != null && !list.isEmpty()) {
+				if ((list != null) && !list.isEmpty()) {
 					response.setCode(200);
 					response.setStatus("SUCCESS");
 					response.setData(list);
@@ -94,9 +96,9 @@ public class StatisticsController {
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		}
 	}
-	
+
 	@GetMapping("/getstatbydriverid")
-	public ResponseEntity<CommonResponse> getStatisticsByDriverId(@RequestParam String startDate, 
+	public ResponseEntity<CommonResponse> getStatisticsByDriverId(@RequestParam String startDate,
 			@RequestParam String endDate, @RequestParam String driverId, Authentication authentication) {
 		CommonResponse response = new CommonResponse();
 
@@ -104,7 +106,7 @@ public class StatisticsController {
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 			if (userDetails != null) {
 				List<OrderBreakDownDTO> list = iStatisticsService.getStasDataByDriverId(startDate, endDate, driverId);
-				if (list != null && !list.isEmpty()) {
+				if ((list != null) && !list.isEmpty()) {
 					response.setCode(200);
 					response.setStatus("SUCCESS");
 					response.setData(list);
@@ -127,9 +129,9 @@ public class StatisticsController {
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		}
 	}
-	
+
 	@GetMapping("/getorderstats")
-	public ResponseEntity<CommonResponse> getOrderStats(@RequestParam String startDate, @RequestParam String endDate, 
+	public ResponseEntity<CommonResponse> getOrderStats(@RequestParam String startDate, @RequestParam String endDate,
 			@RequestParam String showFirstOrder, @RequestParam(required = false) String paymentMode, Authentication authentication) {
 		CommonResponse response = new CommonResponse();
 
@@ -137,7 +139,7 @@ public class StatisticsController {
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 			if (userDetails != null) {
 				List<OrderBreakDownDTO> list = iStatisticsService.getOrderStatData(startDate, endDate, showFirstOrder, paymentMode);
-				if (list != null && !list.isEmpty()) {
+				if ((list != null) && !list.isEmpty()) {
 					response.setCode(200);
 					response.setStatus("SUCCESS");
 					response.setData(list);
@@ -160,9 +162,9 @@ public class StatisticsController {
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		}
 	}
-	
+
 	@GetMapping("/getcuststats")
-	public ResponseEntity<CommonResponse> getCustStats(@RequestParam String startDate, @RequestParam String endDate, 
+	public ResponseEntity<CommonResponse> getCustStats(@RequestParam String startDate, @RequestParam String endDate,
 			Authentication authentication) {
 		CommonResponse response = new CommonResponse();
 
@@ -170,7 +172,7 @@ public class StatisticsController {
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 			if (userDetails != null) {
 				List<OrderBreakDownDTO> list = iStatisticsService.getCustomerStatData(startDate, endDate);
-				if (list != null && !list.isEmpty()) {
+				if ((list != null) && !list.isEmpty()) {
 					response.setCode(200);
 					response.setStatus("SUCCESS");
 					response.setData(list);
@@ -195,7 +197,7 @@ public class StatisticsController {
 	}
 
 	@GetMapping("/getsalesprofit")
-	public ResponseEntity<CommonResponse> getSalesProfitData(@RequestParam String startDate, @RequestParam String endDate, 
+	public ResponseEntity<CommonResponse> getSalesProfitData(@RequestParam String startDate, @RequestParam String endDate,
 			Authentication authentication) {
 		CommonResponse response = new CommonResponse();
 
@@ -203,7 +205,7 @@ public class StatisticsController {
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 			if (userDetails != null) {
 				List<SalesProfitDataExtDTO> list = iStatisticsService.getSalesProfitInfo(startDate, endDate);
-				if (list != null && !list.isEmpty()) {
+				if ((list != null) && !list.isEmpty()) {
 					response.setCode(200);
 					response.setStatus("SUCCESS");
 					response.setData(list);
