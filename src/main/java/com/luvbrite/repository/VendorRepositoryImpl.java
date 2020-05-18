@@ -177,7 +177,7 @@ public class VendorRepositoryImpl implements IVendorRepository {
 		}
 	}
 
-<<<<<<< HEAD
+
 	@Override
 	public int deleteVendorById(Integer id) {
 		try {
@@ -188,6 +188,5 @@ public class VendorRepositoryImpl implements IVendorRepository {
 		}
 	}
 
-=======
->>>>>>> Operator roles are Updated By Dvs Mahajan
+
 }

@@ -40,7 +40,6 @@ public class VendorController {
 	public ResponseEntity<CommonResponse> createVendor(@RequestBody VendorDTO vendor, Authentication authentication) {
 		CommonResponse response = new CommonResponse();
 		try {
-			log.info("came in vendor Controller.....");
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 			if (userDetails != null) {
 				log.info("user is {}", userDetails);
@@ -126,13 +125,13 @@ public class VendorController {
 				int update = iVendorService.updateVendorDataById(id, vendor);
 				if (update > 0) {
 					response.setCode(200);
-					response.setMessage("shop data updated successfully");
+					response.setMessage("Vendor updated successfully");
 					response.setStatus("Success");
 					return new ResponseEntity<>(response, HttpStatus.OK);
 				}
 				response.setCode(422);
 				response.setStatus("Unprocessable");
-				response.setMessage("Shop data is not updated");
+				response.setMessage("Vendor is not updated");
 				return new ResponseEntity<>(response, HttpStatus.OK);
 			}
 			response.setCode(400);
@@ -144,7 +143,7 @@ public class VendorController {
 		} catch (Exception e) {
 			log.error("Message is {} and Exception is {}" + e.getMessage(), e);
 			response.setCode(500);
-			response.setMessage("Vendor Data not able to get.please try again later.");
+			response.setMessage("Vendor not able to get.please try again later.");
 			response.setStatus("SERVER ERROR");
 			return new ResponseEntity<>(response, HttpStatus.OK);
 

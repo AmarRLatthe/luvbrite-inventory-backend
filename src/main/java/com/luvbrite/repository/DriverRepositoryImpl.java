@@ -137,7 +137,7 @@ public class DriverRepositoryImpl implements IDriverRepository{
 		}
 	}
 
-<<<<<<< HEAD
+
 	@Override
 	public int deleteDriverById(Integer id) {
 		try {
@@ -148,6 +148,5 @@ public class DriverRepositoryImpl implements IDriverRepository{
 		}
 	}
 
-=======
->>>>>>> Operator roles are Updated By Dvs Mahajan
+
 }

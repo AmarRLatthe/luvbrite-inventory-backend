@@ -87,18 +87,17 @@ public class ShopController {
 
 		}
 	}
-	
-	
+
 	@GetMapping("/getAllShops")
-	public ResponseEntity<CommonResponse> getAllShops(){
+	public ResponseEntity<CommonResponse> getAllShops() {
 		CommonResponse response = new CommonResponse();
 		try {
-			List<ShopDTO> list= iShopService.getAllShops();
-			if(!list.isEmpty()) {
+			List<ShopDTO> list = iShopService.getAllShops();
+			if (!list.isEmpty()) {
 				response.setCode(200);
 				response.setStatus("SUCCESS");
 				response.setData(list);
-				return new ResponseEntity<>(response,HttpStatus.OK);
+				return new ResponseEntity<>(response, HttpStatus.OK);
 			}
 			response.setCode(400);
 			response.setStatus("Bad Request");
@@ -108,31 +107,31 @@ public class ShopController {
 			response.setCode(500);
 			response.setMessage("Shop is not created.please try again later.");
 			response.setStatus("SERVER ERROR");
-			log.error("Message is {} and exception is {}",e.getMessage(),e);
-			return new ResponseEntity<>(response,HttpStatus.OK);
+			log.error("Message is {} and exception is {}", e.getMessage(), e);
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		}
 
 	}
-	
+
 	@PutMapping("/updateShopById/{id}")
-	public ResponseEntity<CommonResponse> updateShopById(@PathVariable("id") Integer id, @RequestBody ShopDTO shop){
+	public ResponseEntity<CommonResponse> updateShopById(@PathVariable("id") Integer id, @RequestBody ShopDTO shop) {
 		CommonResponse response = new CommonResponse();
-		log.info("hello {} ",shop);
-		Map<String,Object> isValid = iShopService.isValidateForUpdate(id,shop);
-		if((boolean)isValid.get("isValid")==true) {
-			int update = iShopService.updateShopById(id,shop);
-			if(update>0) {
+		log.info("hello {} ", shop);
+		Map<String, Object> isValid = iShopService.isValidateForUpdate(id, shop);
+		if ((boolean) isValid.get("isValid") == true) {
+			int update = iShopService.updateShopById(id, shop);
+			if (update > 0) {
 				response.setCode(200);
 				response.setMessage("shop data updated successfully");
 				response.setStatus("Success");
-				return new ResponseEntity<>(response,HttpStatus.OK);
+				return new ResponseEntity<>(response, HttpStatus.OK);
 			}
 			response.setCode(422);
 			response.setStatus("Unprocessable");
 			response.setMessage("Shop data is not updated");
-			return new ResponseEntity<>(response,HttpStatus.OK);
-			
-		}else {
+			return new ResponseEntity<>(response, HttpStatus.OK);
+
+		} else {
 			response.setCode(400);
 			response.setStatus("Bad Request");
 			response.setMessage("Invalid Details");
