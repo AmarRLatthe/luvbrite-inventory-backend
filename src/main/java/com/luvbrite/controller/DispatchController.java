@@ -16,14 +16,15 @@ public class DispatchController {
 
 	@GetMapping("/api/listdispatches")
 	public ResponseEntity<CommonResponse> listdispatches(@RequestParam(value="d",required=true) Integer driverId,
-			@RequestParam(value="id",required = true) Integer dispatchId,
-			@RequestParam(value="ca",required = false) Boolean cancelled,
+			@RequestParam(value="id",required = true) int dispatchId,
+			@RequestParam(value="ca",required = false) int cancelled,
 			@RequestParam(value="fn",required = false) Boolean finished,
 			@RequestParam(value="nf",required = false) Boolean notFinished,
 			@RequestParam(value="q",required = true) String q,
 			@RequestParam(value="sort",required = false) String orderBy,
 			@RequestParam(value="mode",required = false) String mode,
-			@RequestParam(value="sdir",required = false) String qSORTDIR){
+			@RequestParam(value="sdir",required = false) String qSORTDIR,
+			@RequestParam(value="cpage",required= true)int currentPage){
 
 
 
