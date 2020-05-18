@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,10 +38,9 @@ public class VendorController {
 	public ResponseEntity<CommonResponse> createVendor(@RequestBody VendorDTO vendor, Authentication authentication) {
 		CommonResponse response  = new CommonResponse();
 		try {
-			log.info("came in vendor Controller.....");
-			UserDetails userDetails = iUserService.getByUsername(authentication.getName());	
-			if(userDetails!=null) {
-				log.info("user is {}",userDetails);
+			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
+			if (userDetails != null) {
+				log.info("user is {}", userDetails);
 				vendor.setShopId(userDetails.getShopId());
 				vendor.setCreatedBy(userDetails.getId());
 				
@@ -53,7 +53,7 @@ public class VendorController {
 		} catch (Exception e) {
 			log.error("Message is {} and Exception is {}"+e.getMessage(), e);
 			response.setCode(500);
-			response.setMessage("Driver is not created.please try again later.");
+			response.setMessage("Vendor is not created.please try again later.");
 			response.setStatus("SERVER ERROR");
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		}
@@ -107,9 +107,69 @@ public class VendorController {
 			response.setMessage("Please try to login and try again");
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			log.error("Message is {} and Exception is {}"+e.getMessage(), e);
+			log.error("Message is {} and Exception is {}" + e.getMessage(), e);
 			response.setCode(500);
 			response.setMessage("Vendor Data not able to get.please try again later.");
+			response.setStatus("SERVER ERROR");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+	}
+
+	@PutMapping("/updateVendorById/{id}")
+	public ResponseEntity<CommonResponse> updateVendorById(@PathVariable("id") Integer id,
+			@RequestBody VendorDTO vendor) {
+		CommonResponse response = new CommonResponse();
+		try {
+			Map<String, Object> isValid = iVendorService.validateVendorForUpdate(id, vendor);
+			if ((boolean) isValid.get("isValid")) {
+				int update = iVendorService.updateVendorDataById(id, vendor);
+				if (update > 0) {
+					response.setCode(200);
+					response.setMessage("Vendor updated successfully");
+					response.setStatus("Success");
+					return new ResponseEntity<>(response, HttpStatus.OK);
+				}
+				response.setCode(422);
+				response.setStatus("Unprocessable");
+				response.setMessage("Vendor is not updated");
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}
+			response.setCode(400);
+			response.setStatus("Bad Request");
+			response.setMessage("Invalid Details");
+			response.setData(isValid);
+			return new ResponseEntity<>(response, HttpStatus.OK);
+
+		} catch (Exception e) {
+			log.error("Message is {} and Exception is {}" + e.getMessage(), e);
+			response.setCode(500);
+			response.setMessage("Vendor not able to get.please try again later.");
+			response.setStatus("SERVER ERROR");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+	}
+	
+	@DeleteMapping("/deleteVendorById/{id}")
+	public ResponseEntity<CommonResponse> deleteVendorById(@PathVariable("id") Integer id){
+		log.info("id is {}",id);
+		
+		CommonResponse response = new CommonResponse();
+		try {
+			int delete = iVendorService.deleteVendorById(id);
+			if(delete>0) {
+				response.setCode(200);
+				response.setMessage("Vendor Deleted successfully");
+				response.setStatus("Success");
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}
+			response.setCode(422);
+			response.setStatus("Unprocessable");
+			response.setMessage("Vendor is not Deleted");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (Exception e) {
+			log.error("Message is {} and Exception is {}" + e.getMessage(), e);
+			response.setCode(500);
+			response.setMessage("Vendor is not deleted.please try again later.");
 			response.setStatus("SERVER ERROR");
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		}
