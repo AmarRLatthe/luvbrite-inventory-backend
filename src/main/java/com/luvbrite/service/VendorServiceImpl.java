@@ -83,7 +83,7 @@ public class VendorServiceImpl implements IVendorService{
 	public Map<String, Object> validateVendorForUpdate(Integer id, VendorDTO vendor) {
 		Map<String , Object> map = new HashMap<String, Object>();
 		try {
-			map.put("isValid", true);
+			map.put("isValid", true);	
 			if(vendor.getVendorName()==null) {
 				map.put("vendorName", "vendorName should not be empty");
 				map.put("isValid", false);
