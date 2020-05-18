@@ -47,7 +47,7 @@ public class VendorServiceImpl implements IVendorService{
 	public Map<String, Object> validateVendor(VendorDTO vendor) {
 		Map<String , Object> map = new HashMap<String, Object>();
 		try {
-			map.put("isValid", true);	
+			map.put("isValid", true);
 			if(vendor.getVendorName()==null) {
 				map.put("vendorName", "vendorName should not be empty");
 				map.put("isValid", false);
@@ -58,9 +58,9 @@ public class VendorServiceImpl implements IVendorService{
 					map.put("isValid", false);
 				}
 			}
-			
+
 			if(vendor.getEmail()!=null ) {
-				if(!vendor.getEmail().isBlank())
+				if(StringUtils.isNotBlank(vendor.getEmail()))
 				{
 					int count = iVendorRepository.countVendorByEmail(vendor.getEmail());
 					if(count>0) {
@@ -83,7 +83,7 @@ public class VendorServiceImpl implements IVendorService{
 	public Map<String, Object> validateVendorForUpdate(Integer id, VendorDTO vendor) {
 		Map<String , Object> map = new HashMap<String, Object>();
 		try {
-			map.put("isValid", true);	
+			map.put("isValid", true);
 			if(vendor.getVendorName()==null) {
 				map.put("vendorName", "vendorName should not be empty");
 				map.put("isValid", false);
@@ -94,9 +94,9 @@ public class VendorServiceImpl implements IVendorService{
 					map.put("isValid", false);
 				}
 			}
-			
+
 			if(vendor.getEmail()!=null ) {
-				if(!vendor.getEmail().isBlank())
+				if(StringUtils.isNotBlank(vendor.getEmail()))
 				{
 					int count = iVendorRepository.countVendorByEmailNId(id,vendor.getEmail());
 					if(count>0) {
