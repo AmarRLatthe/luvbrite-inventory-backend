@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.luvbrite.commonResponse.CommonResponse;
+import com.luvbrite.commonresponse.CommonResponse;
 import com.luvbrite.model.UserTypeDTO;
 import com.luvbrite.service.IUserTypeService;
 

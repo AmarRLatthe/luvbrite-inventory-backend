@@ -15,4 +15,8 @@ public interface IOperatorService {
 
 	int updateOperatorById(int id, UserDetails operator);
 
+	int deleteOperatorById(Integer id);
+
+	int updatePwdByOperatorId(Integer id, String password);
+
 }

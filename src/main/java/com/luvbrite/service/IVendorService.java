@@ -11,7 +11,13 @@ public interface IVendorService {
 
 	List<VendorDTO> getVendorsDataByShopId(Integer shopId);
 
-	Map<String, Object> validateOperator(VendorDTO vendor);
+	Map<String, Object> validateVendor(VendorDTO vendor);
+
+	Map<String, Object> validateVendorForUpdate(Integer id, VendorDTO vendor);
+
+	int updateVendorDataById(Integer id, VendorDTO vendor);
+
+	int deleteVendorById(Integer id);
 
 	
 }

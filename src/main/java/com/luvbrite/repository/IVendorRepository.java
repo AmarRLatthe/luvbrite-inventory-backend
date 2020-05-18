@@ -16,5 +16,17 @@ public interface IVendorRepository {
 
 	int countVendorByEmail(String email);
 
+	int countVendersByVendorNameNId(Integer id, String vendorName);
+
+	int countVendorByEmailNId(Integer id, String email);
+
+	int updateVendorById(Integer id, VendorDTO vendor);
+
+	int deleteVendorById(Integer id);
+
+
+
+
+
 
 }

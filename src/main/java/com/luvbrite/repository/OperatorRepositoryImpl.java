@@ -58,7 +58,10 @@ public class OperatorRepositoryImpl implements IOperatorRepository {
 							.append(" JOIN user_type_details ON user_details.user_type_id= user_type_details.id ")
 							.append(" LEFT JOIN user_details as ud ON user_details.created_by = ud.id ")
 							.append(" WHERE ")
-							.append(" user_details.shop_id = ? ");
+							.append(" user_details.shop_id = ? ")
+							.append(" AND")
+							.append(" user_details.is_active= true ")
+							.append(" ORDER BY user_details.created_at DESC  ");
 			return jdbcTemplate.query(operatorListQry.toString(), new Object[] {shopId}, new RowMapper<UserDetails>() {
 
 				@Override
@@ -112,6 +115,29 @@ public class OperatorRepositoryImpl implements IOperatorRepository {
 			log.error("Message is {} and Exception is {}",e.getMessage(),e);
 			return -1;
 		}	
+	}
+
+	@Override
+	public int deleteOperatorById(Integer id) {
+		try {
+			return jdbcTemplate.update(" UPDATE user_details	SET is_active= false WHERE id=?  ",id);
+		} catch (Exception e) {
+			log.error("Message is {} and Exception is {}",e.getMessage(),e);
+			return -1;
+		}
+	}
+
+	@Override
+	public int updatePwdByOperatorId(Integer id, String password) {
+		try {
+			StringBuilder newPwd = new StringBuilder();
+			newPwd.append("{bcrypt}")
+					.append(bCryptPasswordEncoder.encode(password));
+			return jdbcTemplate.update("UPDATE user_details	SET password=? 	WHERE id=?", newPwd.toString(), id);
+		} catch (Exception e) {
+			log.error("Message is {} and Exception is {}",e.getMessage(),e);
+			return -1;
+		}
 	}
 
 }

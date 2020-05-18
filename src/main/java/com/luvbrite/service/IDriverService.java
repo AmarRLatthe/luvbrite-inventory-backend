@@ -11,6 +11,12 @@ public interface IDriverService {
 
 	List<DriverDTO> getDriverDataByShopId(Integer shopId);
 
-	Map<String, Object> validateOperator(DriverDTO driver);
+	Map<String, Object> validateDriver(DriverDTO driver);
+
+	Map<String, Object> isValidateForUpdate(int id, DriverDTO driver);
+
+	int updateDriverById(int id, DriverDTO driver);
+
+	int deleteDriverById(Integer id);
 
 }

@@ -45,7 +45,8 @@ public class DriverRepositoryImpl implements IDriverRepository{
 			.append("  USER_DETAILS.id as user_id  ")
 			.append(" FROM DRIVERS JOIN USER_DETAILS ON USER_DETAILS.id = DRIVERS.created_by ")
 			.append("WHERE DRIVERS.SHOP_ID = ? ")
-			.append(" ORDER by id ");
+			.append(" AND  DRIVERS.IS_ACTIVE = true")
+			.append(" ORDER by id DESC");
 	
 		
 		try {
@@ -62,6 +63,7 @@ public class DriverRepositoryImpl implements IDriverRepository{
 					dto.setId(rs.getInt("id"));
 					dto.setCreatedBy(rs.getInt("created_by"));
 					dto.setCreatedByName(rs.getString("username"));
+					dto.setIsActive(rs.getBoolean("is_active"));
 					return dto;
 				}
 			});
@@ -100,6 +102,45 @@ public class DriverRepositoryImpl implements IDriverRepository{
 	public int countDriverByDriverName(String driverName) {
 		try {
 			return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM drivers WHERE LOWER(driver_name) = LOWER(?)",new Object[] {driverName} ,Integer.class);			
+		} catch (Exception e) {
+			log.error("message is {} and exception is {}",e.getMessage(),e);
+			return -1;
+		}
+	}
+
+	@Override
+	public int updateDriverById(int id, DriverDTO driver) {
+			try {
+				StringBuilder updateDriverQry = new StringBuilder();
+				updateDriverQry.append(" UPDATE public.drivers ")
+								.append(" SET  ")
+								.append(" driver_name=?,  ")
+								.append(" user_name=?,  ")
+								.append(" phone_number=? ")
+								.append(" WHERE  ")
+								.append(" id=?; ");
+				
+				return jdbcTemplate.update(updateDriverQry.toString(),driver.getDriverName(),driver.getUserName(),driver.getPhoneNumber(),id);
+			} catch (Exception e) {
+				log.error("message is {} and Exception is {}", e.getMessage(), e);
+				return -1;
+			}
+	}
+
+	@Override
+	public int countDriverByDriverNameNId(int id,String driverName) {
+		try {
+			return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM drivers WHERE LOWER(driver_name) = LOWER(?) AND id != ?",new Object[] {driverName,id} ,Integer.class);			
+		} catch (Exception e) {
+			log.error("message is {} and exception is {}",e.getMessage(),e);
+			return -1;
+		}
+	}
+
+	@Override
+	public int deleteDriverById(Integer id) {
+		try {
+			return jdbcTemplate.update(" UPDATE drivers SET is_active= false WHERE id=? ",id);
 		} catch (Exception e) {
 			log.error("message is {} and exception is {}",e.getMessage(),e);
 			return -1;

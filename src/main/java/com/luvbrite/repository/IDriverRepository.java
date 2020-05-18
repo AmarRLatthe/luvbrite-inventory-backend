@@ -14,4 +14,10 @@ public interface IDriverRepository {
 
 	int countDriverByDriverName(String driverName);
 
+	int updateDriverById(int id, DriverDTO driver);
+
+	int countDriverByDriverNameNId(int id, String driverName);
+
+	int deleteDriverById(Integer id);
+
 }

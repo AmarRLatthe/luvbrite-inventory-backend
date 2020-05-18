@@ -51,7 +51,9 @@ public class VendorRepositoryImpl implements IVendorRepository {
 					.append("  USER_DETAILS.id as user_id  ")
 					.append(" FROM VENDORS JOIN USER_DETAILS ON USER_DETAILS.id = VENDORS.created_by ")
 					.append("WHERE VENDORS.SHOP_ID = ? ")
-					.append(" ORDER by id ");
+					.append(" AND ")
+					.append(" VENDORS.is_active = true ")
+					.append(" ORDER by id DESC");
 			
 			return jdbcTemplate.query(builder.toString(), new Object[] { shopId }, new RowMapper<VendorDTO>() {
 
@@ -124,6 +126,61 @@ public class VendorRepositoryImpl implements IVendorRepository {
 	public int countVendorByEmail(String email) {
 		try {
 			return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM VENDORS WHERE LOWER(email) = LOWER(?)",new Object[] {email} ,Integer.class);			
+		} catch (Exception e) {
+			log.error("message is {} and exception is {}",e.getMessage(),e);
+			return -1;
+		}
+	}
+
+	@Override
+	public int countVendersByVendorNameNId(Integer id, String vendorName) {
+		try {
+			return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM VENDORS WHERE LOWER(vendor_name) = LOWER(?) AND id != ?",new Object[] {vendorName,id} ,Integer.class);			
+		} catch (Exception e) {
+			log.error("message is {} and exception is {}",e.getMessage(),e);
+			return -1;
+		}
+	}
+
+	@Override
+	public int countVendorByEmailNId(Integer id, String email) {
+		try {
+			return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM VENDORS WHERE LOWER(email) = LOWER(?) AND id != ?",new Object[] {email , id} ,Integer.class);			
+		} catch (Exception e) {
+			log.error("message is {} and exception is {}",e.getMessage(),e);
+			return -1;
+		}
+	}
+
+	@Override
+	public int updateVendorById(Integer id, VendorDTO vendor) {
+		try {
+			StringBuilder updateVendorQry = new StringBuilder();
+			updateVendorQry.append(" UPDATE vendors ")
+							.append(" SET  ")
+							.append(" vendor_name=?,   ")
+							.append(" company=?,  ")
+							.append(" address=?,  ")
+							.append(" city=?,   ")
+							.append(" state=?, ")
+							.append(" zipcode=?, ")
+							.append(" phone=?, ")
+							.append(" email=?,  ")
+							.append(" 	website=? ")
+							.append(" WHERE ")
+							.append(" id=? ");
+				  
+			return jdbcTemplate.update(updateVendorQry.toString(),vendor.getVendorName(),vendor.getCompany(),vendor.getAddress(), vendor.getCity(), vendor.getState(),vendor.getZipcode(), vendor.getPhone(),vendor.getEmail(),vendor.getWebsite(), id);
+		} catch (Exception e) {
+			log.error("message is {} and Exception is {}", e.getMessage(), e);
+			return -1;
+		}
+	}
+
+	@Override
+	public int deleteVendorById(Integer id) {
+		try {
+			return jdbcTemplate.update(" UPDATE vendors SET is_active= false WHERE id=? ",id);
 		} catch (Exception e) {
 			log.error("message is {} and exception is {}",e.getMessage(),e);
 			return -1;
