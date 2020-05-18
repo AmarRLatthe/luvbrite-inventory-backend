@@ -125,5 +125,15 @@ public class VendorServiceImpl implements IVendorService{
 		}
 	}
 
+	@Override
+	public int deleteVendorById(Integer id) {
+		try {
+			return iVendorRepository.deleteVendorById(id);
+		} catch (Exception e) {
+			log.info("message is {} and exception is {}",e.getMessage(),e);
+			return -1;
+		}
+	}
+
 	
 }

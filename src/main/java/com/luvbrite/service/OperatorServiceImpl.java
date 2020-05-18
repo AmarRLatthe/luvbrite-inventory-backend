@@ -91,4 +91,24 @@ public class OperatorServiceImpl implements IOperatorService {
 
 	}
 
+	@Override
+	public int deleteOperatorById(Integer id) {
+		try {
+			return iOperatorRepository.deleteOperatorById(id);
+		} catch (Exception e) {
+			log.info("message is {} and exception is {}",e.getMessage(),e);
+			return -1;
+		}
+	}
+
+	@Override
+	public int updatePwdByOperatorId(Integer id, String password) {
+		try {
+			return iOperatorRepository.updatePwdByOperatorId(id,password);
+		} catch (Exception e) {
+			log.info("message is {} and exception is {}",e.getMessage(),e);
+			return -1;
+		}
+	}
+
 }

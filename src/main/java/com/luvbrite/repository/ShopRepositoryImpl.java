@@ -23,6 +23,7 @@ public class ShopRepositoryImpl implements IShopRepository {
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
+	private BCryptPasswordEncoder bCryptPasswordEncoder =new BCryptPasswordEncoder();
 
 	@Transactional
 	@Override
@@ -211,6 +212,36 @@ public class ShopRepositoryImpl implements IShopRepository {
 			log.error("message is {} and Exception is {}", e.getMessage(), e);
 			return -1;
 		}		
+	}
+
+	@Transactional
+	@Override
+	public int deleteShopById(Integer id) {
+		try {
+			int del = jdbcTemplate.update("UPDATE shops	SET is_active= false WHERE id=?",id);
+			if(del>0) {
+				del = jdbcTemplate.update(" UPDATE user_details	SET is_active= false  WHERE shop_id =?; ",id);
+				if(del>0) 
+					return del;
+			}
+			return -1;
+		} catch (Exception e) {
+			log.error("message is {} and Exception is {}", e.getMessage(), e);
+			return -1;
+		}
+	}
+
+	@Override
+	public int updatePwdByshopId(Integer id, String password) {
+		try {
+			StringBuilder newPwd = new StringBuilder();
+			newPwd.append("{bcrypt}")
+					.append(bCryptPasswordEncoder.encode(password));
+			return jdbcTemplate.update("UPDATE user_details	SET password=? 	WHERE id=(SELECT shop_admin_id FROM SHOPS WHERE id=?)", newPwd.toString(), id);
+		} catch (Exception e) {
+			log.error("Message is {} and Exception is {}",e.getMessage(),e);
+			return -1;
+		}
 	}
 
 }

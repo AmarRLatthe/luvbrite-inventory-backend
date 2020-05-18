@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,7 +38,6 @@ public class DriverController {
 	public ResponseEntity<CommonResponse> createDriver(@RequestBody DriverDTO driver, Authentication authentication) {
 		CommonResponse response = new CommonResponse();
 		try {
-			log.info("came in create driver");
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 			log.info("user details is {}", userDetails);
 			if (userDetails != null) {
@@ -126,13 +126,13 @@ public class DriverController {
 				int update = iDriverService.updateDriverById(id, driver);
 				if (update > 0) {
 					response.setCode(200);
-					response.setMessage("shop data updated successfully");
+					response.setMessage("Driver data updated successfully");
 					response.setStatus("Success");
 					return new ResponseEntity<>(response, HttpStatus.OK);
 				}
 				response.setCode(422);
 				response.setStatus("Unprocessable");
-				response.setMessage("Shop data is not updated");
+				response.setMessage("Driver data is not updated");
 				return new ResponseEntity<>(response, HttpStatus.OK);
 
 			}
@@ -145,10 +145,36 @@ public class DriverController {
 		} catch (Exception e) {
 			log.error("Message is {} and Exception is {}" + e.getMessage(), e);
 			response.setCode(500);
-			response.setMessage("Vendor Data not able to get.please try again later.");
+			response.setMessage("Driver Data not able to get.please try again later.");
 			response.setStatus("SERVER ERROR");
 			return new ResponseEntity<>(response, HttpStatus.OK);
 
 		}
+	}
+	
+	@DeleteMapping("/deleteDriverById/{id}")
+	public ResponseEntity<CommonResponse> deleteDriverById(@PathVariable("id") Integer id){
+		log.info("id is {}",id);
+		CommonResponse response = new CommonResponse();
+		try {
+			int delete = iDriverService.deleteDriverById(id);
+			if(delete>0) {
+				response.setCode(200);
+				response.setMessage("Driver Deleted successfully");
+				response.setStatus("Success");
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}
+			response.setCode(422);
+			response.setStatus("Unprocessable");
+			response.setMessage("Driver is not Deleted");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (Exception e) {
+			log.error("Message is {} and Exception is {}" + e.getMessage(), e);
+			response.setCode(500);
+			response.setMessage("Driver is not deleted.please try again later.");
+			response.setStatus("SERVER ERROR");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+	
 	}
 }

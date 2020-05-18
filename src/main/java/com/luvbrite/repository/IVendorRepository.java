@@ -22,5 +22,7 @@ public interface IVendorRepository {
 
 	int updateVendorById(Integer id, VendorDTO vendor);
 
+	int deleteVendorById(Integer id);
+
 
 }
