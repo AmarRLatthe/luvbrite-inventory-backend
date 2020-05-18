@@ -49,7 +49,7 @@ public class VendorServiceImpl implements IVendorService {
 		Map<String, Object> map = new HashMap<String, Object>();
 		try {
 			map.put("isValid", true);
-			if (vendor.getVendorName() == null) {
+			if(vendor.getVendorName()==null) {
 				map.put("vendorName", "vendorName should not be empty");
 				map.put("isValid", false);
 			} else {
@@ -60,8 +60,9 @@ public class VendorServiceImpl implements IVendorService {
 				}
 			}
 
-			if (vendor.getEmail() != null) {
-				if (StringUtils.isNotBlank(vendor.getEmail())) {
+			if(vendor.getEmail()!=null ) {
+				if(StringUtils.isNotBlank(vendor.getEmail()))
+				{
 					int count = iVendorRepository.countVendorByEmail(vendor.getEmail());
 					if (count > 0) {
 						map.put("email", "email is already available.please try with different email");
@@ -87,7 +88,7 @@ public class VendorServiceImpl implements IVendorService {
 		Map<String, Object> map = new HashMap<String, Object>();
 		try {
 			map.put("isValid", true);
-			if (vendor.getVendorName() == null) {
+			if(vendor.getVendorName()==null) {
 				map.put("vendorName", "vendorName should not be empty");
 				map.put("isValid", false);
 			} else {
@@ -98,10 +99,11 @@ public class VendorServiceImpl implements IVendorService {
 				}
 			}
 
-			if (vendor.getEmail() != null) {
-				if (StringUtils.isNotBlank(vendor.getEmail())) {
-					int count = iVendorRepository.countVendorByEmailNId(id, vendor.getEmail());
-					if (count > 0) {
+			if(vendor.getEmail()!=null ) {
+				if(StringUtils.isNotBlank(vendor.getEmail()))
+				{
+					int count = iVendorRepository.countVendorByEmailNId(id,vendor.getEmail());
+					if(count>0) {
 						map.put("email", "email is already available.please try with different email");
 						map.put("isValid", false);
 					}
