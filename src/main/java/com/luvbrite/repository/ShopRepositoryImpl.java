@@ -2,6 +2,8 @@ package com.luvbrite.repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.luvbrite.model.CreateShopDTO;
+import com.luvbrite.model.ShopDTO;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -102,6 +105,112 @@ public class ShopRepositoryImpl implements IShopRepository {
 			log.error("message is {} and Exception is {}", e.getMessage(), e);
 			return -1;
 		}
+	}
+
+	@Override
+	public List<ShopDTO> getAllShops() {
+		try {
+			StringBuilder ShopsListQry = new StringBuilder();
+				 
+			ShopsListQry.append(" SELECT ")
+							.append(" SHOPS.id, ")
+							.append(" SHOPS.shop_name, ")
+							.append(" SHOPS.domain, ")
+							.append("  SHOP_OWNER.name AS shopOwner, ")
+							.append(" SHOP_OWNER.email, ")
+							.append(" SHOP_OWNER.username, ")
+							.append(" USER_CREATOR.name AS shopCreator")
+							.append(" FROM Shops ")
+							.append("	JOIN USER_DETAILS AS SHOP_OWNER ON SHOPS.shop_admin_id = SHOP_OWNER.id  ")
+							.append(" JOIN USER_DETAILS AS USER_CREATOR ON SHOPS.created_by = USER_CREATOR.id  ")
+							.append(" WHERE SHOPS.is_active = true ")
+							.append(" ORDER BY   ")
+							.append(" SHOP_OWNER.id ")
+							.append(" DESC ");
+				return jdbcTemplate.query(ShopsListQry.toString(), new RowMapper<ShopDTO>() {
+
+					@Override
+					public ShopDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
+						ShopDTO dto = new ShopDTO();
+						dto.setShopId(rs.getInt("id"));
+						dto.setShopOwnerName(rs.getString("shopOwner"));
+						dto.setShopName(rs.getString("shop_name"));
+						dto.setShopOwnerUsername(rs.getString("username"));
+						dto.setDomain(rs.getString("domain"));
+						dto.setCreatedBy(rs.getString("shopCreator"));
+						dto.setEmail(rs.getString("email"));
+						return dto;
+					}
+				});
+		} catch (Exception e) {
+			log.error("Message is {} and Exception is {}",e.getMessage(),e);
+			return Collections.emptyList();
+		}
+	}
+
+	@Override
+	public int countShopsByDomain(String domain) {
+		try {
+			return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM SHOPS WHERE LOWER(domain) = LOWER(?)",new Object[] {domain}, Integer.class);
+		} catch (Exception e) {
+			log.error("message is {} and Exception is {}", e.getMessage(), e);
+			return -1;
+		}
+	}
+
+	@Override
+	public int countShopsByShopNameNId(Integer id, String shopName) {
+		try {
+			return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM SHOPS WHERE LOWER(shop_name) = LOWER(?) AND id!= ? ",new Object[] {shopName,id}, Integer.class);
+		} catch (Exception e) {
+			log.error("message is {} and Exception is {}", e.getMessage(), e);
+			return -1;
+		}
+	}
+
+	@Override
+	public int countShopsByDomainNId(Integer id, String domain) {
+		try {
+			return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM SHOPS WHERE LOWER(domain) = LOWER(?) AND id!= ? ",new Object[] {domain,id}, Integer.class);
+		} catch (Exception e) {
+			log.error("message is {} and Exception is {}", e.getMessage(), e);
+			return -1;
+		}
+	}
+
+	@Transactional
+	@Override
+	public int updateShopById(Integer id, ShopDTO shop) {
+		try {
+			StringBuilder updateShopQry = new StringBuilder();
+			updateShopQry.append(" UPDATE shops ")
+								.append(" SET ")
+								.append(" shop_name= ?,  ")
+								.append(" domain=? ")
+								.append(" WHERE id=? ");
+			
+			StringBuilder updateShopOwnerDetailsQry = new StringBuilder();
+			updateShopOwnerDetailsQry.append("UPDATE user_details ")
+									.append(" SET ")
+									.append(" email=?, ")
+									.append(" username=?,  ")
+									.append(" name=? ")
+									.append(" WHERE id = (")
+									.append(" SELECT ")
+									.append(" SHOPS.shop_admin_id ")
+									.append(" FROM SHOPS  ")
+									.append(" WHERE ")
+									.append(" SHOPS.id = ?)");
+			
+				int updateShop = jdbcTemplate.update(updateShopQry.toString(),shop.getShopName(), shop.getDomain(),id);
+			if(updateShop>0) {
+				updateShop = jdbcTemplate.update(updateShopOwnerDetailsQry.toString(),shop.getEmail(),shop.getShopOwnerUsername(),shop.getShopOwnerName(),id);
+			}
+			return updateShop;
+		} catch (Exception e) {
+			log.error("message is {} and Exception is {}", e.getMessage(), e);
+			return -1;
+		}		
 	}
 
 }

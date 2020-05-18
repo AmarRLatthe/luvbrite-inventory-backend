@@ -23,6 +23,7 @@ public class DriverDTO implements Serializable{/**
 	private Integer shopId;
 	private Integer createdBy;
 	private String createdByName;
+	private Boolean isActive;
 
 	
 }

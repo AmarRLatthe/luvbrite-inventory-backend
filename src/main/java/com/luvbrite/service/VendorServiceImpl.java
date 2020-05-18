@@ -44,7 +44,7 @@ public class VendorServiceImpl implements IVendorService{
 	}
 
 	@Override
-	public Map<String, Object> validateOperator(VendorDTO vendor) {
+	public Map<String, Object> validateVendor(VendorDTO vendor) {
 		Map<String , Object> map = new HashMap<String, Object>();
 		try {
 			map.put("isValid", true);	
@@ -59,12 +59,16 @@ public class VendorServiceImpl implements IVendorService{
 				}
 			}
 			
-			if(vendor.getEmail()!=null) {
-				int count = iVendorRepository.countVendorByEmail(vendor.getEmail());
-				if(count>0) {
-					map.put("email", "email is already available.please try with different email");
-					map.put("isValid", false);
+			if(vendor.getEmail()!=null ) {
+				if(!vendor.getEmail().isBlank())
+				{
+					int count = iVendorRepository.countVendorByEmail(vendor.getEmail());
+					if(count>0) {
+						map.put("email", "email is already available.please try with different email");
+						map.put("isValid", false);
+					}
 				}
+					
 			}
 			return map;
 		}catch (Exception e) {
@@ -72,6 +76,52 @@ public class VendorServiceImpl implements IVendorService{
 			map.put("isValid", false);
 			map.put("message","Something went Wrong. please try again later.");
 			return map;
+		}
+	}
+
+	@Override
+	public Map<String, Object> validateVendorForUpdate(Integer id, VendorDTO vendor) {
+		Map<String , Object> map = new HashMap<String, Object>();
+		try {
+			map.put("isValid", true);	
+			if(vendor.getVendorName()==null) {
+				map.put("vendorName", "vendorName should not be empty");
+				map.put("isValid", false);
+			}else {
+				int count = iVendorRepository.countVendersByVendorNameNId(id,vendor.getVendorName());
+				if(count>0) {
+					map.put("vendorName", "vendorName is already available.please try with different vendorName");
+					map.put("isValid", false);
+				}
+			}
+			
+			if(vendor.getEmail()!=null ) {
+				if(!vendor.getEmail().isBlank())
+				{
+					int count = iVendorRepository.countVendorByEmailNId(id,vendor.getEmail());
+					if(count>0) {
+						map.put("email", "email is already available.please try with different email");
+						map.put("isValid", false);
+					}
+				}
+					
+			}
+			return map;
+		}catch (Exception e) {
+			log.error("Message is {} and Exception is {}",e.getMessage(),e);
+			map.put("isValid", false);
+			map.put("message","Something went Wrong. please try again later.");
+			return map;
+		}
+	}
+
+	@Override
+	public int updateVendorDataById(Integer id, VendorDTO vendor) {
+		try {
+			return iVendorRepository.updateVendorById(id,vendor);
+		} catch (Exception e) {
+			log.info("message is {} and exception is {}",e.getMessage(),e);
+			return -1;
 		}
 	}
 
