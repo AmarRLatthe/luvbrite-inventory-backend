@@ -69,7 +69,6 @@ public class VendorServiceImpl implements IVendorService{
 						map.put("isValid", false);
 					}
 				}
-
 			}
 			return map;
 		}catch (Exception e) {
@@ -105,7 +104,6 @@ public class VendorServiceImpl implements IVendorService{
 						map.put("isValid", false);
 					}
 				}
-
 			}
 			return map;
 		}catch (Exception e) {
