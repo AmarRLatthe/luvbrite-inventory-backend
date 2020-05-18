@@ -9,7 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,7 +42,7 @@ public class OperatorController {
 		try {
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 			if (userDetails != null) {
-				if (userDetails.getId() == 1 || userDetails.getShopId() == 1) {
+				if ((userDetails.getId() == 1) || (userDetails.getShopId() == 1)) {
 					if (operator.getUserType().equals("MANAGER")) {
 						operator.setUserType("MAIN MANAGER");
 					}
@@ -104,7 +106,7 @@ public class OperatorController {
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 			if (userDetails != null) {
 				List<UserDetails> list = iOperatorService.getOperatorsDataByShopId(userDetails.getShopId());
-				if (list != null && !list.isEmpty()) {
+				if ((list != null) && !list.isEmpty()) {
 					response.setCode(200);
 					response.setStatus("SUCCESS");
 					response.setData(list);
@@ -135,11 +137,11 @@ public class OperatorController {
 		try {
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 			if (userDetails != null) {
-				if (userDetails.getId() == 1 || userDetails.getShopId() == 1) {
-					if (id != 1 && operator.getUserType().equals("MANAGER")) {
+				if ((userDetails.getId() == 1) || (userDetails.getShopId() == 1)) {
+					if ((id != 1) && operator.getUserType().equals("MANAGER")) {
 						operator.setUserType("MAIN MANAGER");
 					}
-					if (id == 1 && !operator.getUserType().equals("MAIN ADMIN")) {
+					if ((id == 1) && !operator.getUserType().equals("MAIN ADMIN")) {
 						operator.setUserType("MAIN ADMIN");
 					}
 
@@ -198,9 +200,9 @@ public class OperatorController {
 	@PutMapping("updateOperatorPwdById/{id}")
 	public ResponseEntity<CommonResponse> updateOperatorPwdById(@PathVariable("id") Integer id,
 			@RequestBody PasswordDTO password) {
-	log.info("id is {}",id);
-	log.info(" operator is  {}" ,password);
-	CommonResponse response = new CommonResponse();
+		log.info("id is {}",id);
+		log.info(" operator is  {}" ,password);
+		CommonResponse response = new CommonResponse();
 		try {
 			if (password.getPassword().equals(password.getConfirmPassword())) {
 				int updatePwd = iOperatorService.updatePwdByOperatorId(id, password.getPassword());

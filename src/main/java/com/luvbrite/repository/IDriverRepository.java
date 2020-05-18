@@ -20,5 +20,4 @@ public interface IDriverRepository {
 
 	int deleteDriverById(Integer id);
 
-
 }

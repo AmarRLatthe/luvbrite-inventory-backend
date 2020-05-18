@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 @NoArgsConstructor
-public class VendorServiceImpl implements IVendorService{
+public class VendorServiceImpl implements IVendorService {
 
 	@Autowired
 	private IVendorRepository iVendorRepository;
@@ -28,7 +28,7 @@ public class VendorServiceImpl implements IVendorService{
 		try {
 			return iVendorRepository.saveVendor(vendor);
 		} catch (Exception e) {
-			log.error("Message is {} and exception is {}",e.getMessage(),e);
+			log.error("Message is {} and exception is {}", e.getMessage(), e);
 			return -1;
 		}
 
@@ -39,7 +39,7 @@ public class VendorServiceImpl implements IVendorService{
 		try {
 			return iVendorRepository.getVendorsDataByShopId(shopId);
 		} catch (Exception e) {
-			log.error("Message is {} and exception is {}",e.getMessage(),e);
+			log.error("Message is {} and exception is {}", e.getMessage(), e);
 			return Collections.emptyList();
 		}
 	}
@@ -52,9 +52,9 @@ public class VendorServiceImpl implements IVendorService{
 			if(vendor.getVendorName()==null) {
 				map.put("vendorName", "vendorName should not be empty");
 				map.put("isValid", false);
-			}else {
+			} else {
 				int count = iVendorRepository.countVendersByVendorName(vendor.getVendorName());
-				if(count>0) {
+				if (count > 0) {
 					map.put("vendorName", "vendorName is already available.please try with different vendorName");
 					map.put("isValid", false);
 				}
@@ -93,6 +93,7 @@ public class VendorServiceImpl implements IVendorService{
 					map.put("vendorName", "vendorName is already available.please try with different vendorName");
 					map.put("isValid", false);
 				}
+
 			}
 
 			if(vendor.getEmail()!=null ) {
@@ -133,6 +134,5 @@ public class VendorServiceImpl implements IVendorService{
 			return -1;
 		}
 	}
-
 
 }

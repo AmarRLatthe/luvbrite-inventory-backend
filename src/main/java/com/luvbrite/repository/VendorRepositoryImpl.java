@@ -177,7 +177,6 @@ public class VendorRepositoryImpl implements IVendorRepository {
 		}
 	}
 
-
 	@Override
 	public int deleteVendorById(Integer id) {
 		try {
@@ -187,6 +186,5 @@ public class VendorRepositoryImpl implements IVendorRepository {
 			return -1;
 		}
 	}
-
 
 }

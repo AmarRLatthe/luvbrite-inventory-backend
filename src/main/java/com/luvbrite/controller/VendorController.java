@@ -91,7 +91,7 @@ public class VendorController {
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 			if (userDetails != null) {
 				List<VendorDTO> list = iVendorService.getVendorsDataByShopId(userDetails.getShopId());
-				if (list != null && !list.isEmpty()) {
+				if ((list != null) && !list.isEmpty()) {
 					response.setCode(200);
 					response.setStatus("SUCCESS");
 					response.setData(list);
@@ -150,44 +150,11 @@ public class VendorController {
 		}
 	}
 
-	@PutMapping("/updateVendorById/{id}")
-	public ResponseEntity<CommonResponse> updateVendorById(@PathVariable("id") Integer id,
-			@RequestBody VendorDTO vendor) {
-		CommonResponse response = new CommonResponse();
-		try {
-			Map<String, Object> isValid = iVendorService.validateVendorForUpdate(id, vendor);
-			if ((boolean) isValid.get("isValid")) {
-				int update = iVendorService.updateVendorDataById(id, vendor);
-				if (update > 0) {
-					response.setCode(200);
-					response.setMessage("Vendor updated successfully");
-					response.setStatus("Success");
-					return new ResponseEntity<>(response, HttpStatus.OK);
-				}
-				response.setCode(422);
-				response.setStatus("Unprocessable");
-				response.setMessage("Vendor is not updated");
-				return new ResponseEntity<>(response, HttpStatus.OK);
-			}
-			response.setCode(400);
-			response.setStatus("Bad Request");
-			response.setMessage("Invalid Details");
-			response.setData(isValid);
-			return new ResponseEntity<>(response, HttpStatus.OK);
 
-		} catch (Exception e) {
-			log.error("Message is {} and Exception is {}" + e.getMessage(), e);
-			response.setCode(500);
-			response.setMessage("Vendor not able to get.please try again later.");
-			response.setStatus("SERVER ERROR");
-			return new ResponseEntity<>(response, HttpStatus.OK);
-		}
-	}
-	
 	@DeleteMapping("/deleteVendorById/{id}")
 	public ResponseEntity<CommonResponse> deleteVendorById(@PathVariable("id") Integer id){
 		log.info("id is {}",id);
-		
+
 		CommonResponse response = new CommonResponse();
 		try {
 			int delete = iVendorService.deleteVendorById(id);

@@ -137,7 +137,6 @@ public class DriverRepositoryImpl implements IDriverRepository{
 		}
 	}
 
-
 	@Override
 	public int deleteDriverById(Integer id) {
 		try {
@@ -147,6 +146,5 @@ public class DriverRepositoryImpl implements IDriverRepository{
 			return -1;
 		}
 	}
-
 
 }
