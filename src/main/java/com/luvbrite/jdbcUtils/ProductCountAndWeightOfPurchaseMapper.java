@@ -6,7 +6,6 @@ import java.sql.SQLException;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.luvbrite.model.ProductCountAndWeightOfPurchase;
-import com.luvbrite.model.ProductDetailsDTO;
 
 public class ProductCountAndWeightOfPurchaseMapper implements RowMapper<ProductCountAndWeightOfPurchase> {
 

@@ -10,11 +10,10 @@ import com.luvbrite.model.UserTypeDTO;
 import com.luvbrite.repository.IUserTypeRepository;
 
 import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Service
 @NoArgsConstructor
-@Slf4j
+//@Slf4j
 public class IUserTypeServiceImpl implements IUserTypeService{
 	
 	@Autowired

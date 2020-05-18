@@ -1,7 +1,5 @@
 package com.luvbrite.controller;
 
-import java.util.ArrayList;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +16,7 @@ import com.luvbrite.model.PurchaseDTO;
 import com.luvbrite.model.UserDetails;
 import com.luvbrite.service.IUserService;
 import com.luvbrite.service.PurchaseServiceImpl;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
