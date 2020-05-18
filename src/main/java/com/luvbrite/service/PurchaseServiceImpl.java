@@ -20,7 +20,7 @@ import com.luvbrite.repository.IPurchaseRepository;
 //@Slf4j
 public class PurchaseServiceImpl implements IPurchaseService {
 
-	private Pagination pg;
+	private Pagination pg = new Pagination();
 	private final int itemsPerPage = 15;
 
 	@Autowired
@@ -166,10 +166,10 @@ public class PurchaseServiceImpl implements IPurchaseService {
 
 			if (totalPurchase > 0) {
 				pgl = new PaginationLogic(totalPurchase, itemsPerPage, currentPage);
+				pg = pgl.getPg();
+				offset = pg.getOffset();
 			}
 
-			pg = pgl.getPg();
-			offset = pg.getOffset();
 			if (offset > 0)
 				qOFFSET = " OFFSET " + offset;
 		}

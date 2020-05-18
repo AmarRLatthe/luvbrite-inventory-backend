@@ -1,4 +1,4 @@
-package com.luvbrite.commonResponse;
+package com.luvbrite.commonresponse;
 
 import java.io.Serializable;
 
