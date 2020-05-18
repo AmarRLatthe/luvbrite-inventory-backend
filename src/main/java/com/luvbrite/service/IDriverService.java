@@ -17,4 +17,6 @@ public interface IDriverService {
 
 	int updateDriverById(int id, DriverDTO driver);
 
+	int deleteDriverById(Integer id);
+
 }

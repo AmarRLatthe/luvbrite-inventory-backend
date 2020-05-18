@@ -117,4 +117,27 @@ public class OperatorRepositoryImpl implements IOperatorRepository {
 		}	
 	}
 
+	@Override
+	public int deleteOperatorById(Integer id) {
+		try {
+			return jdbcTemplate.update(" UPDATE user_details	SET is_active= false WHERE id=?  ",id);
+		} catch (Exception e) {
+			log.error("Message is {} and Exception is {}",e.getMessage(),e);
+			return -1;
+		}
+	}
+
+	@Override
+	public int updatePwdByOperatorId(Integer id, String password) {
+		try {
+			StringBuilder newPwd = new StringBuilder();
+			newPwd.append("{bcrypt}")
+					.append(bCryptPasswordEncoder.encode(password));
+			return jdbcTemplate.update("UPDATE user_details	SET password=? 	WHERE id=?", newPwd.toString(), id);
+		} catch (Exception e) {
+			log.error("Message is {} and Exception is {}",e.getMessage(),e);
+			return -1;
+		}
+	}
+
 }

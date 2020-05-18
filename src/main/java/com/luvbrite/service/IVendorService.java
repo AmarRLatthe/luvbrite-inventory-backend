@@ -17,5 +17,7 @@ public interface IVendorService {
 
 	int updateVendorDataById(Integer id, VendorDTO vendor);
 
+	int deleteVendorById(Integer id);
+
 	
 }

@@ -137,4 +137,14 @@ public class DriverRepositoryImpl implements IDriverRepository{
 		}
 	}
 
+	@Override
+	public int deleteDriverById(Integer id) {
+		try {
+			return jdbcTemplate.update(" UPDATE drivers SET is_active= false WHERE id=? ",id);
+		} catch (Exception e) {
+			log.error("message is {} and exception is {}",e.getMessage(),e);
+			return -1;
+		}
+	}
+
 }

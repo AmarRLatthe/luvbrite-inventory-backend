@@ -177,4 +177,14 @@ public class VendorRepositoryImpl implements IVendorRepository {
 		}
 	}
 
+	@Override
+	public int deleteVendorById(Integer id) {
+		try {
+			return jdbcTemplate.update(" UPDATE vendors SET is_active= false WHERE id=? ",id);
+		} catch (Exception e) {
+			log.error("message is {} and exception is {}",e.getMessage(),e);
+			return -1;
+		}
+	}
+
 }

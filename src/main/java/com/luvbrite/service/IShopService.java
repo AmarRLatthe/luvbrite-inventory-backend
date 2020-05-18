@@ -18,4 +18,8 @@ public interface IShopService {
 
 	int updateShopById(Integer id, ShopDTO shop);
 
+	int deleteShopById(Integer id);
+
+	int updatePwdByshopId(Integer id, String password);
+
 }
