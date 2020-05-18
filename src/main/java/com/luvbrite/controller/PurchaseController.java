@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.luvbrite.commonResponse.CommonResponse;
+import com.luvbrite.commonresponse.CommonResponse;
 import com.luvbrite.model.PaginatedPurchase;
 import com.luvbrite.model.PurchaseDTO;
 import com.luvbrite.model.UserDetails;
