@@ -22,6 +22,7 @@ public class CreateShopDTO implements Serializable {
 	private String fullName;
 	private String shopName;
 	private String shopAdminId;
+	private String shopOwnerName;
 	private String userName;
 	private String password;
 	private String email;

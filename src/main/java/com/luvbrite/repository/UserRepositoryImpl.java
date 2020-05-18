@@ -37,7 +37,9 @@ public class UserRepositoryImpl implements IUserRepository {
 					.append(" LEFT JOIN USER_TYPE_DETAILS ON USER_TYPE_DETAILS.id = USER_DETAILS.user_type_id WHERE LOWER(USER_DETAILS.username) = ")
 					.append("LOWER('")
 					.append(username)
-					.append("')");
+					.append("')")
+					.append(" AND ")
+					.append("USER_DETAILS.is_active = true");
 			UserDetails userDetails = jdbcTemplate.queryForObject(builder.toString(), new RowMapper<UserDetails>() {
 
 				@Override
@@ -133,6 +135,43 @@ public class UserRepositoryImpl implements IUserRepository {
 	public int countUserByEmail(String email) {
 		try {
 			return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM user_details WHERE LOWER(email) = LOWER(?)",new Object[] {email}, Integer.class);
+		} catch (Exception e) {
+			log.error("message is {} and Exception is {}", e.getMessage(), e);
+			return -1;
+		}
+	}
+
+	@Override
+	public int countUserByUserNameNId(String shopOwnerUsername, Integer id) {
+		try {
+			StringBuilder countByEmailNIdQry = new StringBuilder();
+			countByEmailNIdQry.append(" SELECT COUNT(*)  ");
+			countByEmailNIdQry.append(" FROM user_details ");
+			countByEmailNIdQry.append(" JOIN SHOPS ON user_details.shop_id = SHOPS.id ");
+			countByEmailNIdQry.append(" WHERE ");
+			countByEmailNIdQry.append(" LOWER(user_details.username) = LOWER(?)  ");
+			countByEmailNIdQry.append(" AND ");
+			countByEmailNIdQry.append(" SHOPS.id != ? ");
+			return jdbcTemplate.queryForObject(countByEmailNIdQry.toString(),new Object[] {shopOwnerUsername,id}, Integer.class);
+
+		} catch (Exception e) {
+			log.error("message is {} and Exception is {}", e.getMessage(), e);
+			return -1;
+		}
+	}
+
+	@Override
+	public int countUserByEmailNId(Integer id,String email) {
+		try {
+			StringBuilder countByEmailNIdQry = new StringBuilder();
+			countByEmailNIdQry.append(" SELECT COUNT(*)  ");
+			countByEmailNIdQry.append(" FROM user_details ");
+			countByEmailNIdQry.append(" JOIN SHOPS ON user_details.shop_id = SHOPS.id ");
+			countByEmailNIdQry.append(" WHERE ");
+			countByEmailNIdQry.append(" LOWER(email) = LOWER(?)  ");
+			countByEmailNIdQry.append(" AND ");
+			countByEmailNIdQry.append(" SHOPS.id != ? ");
+			return jdbcTemplate.queryForObject(countByEmailNIdQry.toString(),new Object[] {email,id}, Integer.class);
 		} catch (Exception e) {
 			log.error("message is {} and Exception is {}", e.getMessage(), e);
 			return -1;
