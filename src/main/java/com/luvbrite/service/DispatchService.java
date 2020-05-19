@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import com.luvbrite.jdbcUtils.DispatchSalesRowMapper;
 import com.luvbrite.model.DispatchSalesExt;
 import com.luvbrite.model.Pagination;
 import com.luvbrite.model.PaginationLogic;
@@ -15,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-public class ListDispatchService {
+public class DispatchService  {
 
 	@Autowired
 	JdbcTemplate jdbcTemplate;
@@ -23,9 +24,29 @@ public class ListDispatchService {
 	private Pagination pg;
 	private final int itemsPerPage = 15;
 
-	List<DispatchSalesExt> listDispatches(int driverId, int dispatchId, boolean cancelled, boolean finished,
-			boolean notFinished, String q, String orderBy, String mode, String qSORTDIR, int currentPage,
-			int deliveryRtId) {
+
+	public List<DispatchSalesExt> listDispatches(Integer driverId, Integer dispatchId, Boolean cancelled, Boolean finished,
+			Boolean notFinished, String q, String orderBy, String mode, String qSORTDIR, Integer currentPage,
+			Integer deliveryRtId,Integer shopId) throws Exception {
+
+		log.error("Inside list dispatches");
+
+		driverId = (driverId==null)?0:driverId;
+		dispatchId = (dispatchId==null)?0:dispatchId;
+		cancelled = (cancelled==null)?false:cancelled;
+		finished = (finished==null)?false:finished;
+		notFinished = (notFinished==null)?false:notFinished;
+		q=(q==null)?"":q;
+		orderBy=(orderBy==null)?"":orderBy;
+		mode=(mode==null)?"":mode;
+		qSORTDIR=(qSORTDIR==null)?"":qSORTDIR;
+		currentPage=(currentPage==null)?0:currentPage;
+		deliveryRtId=(deliveryRtId==null)?0:deliveryRtId;
+		shopId=(shopId==null)?0:shopId;
+
+
+
+
 
 		String qWHERE = "",
 				qOFFSET = "",
@@ -65,7 +86,7 @@ public class ListDispatchService {
 			}
 		}
 
-		ArrayList<DispatchSalesExt> dispatches = new ArrayList<DispatchSalesExt>();
+		List<DispatchSalesExt> dispatches = new ArrayList<DispatchSalesExt>();
 
 		if (cancelled) {
 			qWHERE = " WHERE ds.cancellation_reason <> '' ";
@@ -164,16 +185,13 @@ public class ListDispatchService {
 			.append(driverIdIdFilter)
 			.append(dispatchIdFilter)
 			.append(qWHERE)
+			.append("AND ooi.shop_id = "+shopId+" ")
 			.append(qORDERBY)
 			.append(qLIMIT)
 			.append(qOFFSET);
 
 
-
-
-
-
-			return null;
+			dispatches = jdbcTemplate.query(queryBuffer.toString(),new DispatchSalesRowMapper());
 
 		}
 		return dispatches;

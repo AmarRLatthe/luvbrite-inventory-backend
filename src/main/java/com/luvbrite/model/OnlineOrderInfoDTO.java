@@ -1,5 +1,6 @@
 package com.luvbrite.model;
 
+import java.util.List;
 
 public class OnlineOrderInfoDTO {
 	private int id = 0;
@@ -14,6 +15,14 @@ public class OnlineOrderInfoDTO {
 	private String deliveryNote = "";
 	private double rushFee = 0d;
 
+	private List<String> productInfo = null;
+
+	public List<String> getProductInfo() {
+		return productInfo;
+	}
+	public void setProductInfo(List<String> productInfo) {
+		this.productInfo = productInfo;
+	}
 	public int getId() {
 		return id;
 	}
