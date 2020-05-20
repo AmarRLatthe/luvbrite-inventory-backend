@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import com.luvbrite.jdbcUtils.DispatchSalesRowMapper;
+import com.luvbrite.jdbcutils.DispatchSalesRowMapper;
 import com.luvbrite.model.DispatchSalesExt;
 import com.luvbrite.model.Pagination;
 import com.luvbrite.model.PaginationLogic;
@@ -16,7 +16,10 @@ import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-public class DispatchService  {
+public class DispatchService implements IDispacthService {
+
+	@Autowired
+	Tracker tracker;
 
 	@Autowired
 	JdbcTemplate jdbcTemplate;
@@ -24,7 +27,7 @@ public class DispatchService  {
 	private Pagination pg;
 	private final int itemsPerPage = 15;
 
-
+	@Override
 	public List<DispatchSalesExt> listDispatches(Integer driverId, Integer dispatchId, Boolean cancelled, Boolean finished,
 			Boolean notFinished, String q, String orderBy, String mode, String qSORTDIR, Integer currentPage,
 			Integer deliveryRtId,Integer shopId) throws Exception {
@@ -197,5 +200,93 @@ public class DispatchService  {
 		return dispatches;
 
 	}
+
+	@Override
+	public boolean updatePacketInfo(int id, int opsId) throws Exception {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean assignDriver(int id, int opsId) throws Exception {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean cancelDispatch(int id, int opsId) throws Exception {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean markArrived(int id, int opsId) throws Exception {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean markSold(int id, int opsId) throws Exception {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean inOfficeOrderProcess(int id) throws Exception {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean dateUpdate(int id, int opsId) throws Exception {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean pmtModeUpdate(int id, int opsId) throws Exception {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean tipUpdate(int id, int opsId) throws Exception {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean splitUpdate(int id, int opsId) throws Exception {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean recalculateDistance(int id, int opsId) throws Exception {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean closeTheseSales(int opsId) throws Exception {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean reopenTheseSales(int opsId) throws Exception {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean resetSale(int id, int opsId) throws Exception {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+
+
+
 
 }

@@ -17,9 +17,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.luvbrite.commonresponse.CommonResponse;
+<<<<<<< HEAD
 import com.luvbrite.model.AuthoritiesDTO;
 import com.luvbrite.model.PasswordDTO;
 import com.luvbrite.model.PermissionDTO;
+=======
+>>>>>>> dipatch in progress
 import com.luvbrite.model.UserDetails;
 import com.luvbrite.service.IOperatorService;
 import com.luvbrite.service.IUserService;

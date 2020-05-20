@@ -28,7 +28,7 @@ public class UserDetails {
 	private Boolean isActive;
 
 	private List<String> userRoles;
-	
+
 	private Integer createdBy;
 	private String createdByName;
 

@@ -5,9 +5,10 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import com.luvbrite.jdbcUtils.ProductCountAndWeightOfPurchaseMapper;
-import com.luvbrite.jdbcUtils.ProductDetailsDTOMapper;
-import com.luvbrite.jdbcUtils.ReturnedAndAdjustProductMapper;
+
+import com.luvbrite.jdbcutils.ProductCountAndWeightOfPurchaseMapper;
+import com.luvbrite.jdbcutils.ProductDetailsDTOMapper;
+import com.luvbrite.jdbcutils.ReturnedAndAdjustProductMapper;
 import com.luvbrite.model.AdjustedAndReturnedDTO;
 import com.luvbrite.model.ProductCountAndWeightOfPurchase;
 import com.luvbrite.model.ProductDetailsDTO;

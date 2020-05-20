@@ -1,4 +1,4 @@
-package com.luvbrite.jdbcUtils;
+package com.luvbrite.jdbcutils;
 
 import java.sql.Array;
 import java.sql.ResultSet;

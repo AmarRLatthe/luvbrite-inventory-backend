@@ -20,13 +20,13 @@ public class DriverServiceImpl implements IDriverService {
 
 	@Autowired
 	private IDriverRepository iDriverRepository;
-	
+
 	@Override
 	public int saveDriver(DriverDTO driver) {
 		try {
 			log.info("Came in driver Service ");
 			return iDriverRepository.saveDriver(driver);
-			
+
 		} catch (Exception e) {
 			log.error("Message is {} and exception is {}",e.getMessage(),e);
 			return -1;
@@ -48,15 +48,15 @@ public class DriverServiceImpl implements IDriverService {
 	public Map<String, Object> validateDriver(DriverDTO driver) {
 		Map<String , Object> map = new HashMap<String, Object>();
 		try {
-			map.put("isValid", true);	
+			map.put("isValid", true);
 			if(driver.getDriverName()==null) {
 				map.put("driverName", "driverName should not be empty");
 				map.put("isValid", false);
 			}else {
-//				DriverDTO  driverDTO = iDriverRepository.findByDriverName(driver.getDriverName());
+				//				DriverDTO  driverDTO = iDriverRepository.findByDriverName(driver.getDriverName());
 				int count = iDriverRepository.countDriverByDriverName(driver.getDriverName());
 				if(count>0) {
-					map.put("driverName", "driverName is already available.please try with different driverName");
+					map.put("driverName", "driverName is already available.Please try with different driverName");
 					map.put("isValid", false);
 				}
 			}
@@ -64,7 +64,7 @@ public class DriverServiceImpl implements IDriverService {
 		}catch (Exception e) {
 			log.error("Message is {} and Exception is {}",e.getMessage(),e);
 			map.put("isValid", false);
-			map.put("message","Something went Wrong. please try again later.");
+			map.put("message","Something went Wrong. Please try again later.");
 			return map;
 		}
 	}
