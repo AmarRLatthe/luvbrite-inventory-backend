@@ -8,8 +8,11 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.luvbrite.model.AuthoritiesDTO;
+import com.luvbrite.model.PermissionDTO;
 import com.luvbrite.model.UserDetails;
 import com.luvbrite.repository.IOperatorRepository;
+import com.luvbrite.repository.IShopRepository;
 import com.luvbrite.repository.IUserRepository;
 
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +26,9 @@ public class OperatorServiceImpl implements IOperatorService {
 	
 	@Autowired
 	private IUserRepository iUserRepository;
+	
+	@Autowired
+	private IShopRepository iShopRepository;
 	
 	@Override
 	public int saveOperator(UserDetails operator) {
@@ -105,6 +111,63 @@ public class OperatorServiceImpl implements IOperatorService {
 	public int updatePwdByOperatorId(Integer id, String password) {
 		try {
 			return iOperatorRepository.updatePwdByOperatorId(id,password);
+		} catch (Exception e) {
+			log.info("message is {} and exception is {}",e.getMessage(),e);
+			return -1;
+		}
+	}
+
+	@Override
+	public Map<String, Object> getAuthoritiesNPermissions(Integer id) {
+		try {
+			Map<String, Object> map = new HashMap<>();	
+			
+			List<String> listOfPermissions=iOperatorRepository.getListOfAllPermissions();
+			log.info("list of all permissions {}",listOfPermissions);
+			List<String> listOfAllowedPermission = iOperatorRepository.getListOfAllowedPermissionById(id);
+			log.info(" list of all allowed permissions {} ",listOfAllowedPermission);
+			List<String> listOfAllShopName = iShopRepository.getAllShopNames();
+			List<String> listOfAllowedShopNames=iShopRepository.getAllAllowedShopNamesById(id);
+			log.info(" list of all shop name  is {}",listOfAllShopName);
+			log.info(" list of allowed shop names is {} ",listOfAllowedShopNames);
+			map.put("listOfPermissions", listOfPermissions);
+			map.put("listOfAllowedPermission", listOfAllowedPermission);
+			map.put("listOfAllShopName", listOfAllShopName);
+			map.put("listOfAllowedShopNames", listOfAllowedShopNames);
+			
+			return map;
+		} catch (Exception e) {
+			log.info("message is {} and exception is {}",e.getMessage(),e);
+			return Collections.emptyMap();
+		}
+		
+		
+	}
+
+	@Override
+	public String getUsertypeById(Integer id) {
+		try {
+			return iOperatorRepository.getUserTypeById(id);
+		} catch (Exception e) {
+			log.info("message is {} and exception is {}",e.getMessage(),e);
+			return "";
+		}
+	}
+
+	@Override
+	public int authoritiesGrantByUserId(AuthoritiesDTO authorities) {
+		try {
+			return iOperatorRepository.authoritiesGrantByUserId(authorities);
+		} catch (Exception e) {
+			log.info("message is {} and exception is {}",e.getMessage(),e);
+			return -1;
+		}
+	}
+
+	@Override
+	public int permissionGrantByUserId(PermissionDTO permission) {
+		try {
+			return iOperatorRepository.permissionGrantByUserId(permission);
 		} catch (Exception e) {
 			log.info("message is {} and exception is {}",e.getMessage(),e);
 			return -1;
