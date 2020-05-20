@@ -28,6 +28,12 @@ public interface IShopRepository{
 
 	int updatePwdByshopId(Integer id, String password);
 
+	List<String> getAllShopNames();
+
+	List<String> getAllAllowedShopNamesById(Integer id);
+
+	List<Integer> getIdsFromShopsNames(String[] authorities);
+
 	
 
 

@@ -17,7 +17,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.luvbrite.commonresponse.CommonResponse;
+import com.luvbrite.model.AuthoritiesDTO;
 import com.luvbrite.model.PasswordDTO;
+import com.luvbrite.model.PermissionDTO;
 import com.luvbrite.model.UserDetails;
 import com.luvbrite.service.IOperatorService;
 import com.luvbrite.service.IUserService;
@@ -223,6 +225,95 @@ public class OperatorController {
 				return new ResponseEntity<>(response, HttpStatus.OK);
 			}
 
+		} catch (Exception e) {
+			log.error("Message is {} and Exception is {}" + e.getMessage(), e);
+			response.setCode(500);
+			response.setMessage("Operator password is not updated.please try again later.");
+			response.setStatus("SERVER ERROR");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+	}
+	
+	@GetMapping("/getAuthoritiesNPermissions/{id}")
+	public ResponseEntity<CommonResponse> getAuthoritiesNPermissions(@PathVariable("id") Integer id){
+		CommonResponse response = new CommonResponse();
+		try {
+			String userType = iOperatorService.getUsertypeById(id);
+			if("MAIN MANAGER".equals(userType)) {
+				Map<String, Object> data = iOperatorService.getAuthoritiesNPermissions(id);
+				response.setCode(200);
+				response.setMessage("Operator password Updated successfully");
+				response.setStatus("Success");
+				response.setData(data);
+				return new ResponseEntity<>(response,HttpStatus.OK);				
+			}
+			response.setCode(422);
+			response.setStatus("Unprocessable");
+			response.setMessage("You Can Give Authority to Only Main Manager");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+			
+		} catch (Exception e) {
+			log.error("Message is {} and Exception is {}" + e.getMessage(), e);
+			response.setCode(500);
+			response.setMessage("somthing went wrong.please try again later.");
+			response.setStatus("SERVER ERROR");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+	}
+	
+	@PostMapping("/permissionGrant")
+	public ResponseEntity<CommonResponse> permissionGrant(@RequestBody PermissionDTO permission){
+		CommonResponse response = new CommonResponse();
+		log.info("permission is {}",permission);
+		try {
+			String userType = iOperatorService.getUsertypeById(permission.getId());
+			if("MAIN MANAGER".equals(userType)) {
+//				Map<String, Object> data = iOperatorService.getAuthoritiesNPermissions(id);
+				int isGranted = iOperatorService.permissionGrantByUserId(permission);
+				if(isGranted>0) {
+					response.setCode(200);
+					response.setMessage("Manager Permission Updated successfully");
+					response.setStatus("Success");
+					return new ResponseEntity<>(response,HttpStatus.OK);									
+				}
+			}
+			response.setCode(422);
+			response.setStatus("Unprocessable");
+			response.setMessage("You Can Give Authority to Only Main Manager");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+			
+		} catch (Exception e) {
+			log.error("Message is {} and Exception is {}" + e.getMessage(), e);
+			response.setCode(500);
+			response.setMessage("Operator password is not updated.please try again later.");
+			response.setStatus("SERVER ERROR");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+	}
+	
+	@PostMapping("/authoritiesGrant")
+	public ResponseEntity<CommonResponse> authoritiesGrant(@RequestBody AuthoritiesDTO authorities){
+		CommonResponse response = new CommonResponse();
+		log.info("permission is {}",authorities);
+		try {
+			String userType = iOperatorService.getUsertypeById(authorities.getId());
+			if("MAIN MANAGER".equals(userType)) {
+				int isGranted = iOperatorService.authoritiesGrantByUserId(authorities);
+//				Map<String, Object> data = iOperatorService.getAuthoritiesNPermissions(id);
+				if(isGranted>0) {
+					response.setCode(200);
+					response.setMessage("Manager Authority Updated successfully");
+					response.setStatus("Success");
+//					response.setData(data);
+					return new ResponseEntity<>(response,HttpStatus.OK);									
+				}
+
+			}
+			response.setCode(422);
+			response.setStatus("Unprocessable");
+			response.setMessage("You Can Give Authority to Only Main Manager");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+			
 		} catch (Exception e) {
 			log.error("Message is {} and Exception is {}" + e.getMessage(), e);
 			response.setCode(500);
