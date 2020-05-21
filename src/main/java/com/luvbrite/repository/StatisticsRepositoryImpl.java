@@ -77,6 +77,9 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 
 		boolean first = true;
 
+		OrderBreakDownDTO obd = new OrderBreakDownDTO();
+		OrderStatisticDTO or = new OrderStatisticDTO();
+		
 		int currentDriverId = 0, previousDriverId = 0;
 		try {
 			List<OrderStatisticDTO> orArray = new ArrayList<OrderStatisticDTO>();
@@ -86,8 +89,6 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 			}
 			List<DriverStatDTO> dtos = getDataBasedOnDriverId(driverId, startDate, endDate);
 			for (DriverStatDTO dto : dtos) {
-				OrderBreakDownDTO obd = new OrderBreakDownDTO();
-				OrderStatisticDTO or = new OrderStatisticDTO();
 				currentDriver = dto.getDriver();
 				currentPaymentMode = dto.getPaymentMode();
 				currentDriverId = dto.getDriverId();
@@ -146,6 +147,19 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 				previousDriverId = currentDriverId;
 				previousPaymentMode = currentPaymentMode;
 				dispatchId = dto.getDispatchIds();
+			}
+			if (!first) {
+				obd.setName(previousDriver);
+				obd.setAmount(groupAmount);
+				obd.setMode(currentPaymentMode);
+				obd.setOstat(orArray);
+
+				setTip(dispatchId, obd);
+				setDistance(previousDriverId, obd, startDate, endDate);
+
+				obd.setCommission(getDriverCommision(dispatchId));
+
+				results.add(obd);
 			}
 			return results;
 		} catch (Exception e) {
@@ -863,7 +877,9 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 	}
 
 	public List<DriverStatDTO> getDataBasedOnDriverId(String driverId, String startDate, String endDate) {
+		
 		String whereQuery = "", SELECTS = "", groupBy = " GROUP BY d.id, d.driver_name, dis.payment_mode ";
+		
 		if (endDate.trim().equals("")) {
 			whereQuery = " >= to_date('" + startDate + "', 'MM/dd/YYYY')";
 		} else {
@@ -891,7 +907,7 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 				statQueryByDriverId, driverID);
 		List<DriverStatDTO> dtos = null;
 		if (driverID > 0) {
-			dtos = jdbcTemplate.query(statQueryByDriverId.toString(), new RowMapper<DriverStatDTO>() {
+			dtos = jdbcTemplate.query(statQueryByDriverId.toString(), new Object[] { driverID }, new RowMapper<DriverStatDTO>() {
 				@Override
 				public DriverStatDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
 					DriverStatDTO dto = new DriverStatDTO();
