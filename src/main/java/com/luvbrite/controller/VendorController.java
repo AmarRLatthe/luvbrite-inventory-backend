@@ -91,7 +91,7 @@ public class VendorController {
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 			if (userDetails != null) {
 				List<VendorDTO> list = iVendorService.getVendorsDataByShopId(userDetails.getShopId());
-				if ((list != null) && !list.isEmpty()) {
+				if (list != null) {
 					response.setCode(200);
 					response.setStatus("SUCCESS");
 					response.setData(list);

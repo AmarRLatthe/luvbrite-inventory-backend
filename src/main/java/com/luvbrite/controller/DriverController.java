@@ -91,8 +91,10 @@ public class DriverController {
 		try {
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 			if (userDetails != null) {
+				log.info("hello..................");
 				List<DriverDTO> list = iDriverService.getDriverDataByShopId(userDetails.getShopId());
-				if (list != null && !list.isEmpty()) {
+				log.info("List is {}",list);
+				if (list != null) {
 					response.setCode(200);
 					response.setStatus("SUCCESS");
 					response.setData(list);

@@ -1,5 +1,6 @@
 package com.luvbrite.service;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +39,7 @@ public class DriverServiceImpl implements IDriverService {
 			return iDriverRepository.getDriversByShopId(shopId);
 		} catch (Exception e) {
 			log.error("Message is {} and exception is {}",e.getMessage(),e);
-			return null;
+			return Collections.emptyList();
 		}
 
 	}
