@@ -42,7 +42,6 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 	@Override
 	public List<OrderBreakDownDTO> getBaseStatsData(int shopId) {
 		log.info("Inside getBaseStatsData to get base statistics data ");
-		results = new ArrayList<>();
 		StatisticsDTO dto = (StatisticsDTO) jdbcTemplate.queryForObject(getExtractQuery(),
 				new BeanPropertyRowMapper(StatisticsDTO.class));
 		dow = dto.getDow();
@@ -71,9 +70,9 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 	@Transactional
 	public List<OrderBreakDownDTO> getStatsByDriverId(String startDate, String endDate, String driverId) {
 		log.info("Inside get stats by driver id, for driver id {} ", driverId);
-		String whereQuery = "", previousDriver = "", currentDriver = "", previousPaymentMode = "",
-				currentPaymentMode = "", dispatchId = "0", SELECTS = "",
-				groupBy = " GROUP BY d.id, d.driver_name, dis.payment_mode ";
+		List<OrderBreakDownDTO> results = new ArrayList<>();
+		String previousDriver = "", currentDriver = "", previousPaymentMode = "",
+				currentPaymentMode = "", dispatchId = "0";
 		double groupAmount = 0d;
 
 		boolean first = true;
@@ -81,46 +80,11 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 		int currentDriverId = 0, previousDriverId = 0;
 		try {
 			List<OrderStatisticDTO> orArray = new ArrayList<OrderStatisticDTO>();
-
-			if (endDate.trim().equals("")) {
-				whereQuery = " >= to_date('" + startDate + "', 'MM/dd/YYYY')";
-			} else {
-				whereQuery = " >= to_date('" + startDate + "', 'MM/dd/YYYY') " + "AND  pi.date_sold < to_date('"
-						+ endDate + "', 'MM/dd/YYYY') + interval '1 day'";
+			int driverID = 0;
+			if (!StringUtils.isEmpty(driverId)) {
+				driverID = Integer.parseInt(driverId);
 			}
-			int driverID = Integer.parseInt(driverId);
-			if (driverID > 0) {
-				SELECTS = "p.product_name As product, ";
-				groupBy += ", p.product_name ";
-				whereQuery += " AND dis.driver_id = " + driverId;
-			}
-			StringBuilder statQueryByDriverId = new StringBuilder();
-			statQueryByDriverId
-					.append("SELECT array_to_string(array_agg(dis.id), ',') As dis_ids, COUNT(pi.id) AS count, ")
-					.append("SUM(pi.selling_price) AS amount, dis.payment_mode, ").append(SELECTS)
-					.append("COALESCE(d.driver_name,'No Driver Assigned') AS driver, d.id AS driver_id ")
-					.append("FROM packet_inventory pi JOIN purchase_inventory pur ON pi.purchase_id = pur.id ")
-					.append("JOIN products p ON p.id = pur.product_id JOIN dispatch_sales_info dis ON dis.id = pi.sales_id ")
-					.append("LEFT JOIN drivers d ON d.id = dis.driver_id WHERE sales_id <> 0 AND pi.date_sold ")
-					.append(whereQuery).append(" ").append(groupBy).append("ORDER BY d.driver_name, dis.payment_mode");
-			log.info("Executing query to get stats by driver id, query is: {} driver id provided is: {} ", statQueryByDriverId, driverID);
-			List<DriverStatDTO> dtos = jdbcTemplate.query(statQueryByDriverId.toString(),
-					new RowMapper<DriverStatDTO>() {
-						@Override
-						public DriverStatDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
-							DriverStatDTO dto = new DriverStatDTO();
-							dto.setDriver(rs.getString("driver"));
-							dto.setPaymentMode(rs.getString("payment_mode"));
-							dto.setDriverId(rs.getInt("driver_id"));
-							dto.setDispatchIds(rs.getString("dis_ids"));
-							dto.setAmount(rs.getDouble("amount"));
-							dto.setCount(rs.getInt("count"));
-							if (driverID > 0) {
-								dto.setProduct(rs.getString("product"));
-							}
-							return dto;
-						}
-					});
+			List<DriverStatDTO> dtos = getDataBasedOnDriverId(driverId, startDate, endDate);
 			for (DriverStatDTO dto : dtos) {
 				OrderBreakDownDTO obd = new OrderBreakDownDTO();
 				OrderStatisticDTO or = new OrderStatisticDTO();
@@ -459,7 +423,7 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 
 		return results;
 	}
-	
+
 	@Override
 	public List<OrderBreakDownDTO> getCustomerStats(String startDate, String endDate) {
 		List<OrderBreakDownDTO> results = new ArrayList<OrderBreakDownDTO>();
@@ -491,7 +455,7 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 				}
 			});
 			return results;
-		} catch(Exception e) {
+		} catch (Exception e) {
 			log.info("Exception while getting customer stats, message is {}, exception is {} ", e.getMessage(), e);
 		}
 		return results;
@@ -534,7 +498,7 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 			} else if (diffDays < 140) {
 				dateQuery = "TO_CHAR(pi.date_sold, 'YYYY-MM \"Week -\" W') AS date_formatted, ";
 			}
-			
+
 			/**
 			 * In the query we want to separate all flowers and non flowers - CASE
 			 * p.category_id WHEN 1 THEN 1 ELSE 2 END AS category_id does that separation.
@@ -554,35 +518,37 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 			 * and price per SKU, so the unit purchase price will just unitPrice The date
 			 * has been added to CASE to take care of this.
 			 */
-			
+
 			StringBuilder salesProfitSubQuery = new StringBuilder();
-			salesProfitSubQuery.append(" SELECT ").append(dateQuery).append("CASE p.category_id WHEN 1 THEN 1 ELSE 2 END ")
-			.append("AS category_id, pi.selling_price, CASE WHEN (p.category_id = 1 AND pur.date_added < '2016-11-30')")
-			.append("THEN pur.unit_price*pi.weight_in_grams ELSE pur.unit_price END AS purchase_price ")
-			.append("FROM packet_inventory pi JOIN purchase_inventory pur ON pur.id = pi.purchase_id ")
-			.append("JOIN products p ON p.id = pur.product_id WHERE pi.sales_id <> 0 AND pi.date_sold >= to_date('")
-			.append(startDate).append("', 'MM/dd/YYYY') ").append("AND  pi.date_sold < to_date('").append(endDate)
-			.append("', 'MM/dd/YYYY') + interval '1 day'");
+			salesProfitSubQuery.append(" SELECT ").append(dateQuery)
+					.append("CASE p.category_id WHEN 1 THEN 1 ELSE 2 END ")
+					.append("AS category_id, pi.selling_price, CASE WHEN (p.category_id = 1 AND pur.date_added < '2016-11-30')")
+					.append("THEN pur.unit_price*pi.weight_in_grams ELSE pur.unit_price END AS purchase_price ")
+					.append("FROM packet_inventory pi JOIN purchase_inventory pur ON pur.id = pi.purchase_id ")
+					.append("JOIN products p ON p.id = pur.product_id WHERE pi.sales_id <> 0 AND pi.date_sold >= to_date('")
+					.append(startDate).append("', 'MM/dd/YYYY') ").append("AND  pi.date_sold < to_date('")
+					.append(endDate).append("', 'MM/dd/YYYY') + interval '1 day'");
 
 			SalesProfitDataExtDTO spdExt = new SalesProfitDataExtDTO();
 			String currentDate = "", previousDate = "";
 			double total = 0d, purchaseTotal = 0d, sellingTotal = 0d, profit = 0d;
 			StringBuilder vQuery = new StringBuilder();
 			vQuery.append("WITH sub AS (").append(salesProfitSubQuery).append(") SELECT date_formatted, category_id, ")
-			.append("SUM(selling_price) AS selling_price, SUM(purchase_price) AS purchase_price FROM sub ")
-			.append("GROUP BY date_formatted, category_id ORDER BY date_formatted ASC, category_id ASC");
-			List<CommonSalesProfitDTO> dtos = jdbcTemplate.query(vQuery.toString(), new RowMapper<CommonSalesProfitDTO>() {
+					.append("SUM(selling_price) AS selling_price, SUM(purchase_price) AS purchase_price FROM sub ")
+					.append("GROUP BY date_formatted, category_id ORDER BY date_formatted ASC, category_id ASC");
+			List<CommonSalesProfitDTO> dtos = jdbcTemplate.query(vQuery.toString(),
+					new RowMapper<CommonSalesProfitDTO>() {
 
-				@Override
-				public CommonSalesProfitDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
-					CommonSalesProfitDTO dto = new CommonSalesProfitDTO();
-					dto.setDate(rs.getString("date_formatted"));
-					dto.setPurchasePrice(rs.getDouble("purchase_price"));
-					dto.setSellingPrice(rs.getDouble("selling_price"));
-					dto.setCategoryId(rs.getInt("category_id"));
-					return dto;
-				}
-			});
+						@Override
+						public CommonSalesProfitDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
+							CommonSalesProfitDTO dto = new CommonSalesProfitDTO();
+							dto.setDate(rs.getString("date_formatted"));
+							dto.setPurchasePrice(rs.getDouble("purchase_price"));
+							dto.setSellingPrice(rs.getDouble("selling_price"));
+							dto.setCategoryId(rs.getInt("category_id"));
+							return dto;
+						}
+					});
 			for (CommonSalesProfitDTO salesProfitDTO : dtos) {
 				currentDate = salesProfitDTO.getDate();
 
@@ -623,7 +589,7 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 		}
 		return results;
 	}
-	
+
 	private void getData(String param, int shopId) {
 		log.info("Inside get data");
 		StringBuilder cqueryWhere = new StringBuilder();
@@ -675,24 +641,26 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 			vQuery.append(
 					"SELECT array_to_string(array_agg(dis.id), ',') As dis_ids, COUNT(DISTINCT pi.sales_id), SUM(pi.selling_price), ");
 			vQuery.append("dis.payment_mode FROM packet_inventory pi ");
-			vQuery.append("JOIN dispatch_sales_info dis ON dis.id = pi.sales_id WHERE dis.shop_id = ? AND sales_id <> 0 AND date_sold  ");
+			vQuery.append(
+					"JOIN dispatch_sales_info dis ON dis.id = pi.sales_id WHERE sales_id <> 0 AND date_sold  ");
 			vQuery.append(cqueryWhere + groupBy + "ORDER BY dis.payment_mode");
 			log.info("Executing query for base stats, query is: {} ", vQuery);
-			List<OrderStatisticDTO> dtos = jdbcTemplate.query(vQuery.toString(), new Object[] {shopId}, new RowMapper<OrderStatisticDTO>() {
-				@Override
-				public OrderStatisticDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
-					OrderStatisticDTO or = new OrderStatisticDTO();
-					or.setCountF(rs.getFloat(2));
-					or.setAmount(rs.getDouble(3));
-					or.setMode(rs.getString("payment_mode"));
-					or.setDisIds(rs.getString("dis_ids"));
-					return or;
-				}
-			});
+			List<OrderStatisticDTO> dtos = jdbcTemplate.query(vQuery.toString(),
+					new RowMapper<OrderStatisticDTO>() {
+						@Override
+						public OrderStatisticDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
+							OrderStatisticDTO or = new OrderStatisticDTO();
+							or.setCountF(rs.getFloat(2));
+							or.setAmount(rs.getDouble(3));
+							or.setMode(rs.getString("payment_mode"));
+							or.setDisIds(rs.getString("dis_ids"));
+							return or;
+						}
+					});
 			for (OrderStatisticDTO dto : dtos) {
 				totalCount += dto.getCountF();
 				total += dto.getAmount();
-				if(dto.getMode().equals("Split")) {
+				if (dto.getMode().equals("Split")) {
 					dispatchIds = dto.getDisIds();
 				}
 			}
@@ -886,11 +854,72 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 		}
 		return commission;
 	}
-	
+
 	private String getExtractQuery() {
 		StringBuilder query = new StringBuilder();
 		query.append("SELECT EXTRACT(DOW FROM now())::integer as dow, ")
 				.append("EXTRACT(DOY FROM now())::integer as doy, ").append("EXTRACT(DAY FROM now())::integer as day");
 		return query.toString();
+	}
+
+	public List<DriverStatDTO> getDataBasedOnDriverId(String driverId, String startDate, String endDate) {
+		String whereQuery = "", SELECTS = "", groupBy = " GROUP BY d.id, d.driver_name, dis.payment_mode ";
+		if (endDate.trim().equals("")) {
+			whereQuery = " >= to_date('" + startDate + "', 'MM/dd/YYYY')";
+		} else {
+			whereQuery = " >= to_date('" + startDate + "', 'MM/dd/YYYY') " + "AND  pi.date_sold < to_date('" + endDate
+					+ "', 'MM/dd/YYYY') + interval '1 day'";
+		}
+		int driverID = 0;
+		if (!StringUtils.isEmpty(driverId)) {
+			driverID = Integer.parseInt(driverId);
+		}
+		if (driverID > 0) {
+			SELECTS = "p.product_name As product, ";
+			groupBy += ", p.product_name ";
+			whereQuery += " AND dis.driver_id = " + driverId;
+		}
+		StringBuilder statQueryByDriverId = new StringBuilder();
+		statQueryByDriverId.append("SELECT array_to_string(array_agg(dis.id), ',') As dis_ids, COUNT(pi.id) AS count, ")
+				.append("SUM(pi.selling_price) AS amount, dis.payment_mode, ").append(SELECTS)
+				.append("COALESCE(d.driver_name,'No Driver Assigned') AS driver, d.id AS driver_id ")
+				.append("FROM packet_inventory pi JOIN purchase_inventory pur ON pi.purchase_id = pur.id ")
+				.append("JOIN products p ON p.id = pur.product_id JOIN dispatch_sales_info dis ON dis.id = pi.sales_id ")
+				.append("LEFT JOIN drivers d ON d.id = dis.driver_id WHERE sales_id <> 0 AND pi.date_sold ")
+				.append(whereQuery).append(" ").append(groupBy).append("ORDER BY d.driver_name, dis.payment_mode");
+		log.info("Executing query to get stats by driver id, query is: {} driver id provided is: {} ",
+				statQueryByDriverId, driverID);
+		List<DriverStatDTO> dtos = null;
+		if (driverID > 0) {
+			dtos = jdbcTemplate.query(statQueryByDriverId.toString(), new RowMapper<DriverStatDTO>() {
+				@Override
+				public DriverStatDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
+					DriverStatDTO dto = new DriverStatDTO();
+					dto.setDriver(rs.getString("driver"));
+					dto.setPaymentMode(rs.getString("payment_mode"));
+					dto.setDriverId(rs.getInt("driver_id"));
+					dto.setDispatchIds(rs.getString("dis_ids"));
+					dto.setAmount(rs.getDouble("amount"));
+					dto.setCount(rs.getInt("count"));
+					dto.setProduct(rs.getString("product"));
+					return dto;
+				}
+			});
+		} else {
+			dtos = jdbcTemplate.query(statQueryByDriverId.toString(), new RowMapper<DriverStatDTO>() {
+				@Override
+				public DriverStatDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
+					DriverStatDTO dto = new DriverStatDTO();
+					dto.setDriver(rs.getString("driver"));
+					dto.setPaymentMode(rs.getString("payment_mode"));
+					dto.setDriverId(rs.getInt("driver_id"));
+					dto.setDispatchIds(rs.getString("dis_ids"));
+					dto.setAmount(rs.getDouble("amount"));
+					dto.setCount(rs.getInt("count"));
+					return dto;
+				}
+			});
+		}
+		return dtos;
 	}
 }
