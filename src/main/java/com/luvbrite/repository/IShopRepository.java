@@ -34,11 +34,7 @@ public interface IShopRepository{
 
 	List<Integer> getIdsFromShopsNames(String[] authorities);
 
-	
 
 
 
-	
-	
-	 
 }
