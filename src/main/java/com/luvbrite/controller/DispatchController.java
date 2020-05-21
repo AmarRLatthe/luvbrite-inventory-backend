@@ -31,8 +31,7 @@ public class DispatchController {
 	private IUserService iUserService;
 
 	@GetMapping("listdispatches")
-	public ResponseEntity<CommonResponse> listdispatches(
-			@RequestParam(value = "d", required = true) Integer driverId,
+	public ResponseEntity<CommonResponse> listdispatches(@RequestParam(value = "d", required = true) Integer driverId,
 			@RequestParam(value = "id", required = false) Integer dispatchId,
 			@RequestParam(value = "ca", required = false) Boolean cancelled,
 			@RequestParam(value = "fn", required = false) Boolean finished,
@@ -49,7 +48,7 @@ public class DispatchController {
 
 		UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 
-		if(userDetails == null) {
+		if (userDetails == null) {
 			commonResponse.setCode(401);
 			commonResponse.setData(null);
 			commonResponse.setMessage("Please login to access dispatches");
@@ -73,7 +72,7 @@ public class DispatchController {
 
 				return new ResponseEntity<CommonResponse>(commonResponse, HttpStatus.OK);
 
-			}else {
+			} else {
 
 				commonResponse.setCode(500);
 				commonResponse.setData(dispatches);
@@ -85,23 +84,23 @@ public class DispatchController {
 		} catch (Exception e) {
 			commonResponse.setCode(500);
 			commonResponse.setData(dispatches);
-			commonResponse.setMessage("Exception occured while retrieving  dispatches"+e.getMessage());
+			commonResponse.setMessage("Exception occured while retrieving  dispatches" + e.getMessage());
 			commonResponse.setStatus("FAILED");
 			return new ResponseEntity<CommonResponse>(commonResponse, HttpStatus.OK);
 		}
 
-
 	}
 
 	@PostMapping("/updatedisptach")
-	public ResponseEntity<CommonResponse> updateDispatch(DispatchUpdateDTO dispatchUpdateDTO ,
-			Authentication authentication){
+	public ResponseEntity<CommonResponse> updateDispatch(DispatchUpdateDTO dispatchUpdateDTO,
+			Authentication authentication) {
 
-		CommonResponse commonResponse =  new CommonResponse();
+		CommonResponse commonResponse = new CommonResponse();
 
 		UserDetails userDetails = iUserService.getByUsername(authentication.getName());
-
-		if(userDetails == null) {
+		dispatchUpdateDTO.setOpsId(userDetails.getId());
+		boolean success = false;
+		if (userDetails == null) {
 			commonResponse.setCode(401);
 			commonResponse.setData(null);
 			commonResponse.setMessage("Please login to access dispatches");
@@ -111,13 +110,40 @@ public class DispatchController {
 
 		dispatchUpdateDTO.setShopId(userDetails.getShopId());
 
+		if (dispatchUpdateDTO.getMode().equals("basic")) {
+			return dispatchService.updatePacketInfo(dispatchUpdateDTO);
+		} else if (dispatchUpdateDTO.getMode().equals("assigndrv")) {
+			return  dispatchService.assignDriver(dispatchUpdateDTO);
+		} else if (dispatchUpdateDTO.getMode().equals("cancelled")) {
+			return  dispatchService.cancelDispatch(dispatchUpdateDTO);
+		} else if (dispatchUpdateDTO.getMode().equals("arrived")) {
+			return  dispatchService.markArrived(dispatchUpdateDTO);
+		} else if (dispatchUpdateDTO.getMode().equals("sold")) {
+			commonResponse = dispatchService.markSold(dispatchUpdateDTO);
+			String resp = inOfficeOrderProcess(dispatchUpdateDTO);
+			if (resp.equals("Y")) {
+				message = "Order Loopback created";
+			}
+		} else if (dispatchUpdateDTO.getMode().equals("dateupdate")) {
+			commonResponse = dispatchService.dateUpdate(dispatchUpdateDTO);
+		} else if (dispatchUpdateDTO.getMode().equals("pmtmodeupdate")) {
+			commonResponse = dispatchService.pmtModeUpdate(dispatchUpdateDTO);
+		} else if (dispatchUpdateDTO.getMode().equals("tipupdate")) {
+			commonResponse = dispatchService.tipUpdate(dispatchUpdateDTO);
+		} else if (dispatchUpdateDTO.getMode().equals("splitupdate")) {
+			commonResponse = dispatchService.splitUpdate(dispatchUpdateDTO);
+		} else if (dispatchUpdateDTO.getMode().equals("recal_dist")) {
+			commonResponse = dispatchService.recalculateDistance(dispatchUpdateDTO);
+		} else if (dispatchUpdateDTO.getMode().equals("closesales")) {
+			commonResponse = dispatchService.closeTheseSales(dispatchUpdateDTO);
+		} else if (dispatchUpdateDTO.getMode().equals("reopensales")) {
+			commonResponse = dispatchService.reopenTheseSales(dispatchUpdateDTO);
+		} else if (dispatchUpdateDTO.getMode().equals("reset")) {
+			success = dispatchService.resetSale(dispatchUpdateDTO);
+		}
 
 		return null;
 
-
 	}
 
-
 }
-
-

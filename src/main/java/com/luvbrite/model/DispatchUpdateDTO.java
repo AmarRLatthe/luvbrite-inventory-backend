@@ -14,11 +14,29 @@ public class DispatchUpdateDTO {
 	private String splitAmt;
 	private String pmtMode;
 	private String saleIds;
+	private int priority;
 	private int driverId;
 	private int dispatchId;
+	private int opsId;
 	private double discount;
 	private double tip;
 	private double rushFeeApplied;
+
+	public int getOpsId() {
+		return opsId;
+	}
+
+	public void setOpsId(int opsId) {
+		this.opsId = opsId;
+	}
+
+	public int getPriority() {
+		return priority;
+	}
+
+	public void setPriority(int priority) {
+		this.priority = priority;
+	}
 
 	public int getShopId() {
 		return shopId;
@@ -188,7 +206,7 @@ public class DispatchUpdateDTO {
 	}
 
 	public String getMode() {
-		this.mode=this.mode == null ? "basic":this.mode;
+		this.mode = this.mode == null ? "basic" : this.mode;
 		return mode;
 	}
 
