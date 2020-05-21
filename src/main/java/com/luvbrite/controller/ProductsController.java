@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.luvbrite.commonResponse.CommonResponse;
+import com.luvbrite.commonresponse.CommonResponse;
 import com.luvbrite.model.ProductsExt;
 import com.luvbrite.service.ProductService;
 
