@@ -8,7 +8,7 @@ import com.luvbrite.commonresponse.CommonResponse;
 import com.luvbrite.model.DispatchSalesExt;
 import com.luvbrite.model.DispatchUpdateDTO;
 
-public interface IDispacthService {
+public interface IDispatchService {
 
 	public List<DispatchSalesExt> listDispatches(Integer driverId, Integer dispatchId, Boolean cancelled,
 			Boolean finished, Boolean notFinished, String q, String orderBy, String mode, String qSORTDIR,

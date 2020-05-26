@@ -11,7 +11,7 @@ import java.util.List;
  *
  * @author dell
  */
-public class CreateTaskRequest {
+public class TaskRequest {
 
     private String api_key;
     private String order_id;

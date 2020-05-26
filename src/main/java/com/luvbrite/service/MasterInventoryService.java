@@ -2,6 +2,7 @@ package com.luvbrite.service;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import com.luvbrite.jdbcutils.ReturnedAndAdjustProductMapper;
 import com.luvbrite.model.AdjustedAndReturnedDTO;
 import com.luvbrite.model.ProductCountAndWeightOfPurchase;
 import com.luvbrite.model.ProductDetailsDTO;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -19,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 public class MasterInventoryService {
 
 	@Autowired
-	ProductsAvailableTableUpdateService updateProductAvailableService;
+	IProductsAvailableTableUpdate updateProductAvailableServiceImpl;
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
@@ -34,15 +36,15 @@ public class MasterInventoryService {
 		double totsold_qty = 0d;
 		double totpacked_wt = 0d;
 		double totsold_wt = 0d;
-		
+
 		ProductDetailsDTO childProductDetailsDTO = null;
-		
+
 		try {
 			ArrayList<ProductDetailsDTO> productDetailsList = new ArrayList<ProductDetailsDTO>();
 
 			StringBuilder sql_distinctPurchaseIdsForSalesId = new StringBuilder();
 			sql_distinctPurchaseIdsForSalesId.append("SELECT DISTINCT purchase_id  FROM packet_inventory ")
-					.append("WHERE sales_id = ?")
+			.append("WHERE sales_id = ?")
 			.append(" AND shop_id = ?");
 
 			List<Integer> distinctPurchaseIdsForSalesIds = null;
@@ -81,23 +83,23 @@ public class MasterInventoryService {
 
 						qryBuffer.append(
 								"SELECT pi.growth_condition, pi.quantity, (pi.quantity*pi.weight_in_grams) AS purchased, ")
-								.append("to_char(pi.date_added, 'MM/dd/YYYY') AS date_purchased,")
-								.append("p.product_name, ")
-								.append("v.vendor_name, ")
-								.append("c.category_name, ")
-								.append("s.strain_name, ").append("s.id AS strainId,").append("c.id AS categoryId ")
-								.append("FROM purchase_inventory pi ")
-								.append("JOIN products p on pi.product_id = p.id  ")
-								.append("JOIN vendors v on pi.vendor_id = v.id  ")
-								.append("JOIN categories c on p.category_id = c.id ")
-								.append("JOIN strains s on p.strain_id = s.id ")
-								.append("WHERE pi.id = ?");
+						.append("to_char(pi.date_added, 'MM/dd/YYYY') AS date_purchased,")
+						.append("p.product_name, ")
+						.append("v.vendor_name, ")
+						.append("c.category_name, ")
+						.append("s.strain_name, ").append("s.id AS strainId,").append("c.id AS categoryId ")
+						.append("FROM purchase_inventory pi ")
+						.append("JOIN products p on pi.product_id = p.id  ")
+						.append("JOIN vendors v on pi.vendor_id = v.id  ")
+						.append("JOIN categories c on p.category_id = c.id ")
+						.append("JOIN strains s on p.strain_id = s.id ")
+						.append("WHERE pi.id = ?");
 
 						childProductDetailsDTO =  jdbcTemplate.queryForObject(qryBuffer.toString(),
 								new Object[] { productPurchaseID }, new ProductDetailsDTOMapper());
 
 						if (childProductDetailsDTO == null) {log.error("ProducDetails Object is null");  return false;}
-						
+
 
 						int soldCount = 0;
 
@@ -107,7 +109,7 @@ public class MasterInventoryService {
 
 						StringBuilder strTotalCountAndWeightOfAProduct = new StringBuilder();
 						strTotalCountAndWeightOfAProduct.append("SELECT COUNT(id), SUM(weight_in_grams) ")
-								.append("FROM packet_inventory ").append("WHERE purchase_id = ").append("?");
+						.append("FROM packet_inventory ").append("WHERE purchase_id = ").append("?");
 
 						ProductCountAndWeightOfPurchase productCountAndPurchase = jdbcTemplate.queryForObject(
 								strTotalCountAndWeightOfAProduct.toString(), new Object[] { productPurchaseID },
@@ -118,8 +120,8 @@ public class MasterInventoryService {
 
 						StringBuilder strTotalCountAndWeightOfAReturnedProduct = new StringBuilder();
 						strTotalCountAndWeightOfAReturnedProduct.append("SELECT COUNT(id), SUM(weight_in_grams) ")
-								.append("FROM packet_inventory ").append("AND returns_detail_id = 0 ")
-								.append("AND purchase_id =  ").append("?");
+						.append("FROM packet_inventory ").append("AND returns_detail_id = 0 ")
+						.append("AND purchase_id =  ").append("?");
 
 						ProductCountAndWeightOfPurchase soldProductCountAndWeight = jdbcTemplate.queryForObject(
 								strTotalCountAndWeightOfAProduct.toString(), new Object[] { productPurchaseID },
@@ -131,22 +133,22 @@ public class MasterInventoryService {
 
 						StringBuilder adjustedAndReturned = new StringBuilder();
 						adjustedAndReturned.append(" WITH ")
-						        .append("returned AS  ")
-								.append("(SELECT COUNT(*) AS tot_returned ")
-								.append(" FROM packet_inventory ")
-								.append(" WHERE returns_detail_id > 0 AND purchase_id IN ")
-								.append("(")
-								.append("?")
-								.append(")")
-								.append("), ")
-								.append("adjusted AS ")
-								.append("(SELECT SUM(quantity) AS tot_adjusted ")
-								.append(" FROM purchase_inventory ")
-								.append(" WHERE growth_condition = 'Adjustment' ")
-								.append(" AND id IN")
-								.append("(?)")
-								.append(")")
-								.append("SELECT returned.*, adjusted.* FROM returned, adjusted ");
+						.append("returned AS  ")
+						.append("(SELECT COUNT(*) AS tot_returned ")
+						.append(" FROM packet_inventory ")
+						.append(" WHERE returns_detail_id > 0 AND purchase_id IN ")
+						.append("(")
+						.append("?")
+						.append(")")
+						.append("), ")
+						.append("adjusted AS ")
+						.append("(SELECT SUM(quantity) AS tot_adjusted ")
+						.append(" FROM purchase_inventory ")
+						.append(" WHERE growth_condition = 'Adjustment' ")
+						.append(" AND id IN")
+						.append("(?)")
+						.append(")")
+						.append("SELECT returned.*, adjusted.* FROM returned, adjusted ");
 
 						List<AdjustedAndReturnedDTO> adjustedAndReturnedCount = jdbcTemplate
 								.query(adjustedAndReturned.toString(),new Object[] { productPurchaseID ,productPurchaseID} ,new ReturnedAndAdjustProductMapper());
@@ -158,17 +160,17 @@ public class MasterInventoryService {
 
 						childProductDetailsDTO.setReturned(tot_returnd);
 						childProductDetailsDTO.setReturned(tot_adjusted);
-					
+
 
 					}
 
 					if (childProductDetailsDTO != null) {
-						
+
 						log.info("Child Product Details is not null");
-						double totalremaining_qty = totpackets_qty + tot_adjusted - totsold_qty - tot_returnd;
+						double totalremaining_qty = (totpackets_qty + tot_adjusted) - totsold_qty - tot_returnd;
 						childProductDetailsDTO.setTotal_remain_qty(totalremaining_qty);
 
-						updateProductAvailableService.updateProductsAvailable(childProductDetailsDTO, shopId);
+						updateProductAvailableServiceImpl.updateProductsAvailable(childProductDetailsDTO, shopId);
 					} else {
 						log.info("Product Details is  null");
 					}
@@ -198,7 +200,7 @@ public class MasterInventoryService {
 
 
 	public void updateProducts(Integer productID, Integer shopId) throws Exception {
-		
+
 		int tot_returnd = 0;
 		int tot_adjusted = 0;
 		double totpurchase_qty = 0d;
@@ -206,10 +208,10 @@ public class MasterInventoryService {
 		double totsold_qty = 0d;
 		double totpacked_wt = 0d;
 		double totsold_wt = 0d;
-		
+
 		ProductDetailsDTO childProductDetailsDTO = null;
 		ArrayList<ProductDetailsDTO> productDetailsList = new ArrayList<ProductDetailsDTO>();
-		
+
 		StringBuilder sql_listOfPurchaseIdsForProd  = new StringBuilder();
 		sql_listOfPurchaseIdsForProd
 		.append("SELECT")
@@ -222,8 +224,8 @@ public class MasterInventoryService {
 		.append("AND id > 204026")
 		.append("AND shop_id = ")
 		.append("?");
-		
-	
+
+
 
 		log.info("Query sql_listOfPurchaseIdsForProd ::" + sql_listOfPurchaseIdsForProd);
 
@@ -238,21 +240,21 @@ public class MasterInventoryService {
 
 			qryBuffer.append(
 					"SELECT pi.growth_condition, pi.quantity, (pi.quantity*pi.weight_in_grams) AS purchased, ")
-					.append("to_char(pi.date_added, 'MM/dd/YYYY') AS date_purchased,")
-					.append("p.product_name, ")
-					.append("v.vendor_name, ")
-					.append("c.category_name, ")
-					.append("s.strain_name, ").append("s.id AS strainId,").append("c.id AS categoryId ")
-					.append("FROM purchase_inventory pi ")
-					.append("JOIN products p on pi.product_id = p.id  ")
-					.append("JOIN vendors v on pi.vendor_id = v.id  ")
-					.append("JOIN categories c on p.category_id = c.id ")
-					.append("JOIN strains s on p.strain_id = s.id ")
-					.append("WHERE pi.id = ?");
+			.append("to_char(pi.date_added, 'MM/dd/YYYY') AS date_purchased,")
+			.append("p.product_name, ")
+			.append("v.vendor_name, ")
+			.append("c.category_name, ")
+			.append("s.strain_name, ").append("s.id AS strainId,").append("c.id AS categoryId ")
+			.append("FROM purchase_inventory pi ")
+			.append("JOIN products p on pi.product_id = p.id  ")
+			.append("JOIN vendors v on pi.vendor_id = v.id  ")
+			.append("JOIN categories c on p.category_id = c.id ")
+			.append("JOIN strains s on p.strain_id = s.id ")
+			.append("WHERE pi.id = ?");
 
 			log.info("qryBuffer :: "+qryBuffer.toString());
 			log.info("productPurchaseID :: "+productPurchaseID);
-			childProductDetailsDTO = (ProductDetailsDTO) jdbcTemplate.queryForObject(qryBuffer.toString(),
+			childProductDetailsDTO = jdbcTemplate.queryForObject(qryBuffer.toString(),
 					new Object[] { productPurchaseID }, new ProductDetailsDTOMapper());
 
 			if (childProductDetailsDTO == null) {log.error("ProducDetails Object is null");  return ;}
@@ -265,7 +267,7 @@ public class MasterInventoryService {
 
 			StringBuilder strTotalCountAndWeightOfAProduct = new StringBuilder();
 			strTotalCountAndWeightOfAProduct.append("SELECT COUNT(id), SUM(weight_in_grams) ")
-					.append("FROM packet_inventory ").append("WHERE purchase_id = ").append("?");
+			.append("FROM packet_inventory ").append("WHERE purchase_id = ").append("?");
 
 			ProductCountAndWeightOfPurchase productCountAndPurchase = jdbcTemplate.queryForObject(
 					strTotalCountAndWeightOfAProduct.toString(), new Object[] { productPurchaseID },
@@ -276,8 +278,8 @@ public class MasterInventoryService {
 
 			StringBuilder strTotalCountAndWeightOfAReturnedProduct = new StringBuilder();
 			strTotalCountAndWeightOfAReturnedProduct.append("SELECT COUNT(id), SUM(weight_in_grams) ")
-					.append("FROM packet_inventory ").append("AND returns_detail_id = 0 ")
-					.append("AND purchase_id =  ").append("?");
+			.append("FROM packet_inventory ").append("AND returns_detail_id = 0 ")
+			.append("AND purchase_id =  ").append("?");
 
 			ProductCountAndWeightOfPurchase soldProductCountAndWeight = jdbcTemplate.queryForObject(
 					strTotalCountAndWeightOfAProduct.toString(), new Object[] { productPurchaseID },
@@ -289,21 +291,21 @@ public class MasterInventoryService {
 
 			StringBuilder adjustedAndReturned = new StringBuilder();
 			adjustedAndReturned.append(" WITH ").append("returned AS  ")
-					.append("(SELECT COUNT(*) AS tot_returned ")
-					.append(" FROM packet_inventory ")
-					.append(" WHERE returns_detail_id > 0 AND purchase_id IN ")
-					.append("(")
-					.append("?")
-					.append(")")
-					.append("), ")
-					.append("adjusted AS ")
-					.append("(SELECT SUM(quantity) AS tot_adjusted ")
-					.append(" FROM purchase_inventory ")
-					.append(" WHERE growth_condition = 'Adjustment' ")
-					.append(" AND id IN")
-					.append("(?)")
-					.append(")")
-					.append("SELECT returned.*, adjusted.* FROM returned, adjusted ");
+			.append("(SELECT COUNT(*) AS tot_returned ")
+			.append(" FROM packet_inventory ")
+			.append(" WHERE returns_detail_id > 0 AND purchase_id IN ")
+			.append("(")
+			.append("?")
+			.append(")")
+			.append("), ")
+			.append("adjusted AS ")
+			.append("(SELECT SUM(quantity) AS tot_adjusted ")
+			.append(" FROM purchase_inventory ")
+			.append(" WHERE growth_condition = 'Adjustment' ")
+			.append(" AND id IN")
+			.append("(?)")
+			.append(")")
+			.append("SELECT returned.*, adjusted.* FROM returned, adjusted ");
 
 			List<AdjustedAndReturnedDTO> adjustedAndReturnedCount = jdbcTemplate
 					.query(adjustedAndReturned.toString(),new Object[] { productPurchaseID ,productPurchaseID} ,new ReturnedAndAdjustProductMapper());
@@ -319,30 +321,30 @@ public class MasterInventoryService {
 		}
 
 		if (childProductDetailsDTO != null) {
-			
+
 			log.info("Child Product Details is not null");
-			double totalremaining_qty = totpackets_qty + tot_adjusted - totsold_qty - tot_returnd;
+			double totalremaining_qty = (totpackets_qty + tot_adjusted) - totsold_qty - tot_returnd;
 			childProductDetailsDTO.setTotal_remain_qty(totalremaining_qty);
 
 			// Updating products available table
-			updateProductAvailableService.updateProductsAvailable(childProductDetailsDTO, shopId);
+			updateProductAvailableServiceImpl.updateProductsAvailable(childProductDetailsDTO, shopId);
 		} else {
 			log.info("Product Details is  null");
 		}
 
 		productDetailsList.add(childProductDetailsDTO);
 
-		
 
-	
+
+
 	}
 
 
-	
-	
 
 
 
-	
+
+
+
 
 }

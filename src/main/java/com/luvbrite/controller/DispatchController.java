@@ -15,7 +15,7 @@ import com.luvbrite.commonresponse.CommonResponse;
 import com.luvbrite.model.DispatchSalesExt;
 import com.luvbrite.model.DispatchUpdateDTO;
 import com.luvbrite.model.UserDetails;
-import com.luvbrite.service.DispatchService;
+import com.luvbrite.service.IDispatchService;
 import com.luvbrite.service.IUserService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -25,12 +25,12 @@ import lombok.extern.slf4j.Slf4j;
 public class DispatchController {
 
 	@Autowired
-	DispatchService dispatchService;
+	private	IDispatchService dispatchServiceImpl;
 
 	@Autowired
 	private IUserService iUserService;
 
-	@GetMapping("listdispatches")
+	@GetMapping("api/listdispatches")
 	public ResponseEntity<CommonResponse> listdispatches(@RequestParam(value = "d", required = true) Integer driverId,
 			@RequestParam(value = "id", required = false) Integer dispatchId,
 			@RequestParam(value = "ca", required = false) Boolean cancelled,
@@ -61,7 +61,7 @@ public class DispatchController {
 
 		try {
 
-			dispatches = dispatchService.listDispatches(driverId, dispatchId, cancelled, finished, notFinished, q,
+			dispatches = dispatchServiceImpl.listDispatches(driverId, dispatchId, cancelled, finished, notFinished, q,
 					orderBy, mode, qSORTDIR, currentPage, deliveryRtId, shopId);
 
 			if (dispatches != null) {
@@ -111,35 +111,35 @@ public class DispatchController {
 		dispatchUpdateDTO.setShopId(userDetails.getShopId());
 
 		if (dispatchUpdateDTO.getMode().equals("basic")) {
-			return dispatchService.updatePacketInfo(dispatchUpdateDTO);
+			return dispatchServiceImpl.updatePacketInfo(dispatchUpdateDTO);
 		} else if (dispatchUpdateDTO.getMode().equals("assigndrv")) {
-			return  dispatchService.assignDriver(dispatchUpdateDTO);
+			return  dispatchServiceImpl.assignDriver(dispatchUpdateDTO);
 		} else if (dispatchUpdateDTO.getMode().equals("cancelled")) {
-			return  dispatchService.cancelDispatch(dispatchUpdateDTO);
+			return  dispatchServiceImpl.cancelDispatch(dispatchUpdateDTO);
 		} else if (dispatchUpdateDTO.getMode().equals("arrived")) {
-			return  dispatchService.markArrived(dispatchUpdateDTO);
+			return  dispatchServiceImpl.markArrived(dispatchUpdateDTO);
 		} else if (dispatchUpdateDTO.getMode().equals("sold")) {
-			commonResponse = dispatchService.markSold(dispatchUpdateDTO);
+			commonResponse = dispatchServiceImpl.markSold(dispatchUpdateDTO);
 			String resp = inOfficeOrderProcess(dispatchUpdateDTO);
 			if (resp.equals("Y")) {
 				message = "Order Loopback created";
 			}
 		} else if (dispatchUpdateDTO.getMode().equals("dateupdate")) {
-			commonResponse = dispatchService.dateUpdate(dispatchUpdateDTO);
+			commonResponse = dispatchServiceImpl.dateUpdate(dispatchUpdateDTO);
 		} else if (dispatchUpdateDTO.getMode().equals("pmtmodeupdate")) {
-			commonResponse = dispatchService.pmtModeUpdate(dispatchUpdateDTO);
+			commonResponse = dispatchServiceImpl.pmtModeUpdate(dispatchUpdateDTO);
 		} else if (dispatchUpdateDTO.getMode().equals("tipupdate")) {
-			commonResponse = dispatchService.tipUpdate(dispatchUpdateDTO);
+			commonResponse = dispatchServiceImpl.tipUpdate(dispatchUpdateDTO);
 		} else if (dispatchUpdateDTO.getMode().equals("splitupdate")) {
-			commonResponse = dispatchService.splitUpdate(dispatchUpdateDTO);
+			commonResponse = dispatchServiceImpl.splitUpdate(dispatchUpdateDTO);
 		} else if (dispatchUpdateDTO.getMode().equals("recal_dist")) {
-			commonResponse = dispatchService.recalculateDistance(dispatchUpdateDTO);
+			commonResponse = dispatchServiceImpl.recalculateDistance(dispatchUpdateDTO);
 		} else if (dispatchUpdateDTO.getMode().equals("closesales")) {
-			commonResponse = dispatchService.closeTheseSales(dispatchUpdateDTO);
+			commonResponse = dispatchServiceImpl.closeTheseSales(dispatchUpdateDTO);
 		} else if (dispatchUpdateDTO.getMode().equals("reopensales")) {
-			commonResponse = dispatchService.reopenTheseSales(dispatchUpdateDTO);
+			commonResponse = dispatchServiceImpl.reopenTheseSales(dispatchUpdateDTO);
 		} else if (dispatchUpdateDTO.getMode().equals("reset")) {
-			success = dispatchService.resetSale(dispatchUpdateDTO);
+			success = dispatchServiceImpl.resetSale(dispatchUpdateDTO);
 		}
 
 		return null;

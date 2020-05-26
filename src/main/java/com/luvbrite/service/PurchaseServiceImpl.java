@@ -46,11 +46,6 @@ public class PurchaseServiceImpl implements IPurchaseService {
 			Integer vendorId, String startDate, String endDate, String source, Integer productId,
 			Boolean adjustmentsOnly, Integer currentPage, Integer shopId) {
 
-<<<<<<< HEAD
-		int offset = 0;
-		String caller = "";
-		String qWHERE = "", qOFFSET = "", qLIMIT = " LIMIT " + itemsPerPage + " ", qORDERBY = "ORDER BY id DESC";
-=======
 
 	public PaginatedPurchase getPurchases(String orderBy,
 			String sortDirection,
@@ -71,7 +66,6 @@ public class PurchaseServiceImpl implements IPurchaseService {
 				qOFFSET = "",
 				qLIMIT = " LIMIT " + itemsPerPage + " ",
 				qORDERBY = "ORDER BY id DESC";
->>>>>>> working on dispatch sales info
 
 		PaginationLogic pgl = null;
 
@@ -173,16 +167,9 @@ public class PurchaseServiceImpl implements IPurchaseService {
 
 			StringBuilder countString = new StringBuilder();
 
-<<<<<<< HEAD
 			countString.append("SELECT COUNT(*) ").append("FROM purchase_inventory pi  ")
 					.append("JOIN  products p ON p.id = pi.product_id ")
 					.append("JOIN  vendors v ON v.id = pi.vendor_id ").append(qWHERE).append(" AND pi.shop_id = ").append(shopId);
-=======
-			countString.append("SELECT COUNT(*) ")
-			.append("FROM purchase_inventory pi  ")
-			.append("JOIN  products p ON p.id = pi.product_id ")
-			.append("JOIN  vendors v ON v.id = pi.vendor_id ").append(qWHERE);
->>>>>>> working on dispatch sales info
 
 			Integer totalPurchase = jdbcTemplate.queryForObject(countString.toString(), Integer.class);
 
@@ -192,13 +179,9 @@ public class PurchaseServiceImpl implements IPurchaseService {
 				offset = pg.getOffset();
 			}
 
-<<<<<<< HEAD
-			if (offset > 0)
-=======
 			pg = pgl.getPg();
 			offset = pg.getOffset();
 			if (offset > 0) {
->>>>>>> working on dispatch sales info
 				qOFFSET = " OFFSET " + offset;
 			}
 		}
@@ -208,11 +191,6 @@ public class PurchaseServiceImpl implements IPurchaseService {
 		qWHERE += " AND pi.shop_id = " + shopId + " ";
 		StringBuilder queryStringBuilder = new StringBuilder();
 		queryStringBuilder.append("SELECT pi.*, p.product_name, p.category_id, v.vendor_name, ")
-<<<<<<< HEAD
-				.append("TO_CHAR(pi.date_added, 'MM/dd/yyyy') as date ").append("FROM purchase_inventory pi ")
-				.append("JOIN  products p ON p.id = pi.product_id ").append("JOIN  vendors v ON v.id = pi.vendor_id ")
-				.append(qWHERE).append(qORDERBY).append(qLIMIT).append(qOFFSET);
-=======
 		.append("TO_CHAR(pi.date_added, 'MM/dd/yyyy') as date ")
 		.append("FROM purchase_inventory pi ")
 		.append("JOIN  products p ON p.id = pi.product_id ")
@@ -221,13 +199,11 @@ public class PurchaseServiceImpl implements IPurchaseService {
 		.append(qORDERBY)
 		.append(qLIMIT)
 		.append(qOFFSET);
->>>>>>> working on dispatch sales info
 
 		log.info("String builder is {}", queryStringBuilder.toString());
 		jdbcTemplate.query(queryStringBuilder.toString(), new RowCallbackHandler() {
 			@Override
 			public void processRow(ResultSet resultSet) throws SQLException {
-<<<<<<< HEAD
 				if (resultSet != null) {
 					do {
 
@@ -250,28 +226,6 @@ public class PurchaseServiceImpl implements IPurchaseService {
 						purchases.add(purchase);
 
 					} while (resultSet.next());
-=======
-				while (resultSet.next()) {
-
-					PurchaseDTO purchase = new PurchaseDTO();
-
-					purchase.setId(resultSet.getInt(1));
-					purchase.setProductId(resultSet.getInt(2));
-					purchase.setGrowthCondition(resultSet.getString(3));
-					purchase.setQuantity(resultSet.getInt(4));
-					purchase.setWeightInGrams(resultSet.getDouble(5));
-					purchase.setUnitPrice(resultSet.getDouble(6));
-					purchase.setVendorId(resultSet.getInt(7));
-					purchase.setOperatorComments(resultSet.getString(8));
-					purchase.setPurchaseCode(resultSet.getString(10));
-					purchase.setProductName(resultSet.getString("product_name"));
-					purchase.setVendorName(resultSet.getString("vendor_name"));
-					purchase.setDateAdded(resultSet.getString("date"));
-					purchase.setCategoryId(resultSet.getInt("category_id"));
-
-					purchases.add(purchase);
-
->>>>>>> working on dispatch sales info
 				}
 			}
 
