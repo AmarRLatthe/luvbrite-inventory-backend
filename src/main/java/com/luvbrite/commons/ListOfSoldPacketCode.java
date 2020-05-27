@@ -9,17 +9,17 @@ import com.luvbrite.model.SoldPacketsDTO;
 
 
 public class ListOfSoldPacketCode {
-	public static List retrievePacketIds(List<SoldPacketsDTO> list) {
+	public static List<Integer> retrievePacketIds(List<SoldPacketsDTO> list) {
 		List<Integer> packetCodeList = list.stream().map(SoldPacketsDTO::getId).collect(Collectors.toList());
 		return packetCodeList;
 	}
 
-	public static List retrieveProductNames(List<DeliveredPacketDTO> list) {
+	public static List<String> retrieveProductNames(List<DeliveredPacketDTO> list) {
 		List<String> productNameList = list.stream().map(DeliveredPacketDTO::getProductName).collect(Collectors.toList());
 		return productNameList;
 	}
 
-	public static List retrieveQuantityForEachProduct(List<DeliveredPacketDTO> list) {
+	public static List<Integer> retrieveQuantityForEachProduct(List<DeliveredPacketDTO> list) {
 		List<Integer> productQuantityList = list.stream().map(DeliveredPacketDTO::getItems).collect(Collectors.toList());
 		return productQuantityList;
 	}

@@ -10,17 +10,17 @@ import com.luvbrite.model.tookan.MetaData_CreateTask;
 import com.luvbrite.model.tookan.TookanResponse;
 
 public interface ITookanService {
-	public boolean createTaskRequestOnTookan(int salesID, List<SoldPacketsDTO> sps,int shopId,int operatorId);
+	public boolean createTaskRequestOnTookan(int salesID, List<SoldPacketsDTO> sps,int shopId,int operatorId) throws Exception;
 
 	public List<DeliveredPacketDTO> getDeliveryPacketsInfo(List<SoldPacketsDTO> sps, int salesid,int shopId);
 
-	public List<MetaData_CreateTask> getCustomFieldsFromDeliveredPackets(List<DeliveredPacketDTO> dps,int shopId);
+	public List<MetaData_CreateTask> getCustomFieldsFromDeliveredPackets(List<DeliveredPacketDTO> dps,int salesId,int shopId);
 
 	public double getTotalTax(int salesid ,int shopId);
 
-	public double getTotal(List<DeliveredPacketDTO> dps,int shopId);
+	public double getTotal(List<DeliveredPacketDTO> dps, int salesId,int shopId);
 
-	public  double getSubtotal(List<DeliveredPacketDTO> dps,int shopId);
+	public  double getSubtotal(List<DeliveredPacketDTO> dps);
 
 	public TookanResponse createTookanResponseObject(String tookanResponse,int shopId);
 

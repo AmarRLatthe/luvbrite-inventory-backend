@@ -22,7 +22,7 @@ public interface IDispatchService {
 
 	public  ResponseEntity<CommonResponse> markArrived(DispatchUpdateDTO dispatchUpdateDTO) throws Exception;
 
-	public  ResponseEntity<CommonResponse> markSold(DispatchUpdateDTO dispatchUpdateDTO) throws Exception;
+	public  ResponseEntity<CommonResponse> markSold(DispatchUpdateDTO dispatchUpdateDTO,int operatorId) throws Exception;
 
 	public  ResponseEntity<CommonResponse> inOfficeOrderProcess(DispatchUpdateDTO dispatchUpdateDTO) throws Exception;
 

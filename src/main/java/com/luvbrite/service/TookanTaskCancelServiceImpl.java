@@ -15,7 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-public class TookanTaskCancelService {
+public class TookanTaskCancelServiceImpl  implements ITookanTaskCancelService{
 
 	@Autowired
 	RestTemplate restTemplate;
@@ -27,6 +27,7 @@ public class TookanTaskCancelService {
 	private static final String TOOKAN_API_KEY = APIs.TOOKAN_API_KEY;
 
 
+	@Override
 	public boolean cancelJobCreated(int salesId, int shopId, int operatorId) {
 
 		boolean isJobCancelled = false;
@@ -54,7 +55,8 @@ public class TookanTaskCancelService {
 
 
 
-	private TookanResponse postCancelJobRequest(long jobId, RestTemplate restTemplate) {
+	@Override
+	public TookanResponse postCancelJobRequest(long jobId, RestTemplate restTemplate) {
 		String cancelJoburl = APIs.TOOKAN_CANCEL_TASK;
 
 		CancelJobCreatedRequest cancelJob = new CancelJobCreatedRequest();

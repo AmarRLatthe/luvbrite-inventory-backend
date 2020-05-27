@@ -27,4 +27,5 @@ public interface ITookanTaskRepository {
 
 	public List<DeliveredPacketDTO> deliveredPackets(List<SoldPacketsDTO> sps, int salesid,int shopId);
 
+	public double getTotalTax(int salesId, int shopId);
 }

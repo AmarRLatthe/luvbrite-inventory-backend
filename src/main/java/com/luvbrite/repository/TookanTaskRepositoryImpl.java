@@ -21,7 +21,6 @@ import com.luvbrite.model.tookan.TookanResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
-
 @Slf4j
 @Repository
 public class TookanTaskRepositoryImpl implements ITookanTaskRepository {
@@ -61,9 +60,8 @@ public class TookanTaskRepositoryImpl implements ITookanTaskRepository {
 	public JobInsertDetail saveJobDetails(TookanResponse response, int salesId, int shopId) throws Exception {
 
 		StringBuffer updateJobDetails = new StringBuffer();
-		updateJobDetails
-		.append("INSERT INTO job_details")
-		.append("(job_id,sales_id,order_id,message,status,tracking_link,customer_name,create_task_response,created_at,is_cancelled,shop_id)")
+		updateJobDetails.append("INSERT INTO job_details").append(
+				"(job_id,sales_id,order_id,message,status,tracking_link,customer_name,create_task_response,created_at,is_cancelled,shop_id)")
 		.append("values(?,?,?,?,?,?,?,?,to_timestamp(?,'YYYY-MM-DD HH:MI:SS'),?,?)")
 		.append("RETURNING job_id,to_char(created_at,'YYYY-MM-DD HH:MI:SS'); ");
 
@@ -118,7 +116,7 @@ public class TookanTaskRepositoryImpl implements ITookanTaskRepository {
 	@Override
 	public boolean updateJobCancelStatus(TookanResponse jobCancelResponse, Long jobId, int shopId) {
 
-		if ((jobCancelResponse == null) || (jobId == 0L)||(shopId==0)) {
+		if ((jobCancelResponse == null) || (jobId == 0L) || (shopId == 0)) {
 			if (jobCancelResponse == null) {
 				log.info("Cannot update because tookan response for cancelTask is null");
 			} else {
@@ -164,7 +162,7 @@ public class TookanTaskRepositoryImpl implements ITookanTaskRepository {
 	}
 
 	@Override
-	public TaskRequest createTaskRequest(int salesId,int shopId) throws Exception {
+	public TaskRequest createTaskRequest(int salesId, int shopId) throws Exception {
 		StringBuffer taskDetailsQuery = new StringBuffer();
 
 		taskDetailsQuery
@@ -172,45 +170,54 @@ public class TookanTaskRepositoryImpl implements ITookanTaskRepository {
 		.append("TO_CHAR(ds.date_arrived, 'MM/dd/yyyy HH:MI AM') AS formatted_date_arrived, ")
 		.append("TO_CHAR(ds.date_finished, 'MM/dd/yyyy HH:MI AM') AS formatted_date_finished ")
 		.append("FROM dispatch_sales_info ds ")
-		.append("LEFT JOIN online_order_info ooi ON ooi.dispatch_sales_id = ds.id ")
-		.append("WHERE ds.id = ")
-		.append(salesId )
-		.append("AND ")
-		.append("ds.shop_id = ")
-		.append(shopId);
-
-
-
+		.append("LEFT JOIN online_order_info ooi ON ooi.dispatch_sales_id = ds.id ").append("WHERE ds.id = ")
+		.append(salesId).append("AND ").append("ds.shop_id = ").append(shopId);
 
 		TaskRequest tooakanRequest = (TaskRequest) jdbcTemplate.query(taskDetailsQuery.toString(),
 				new TaskRequestDTOMapper());
 		return tooakanRequest;
 	}
 
-
-
 	@Override
-	public List<DeliveredPacketDTO> deliveredPackets(List<SoldPacketsDTO> sps, int salesid,int shopId){
+	public List<DeliveredPacketDTO> deliveredPackets(List<SoldPacketsDTO> sps, int salesid, int shopId) {
 		StringBuffer sql_dispatchedProductInfo = new StringBuffer();
 
-
-		sql_dispatchedProductInfo.append("select prods.product_name,COUNT(prods.product_name) as items,SUM(pi.selling_price) as selling_price ")
+		sql_dispatchedProductInfo.append(
+				"select prods.product_name,COUNT(prods.product_name) as items,SUM(pi.selling_price) as selling_price ")
 		.append(" from packet_inventory pi ")
 		.append("JOIN  purchase_inventory pur_i ON pi.purchase_id = pur_i.id ")
 		.append("JOIN  products prods ON prods.id = pur_i.product_id ")
-		.append("JOIN dispatch_sales_info dsi ON dsi.id = pi.sales_id ")
-		.append("WHERE sales_id = ")
-		.append(salesid)
-		.append("AND pi.shop_id = ")
-		.append(shopId)
-		.append(" group by prods.product_name;");
+		.append("JOIN dispatch_sales_info dsi ON dsi.id = pi.sales_id ").append("WHERE sales_id = ")
+		.append(salesid).append("AND pi.shop_id = ").append(shopId).append(" group by prods.product_name;");
 
-		List<DeliveredPacketDTO> deliveredPackets =	jdbcTemplate.query(sql_dispatchedProductInfo.toString(), new DeliveryPacketDTOMapper());
-
+		List<DeliveredPacketDTO> deliveredPackets = jdbcTemplate.query(sql_dispatchedProductInfo.toString(),
+				new DeliveryPacketDTOMapper());
 
 		return deliveredPackets;
 	}
 
+	public double getTotalTax(int salesId, int shopId) {
 
+		StringBuffer getTotalTax_Qry = new StringBuffer();
+
+		getTotalTax_Qry.append("select total_tax_applied from dispatch_sales_info dsi where id = ").append(salesId)
+		.append("WHERE ").append("dsi.shop_id = ").append(shopId);
+
+		Double totalTax = 0.0D;
+
+		try {
+			totalTax = jdbcTemplate.queryForObject(getTotalTax_Qry.toString(), Double.class);
+
+			if (totalTax == 0.0D) {
+				log.info("No tax info found in dispatch_sales_info for salesid : :  " + salesId + " for shopId " + shopId);
+			}
+		}catch(Exception e) {
+			log.error("Exception occured while fetching total tax",e);
+			return 0.0d;
+		}
+
+		return totalTax.doubleValue();
+
+	}
 
 }

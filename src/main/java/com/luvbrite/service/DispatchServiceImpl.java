@@ -1,6 +1,7 @@
 package com.luvbrite.service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import com.google.gson.Gson;
+import com.helper.UpdateProductsAvailable;
 import com.luvbrite.commonresponse.CommonResponse;
 import com.luvbrite.controller.ChangeTrackerDTO;
 import com.luvbrite.jdbcutils.DispatchSalesRowMapper;
@@ -16,6 +19,9 @@ import com.luvbrite.model.DispatchSalesExt;
 import com.luvbrite.model.DispatchUpdateDTO;
 import com.luvbrite.model.Pagination;
 import com.luvbrite.model.PaginationLogic;
+import com.luvbrite.model.RoundTripDistanceDTO;
+import com.luvbrite.model.SoldPacketsDTO;
+import com.luvbrite.repository.IDispatchSalesInfoRepository;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,6 +34,10 @@ public class DispatchServiceImpl implements IDispatchService {
 
 	@Autowired
 	JdbcTemplate jdbcTemplate;
+
+
+	@Autowired
+	IDispatchSalesInfoRepository dispatchSalesInfoRepoImpl;
 
 	private Pagination pg;
 	private final int itemsPerPage = 15;
@@ -377,8 +387,132 @@ public class DispatchServiceImpl implements IDispatchService {
 	}
 
 	@Override
-	public ResponseEntity<CommonResponse> markSold(DispatchUpdateDTO dispatchUpdateDTO) throws Exception {
-		// TODO Auto-generated method stub
+	public ResponseEntity<CommonResponse> markSold(DispatchUpdateDTO dispatchUpdateDTO,int operatorId) throws Exception {
+
+
+		CommonResponse response  =  new CommonResponse();
+
+		String datetime = dispatchUpdateDTO.getDatetime();
+		String soldPackets = dispatchUpdateDTO.getSoldPackets();
+		String paymentMode = dispatchUpdateDTO.getPaymentMode();
+		String split = dispatchUpdateDTO.getSplit() == null ?"":dispatchUpdateDTO.getSplit();
+
+		double discount = dispatchUpdateDTO.getDiscount();
+
+
+		if ((datetime == null)
+				|| ((soldPackets == null) || soldPackets.equals(""))
+				|| ((paymentMode == null) || paymentMode.equals(""))) {
+
+			response.setData(null);
+			response.setStatus("FAILED");
+			response.setCode(400);
+			response.setMessage("Invalid update parameters");
+			new ResponseEntity<>(response,HttpStatus.OK);
+		}
+
+		String discountString = "";
+		if (discount != 0) {
+			discountString = ", additional_info = additional_info || '**Discount provided:" + discount + "%**' ";
+		}
+
+		//Find distance travelled for this sales and the latitude and longitude for the location
+		RoundTripDistanceDTO roundTripDistance =  dispatchSalesInfoRepoImpl.getLocationOfClient(dispatchUpdateDTO.getDispatchId());
+
+		boolean updateStatus = dispatchSalesInfoRepoImpl.updateDispatchSalesInfo(roundTripDistance, dispatchUpdateDTO, discountString);
+
+
+
+		ChangeTrackerDTO ct = new ChangeTrackerDTO();
+		ct.setActionDetails("Marked Sold");
+		ct.setActionType("update");
+		ct.setActionOn("dispatch");
+		ct.setItemId(dispatchUpdateDTO.getDispatchId());
+		ct.setOperatorId(operatorId);
+
+		tracker.track(ct);
+
+		ArrayList<Integer> packetIds = new ArrayList<Integer>();
+		SoldPacketsDTO[] spArray = new Gson().fromJson(soldPackets, SoldPacketsDTO[].class);
+		List<SoldPacketsDTO> sps = Arrays.asList(spArray);
+		if ((sps != null) && (sps.size() > 0)) {
+			/**
+			 * Update each packets and mark then as sold! *
+			 */
+			List<Integer> salesIdlist = new ArrayList();
+			for (SoldPacketsDTO sp : sps) {
+
+				pst = ncon.prepareStatement("UPDATE packet_inventory "
+						+ "SET date_sold=to_timestamp(?,'MM/dd/yyyy HH:MI AM'), sales_id = ?, selling_price = ? "
+						+ "WHERE id = ?");
+				pst.setString(1, datetime);
+				pst.setInt(2, id);
+				salesIdlist.add(id);                    //Adding salesId to the list so that we can update products_available table
+
+				pst.setDouble(3, sp.getSellingPrice());
+				pst.setInt(4, sp.getId());
+				//System.out.println("Update Dispatch - packet_inventory update. Q - " + pst);
+				if (pst.executeUpdate() == 0) {
+					log.error("packet_inventory - date_sold, sales_id update failed. Q - " + pst + ". PacketCodes = " + soldPackets + ". OperatorId - " + opsId);
+				} else {
+
+					//new ProductInfo().execute(id); // Updating products_available Table
+					//new UpdateProductsAvailable().updateProductsAvailable(id);
+					ct = new ChangeTracker();
+					ct.setActionDetails("date_sold, sales_id, selling_price  updated to " + datetime + ", " + id + ", " + sp.getSellingPrice());
+					ct.setActionType("update");
+					ct.setActionOn("packet");
+					ct.setItemId(sp.getId());
+					ct.setOperatorId(opsId);
+
+					new UpdateTracker(ct, ncon);
+
+					packetIds.add(sp.getId());
+					/* Updating Remaing Products Available table*/
+				}
+			}
+
+			for (int i = 0; i < salesIdlist.size(); i++) {  //Updating products_available table, when some product is markSold
+				new UpdateProductsAvailable().updateProductsAvailable(salesIdlist.get(i));
+			}
+
+
+			if (packetIds.size() > 0) {
+				InvAlertOps ivo = new InvAlertOps();
+				ivo.CheckInventoryStatus(ncon, packetIds);
+
+				ivo = null;
+			}
+
+		}
+
+		String misPackets = "";
+		try {
+			misPackets = req.getParameter("mis");
+			if ((misPackets != null) && (misPackets.length() > 3)) {
+				MiscPackets[] mpArray = new Gson().fromJson(misPackets, MiscPackets[].class);
+				List<MiscPackets> mps = Arrays.asList(mpArray);
+				if (mps.size() > 0) {
+
+					AddMiscPackets amp = new AddMiscPackets();
+					for (MiscPackets mp : mps) {
+						amp.addPackets(mp.getItemDesc(), datetime, mp.getItemPrice(), opsId, id);
+					}
+
+					amp = null;
+				}
+			}
+		} catch (Exception e) {
+			logger.error("Error working with Misc Packets. Sales ID:"
+					+ id + ", opsId:"
+					+ opsId + ", misPackets:" + misPackets + ". " + e.getMessage());
+		}
+
+
+		/**
+		 * This will create Tookan task and save job details *
+		 */
+		new CreateTookanTask().createTaskRequest(id, sps);
 		return null;
 	}
 
