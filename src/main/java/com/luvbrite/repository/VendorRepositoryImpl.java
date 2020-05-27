@@ -187,4 +187,23 @@ public class VendorRepositoryImpl implements IVendorRepository {
 		}
 	}
 
+	@Override
+	public List<String[]> getAllVendorNamesByShopId(int shopId) {
+		try {
+			return jdbcTemplate.query("SELECT id,vendor_name  FROM vendors WHERE shop_id=? ORDER BY vendor_name ASC ",new Object[] {shopId}, new RowMapper<String[]>() {
+
+				@Override
+				public String[] mapRow(ResultSet rs, int rowNum) throws SQLException {
+					String[] st = new String[2];
+					st[0] = rs.getString(1);
+					st[1] = rs.getString(2);
+					return st;
+				}
+			});
+		} catch (Exception e) {
+			log.error("Message is {} and Exception is {}",e.getMessage(),e);
+			return Collections.emptyList();
+		}
+	}
+
 }

@@ -16,8 +16,10 @@ import com.luvbrite.model.PaginationLogic;
 import com.luvbrite.model.PurchaseDTO;
 import com.luvbrite.repository.IPurchaseRepository;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
-//@Slf4j
+@Slf4j
 public class PurchaseServiceImpl implements IPurchaseService {
 
 	private Pagination pg = new Pagination();
@@ -40,27 +42,13 @@ public class PurchaseServiceImpl implements IPurchaseService {
 		return null;
 	}
 
+	public PaginatedPurchase getPurchases(String orderBy, String sortDirection, String productName, String packetCode,
+			Integer vendorId, String startDate, String endDate, String source, Integer productId,
+			Boolean adjustmentsOnly, Integer currentPage, Integer shopId) {
 
-
-	public PaginatedPurchase getPurchases(String orderBy, 
-			                              String sortDirection, 
-			                              String productName, 
-			                              String packetCode,
-			                              Integer vendorId, 
-			                              String startDate, 
-			                              String endDate, 
-			                              String source, 
-			                              Integer productId, 
-			                              Boolean adjustmentsOnly,
-			                              Integer currentPage)  {
-
-		
 		int offset = 0;
 		String caller = "";
-		String qWHERE = "", 
-				qOFFSET = "", 
-				qLIMIT = " LIMIT " + itemsPerPage + " ", 
-				qORDERBY = "ORDER BY id DESC";
+		String qWHERE = "", qOFFSET = "", qLIMIT = " LIMIT " + itemsPerPage + " ", qORDERBY = "ORDER BY id DESC";
 
 		PaginationLogic pgl = null;
 
@@ -157,10 +145,9 @@ public class PurchaseServiceImpl implements IPurchaseService {
 
 			StringBuilder countString = new StringBuilder();
 
-			countString.append("SELECT COUNT(*) ")
-			           .append("FROM purchase_inventory pi  ")
-					   .append("JOIN  products p ON p.id = pi.product_id ")
-					   .append("JOIN  vendors v ON v.id = pi.vendor_id ").append(qWHERE);
+			countString.append("SELECT COUNT(*) ").append("FROM purchase_inventory pi  ")
+					.append("JOIN  products p ON p.id = pi.product_id ")
+					.append("JOIN  vendors v ON v.id = pi.vendor_id ").append(qWHERE).append(" AND pi.shop_id = ").append(shopId);
 
 			Integer totalPurchase = jdbcTemplate.queryForObject(countString.toString(), Integer.class);
 
@@ -176,48 +163,55 @@ public class PurchaseServiceImpl implements IPurchaseService {
 
 		ArrayList<PurchaseDTO> purchases = new ArrayList<PurchaseDTO>();
 
+		qWHERE += " AND pi.shop_id = " + shopId + " ";
 		StringBuilder queryStringBuilder = new StringBuilder();
 		queryStringBuilder.append("SELECT pi.*, p.product_name, p.category_id, v.vendor_name, ")
-				          .append("TO_CHAR(pi.date_added, 'MM/dd/yyyy') as date ")
-				          .append("FROM purchase_inventory pi ")
-				          .append("JOIN  products p ON p.id = pi.product_id ")
-				          .append("JOIN  vendors v ON v.id = pi.vendor_id ")
-				          .append(qWHERE)
-				          .append(qORDERBY)
-				          .append(qLIMIT)
-				          .append(qOFFSET);
+				.append("TO_CHAR(pi.date_added, 'MM/dd/yyyy') as date ").append("FROM purchase_inventory pi ")
+				.append("JOIN  products p ON p.id = pi.product_id ").append("JOIN  vendors v ON v.id = pi.vendor_id ")
+				.append(qWHERE).append(qORDERBY).append(qLIMIT).append(qOFFSET);
 
+		log.info("String builder is {}", queryStringBuilder.toString());
 		jdbcTemplate.query(queryStringBuilder.toString(), new RowCallbackHandler() {
 			public void processRow(ResultSet resultSet) throws SQLException {
-				while (resultSet.next()) {
-					
-					PurchaseDTO purchase = new PurchaseDTO();
+				if (resultSet != null) {
+					do {
 
-					purchase.setId(resultSet.getInt(1));
-					purchase.setProductId(resultSet.getInt(2));
-					purchase.setGrowthCondition(resultSet.getString(3));
-					purchase.setQuantity(resultSet.getInt(4));
-					purchase.setWeightInGrams(resultSet.getDouble(5));
-					purchase.setUnitPrice(resultSet.getDouble(6));
-					purchase.setVendorId(resultSet.getInt(7));
-					purchase.setOperatorComments(resultSet.getString(8));
-					purchase.setPurchaseCode(resultSet.getString(10));
-					purchase.setProductName(resultSet.getString("product_name"));
-					purchase.setVendorName(resultSet.getString("vendor_name"));
-					purchase.setDateAdded(resultSet.getString("date"));
-					purchase.setCategoryId(resultSet.getInt("category_id"));
-					
-					purchases.add(purchase);
-					
+						PurchaseDTO purchase = new PurchaseDTO();
+
+						purchase.setId(resultSet.getInt(1));
+						purchase.setProductId(resultSet.getInt(2));
+						purchase.setGrowthCondition(resultSet.getString(3));
+						purchase.setQuantity(resultSet.getInt(4));
+						purchase.setWeightInGrams(resultSet.getDouble(5));
+						purchase.setUnitPrice(resultSet.getDouble(6));
+						purchase.setVendorId(resultSet.getInt(7));
+						purchase.setOperatorComments(resultSet.getString(8));
+						purchase.setPurchaseCode(resultSet.getString(10));
+						purchase.setProductName(resultSet.getString("product_name"));
+						purchase.setVendorName(resultSet.getString("vendor_name"));
+						purchase.setDateAdded(resultSet.getString("date"));
+						purchase.setCategoryId(resultSet.getInt("category_id"));
+
+						purchases.add(purchase);
+
+					} while (resultSet.next());
 				}
 			}
 
 		});
 
-		PaginatedPurchase	 pgPurchase = new PaginatedPurchase(pg, purchases);
+		PaginatedPurchase pgPurchase = new PaginatedPurchase(pg, purchases);
 
 		return pgPurchase;
 	}
 
+	public int updatePurchaseById(Integer id, PurchaseDTO purchase) {
+		try {
+		  return iPurchaseRepository.updatePurchaseById(id,purchase);
+		} catch (Exception e) {
+			log.error("Message is {} and exception is {}",e.getMessage(),e);
+			return -1;
+		}
+	}
 
 }

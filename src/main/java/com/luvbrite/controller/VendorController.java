@@ -150,15 +150,14 @@ public class VendorController {
 		}
 	}
 
-
 	@DeleteMapping("/deleteVendorById/{id}")
-	public ResponseEntity<CommonResponse> deleteVendorById(@PathVariable("id") Integer id){
-		log.info("id is {}",id);
+	public ResponseEntity<CommonResponse> deleteVendorById(@PathVariable("id") Integer id) {
+		log.info("id is {}", id);
 
 		CommonResponse response = new CommonResponse();
 		try {
 			int delete = iVendorService.deleteVendorById(id);
-			if(delete>0) {
+			if (delete > 0) {
 				response.setCode(200);
 				response.setMessage("Vendor Deleted successfully");
 				response.setStatus("Success");
@@ -174,6 +173,45 @@ public class VendorController {
 			response.setMessage("Vendor is not deleted.please try again later.");
 			response.setStatus("SERVER ERROR");
 			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+	}
+
+	@GetMapping("/getAllVendorNames")
+	public ResponseEntity<CommonResponse> getAllVendorNames(Authentication authentication) {
+		CommonResponse commonResponse = new CommonResponse();
+
+//		List<ProductsExt> productList = null;
+
+		try {
+			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
+			if (userDetails != null) {
+				List<String[]> vendorNames = iVendorService.getAllVendorNamesByShopId(userDetails.getShopId());
+				if (vendorNames != null) {
+					commonResponse.setCode(200);
+					commonResponse.setData(vendorNames);
+					commonResponse.setMessage("Vendor names fetched successfully");
+					commonResponse.setStatus("SUCCESS");
+
+					return new ResponseEntity<>(commonResponse, HttpStatus.OK);
+				}
+				commonResponse.setCode(422);
+				commonResponse.setStatus("Unprocessable");
+				commonResponse.setMessage("Not able to fetch vendor names.");
+				return new ResponseEntity<>(commonResponse, HttpStatus.OK);
+
+			}
+			commonResponse.setCode(401);
+			commonResponse.setStatus("Unauthorized");
+			commonResponse.setMessage("Please try to login and try again");
+			return new ResponseEntity<>(commonResponse, HttpStatus.OK);
+		} catch (Exception e) {
+			commonResponse.setCode(500);
+//			commonResponse.setData(productList);
+			commonResponse.setMessage("Something went wrong.please try again later");
+			commonResponse.setStatus("FAILED");
+			log.error("Message is {} and exception is {}", e.getMessage(), e);
+
+			return new ResponseEntity<>(commonResponse, HttpStatus.OK);
 		}
 	}
 }

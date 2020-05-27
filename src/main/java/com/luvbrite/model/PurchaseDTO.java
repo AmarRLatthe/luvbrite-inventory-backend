@@ -1,8 +1,8 @@
 package com.luvbrite.model;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.ToString;
 
+@ToString
 public class PurchaseDTO {
 	
 	private int id = 0;
@@ -144,10 +144,6 @@ public class PurchaseDTO {
 		this.categoryId = categoryId;
 	}
 
-  public static void main(String[] args) throws JsonProcessingException {
-	  ObjectMapper objectMapper = new ObjectMapper();
-	  PurchaseDTO purchase = new PurchaseDTO();
-	System.out.println(objectMapper.writeValueAsString(purchase)); 
-  }
+  
   
 }

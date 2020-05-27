@@ -10,4 +10,6 @@ public interface IPurchaseRepository  {
  
  List<PurchaseDTO> getAllPurchases() throws Exception;
 
+int updatePurchaseById(Integer id, PurchaseDTO purchase);
+
 }
