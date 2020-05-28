@@ -135,4 +135,14 @@ public class VendorServiceImpl implements IVendorService {
 		}
 	}
 
+	@Override
+	public List<String[]> getAllVendorNamesByShopId(int shopId) {
+		try {
+			return iVendorRepository.getAllVendorNamesByShopId(shopId);
+		} catch (Exception e) {
+			log.error("Message is {} and exception is {}",e.getMessage(),e);
+			return Collections.emptyList();
+		}
+	}
+
 }

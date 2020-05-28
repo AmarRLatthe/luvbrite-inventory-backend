@@ -19,5 +19,7 @@ public interface IVendorService {
 
 	int deleteVendorById(Integer id);
 
+	List<String[]> getAllVendorNamesByShopId(int shopId);
+
 	
 }

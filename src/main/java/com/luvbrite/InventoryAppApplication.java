@@ -9,9 +9,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 @SpringBootApplication
 @CrossOrigin
 public class InventoryAppApplication {
-
 	public static void main(String[] args) {
 		SpringApplication.run(InventoryAppApplication.class, args);
 	}
-
 }

@@ -2,11 +2,13 @@ package com.luvbrite.repository;
 
 import java.util.List;
 
-import com.luvbrite.model.ProductDetailsDTO;
+import com.luvbrite.model.ProductsExt;
 
 public interface IProductRepository {
 
 
-	List<ProductDetailsDTO> getAllProducts();
+	List<ProductsExt> getAllProducts();
+
+	List<String[]> getAllProdNames();
 
 }

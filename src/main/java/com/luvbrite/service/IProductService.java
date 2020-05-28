@@ -7,4 +7,6 @@ import com.luvbrite.model.ProductsExt;
 public interface IProductService {
 
 	public List<ProductsExt> listAllProducts() throws Exception;
+
+	public List<String[]> getAllProdNames();
 }
