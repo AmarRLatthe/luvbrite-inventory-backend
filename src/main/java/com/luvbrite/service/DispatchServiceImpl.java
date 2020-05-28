@@ -11,12 +11,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import com.google.gson.Gson;
-import com.helper.UpdateProductsAvailable;
 import com.luvbrite.commonresponse.CommonResponse;
 import com.luvbrite.controller.ChangeTrackerDTO;
 import com.luvbrite.jdbcutils.DispatchSalesRowMapper;
 import com.luvbrite.model.DispatchSalesExt;
 import com.luvbrite.model.DispatchUpdateDTO;
+import com.luvbrite.model.MiscPacketsDTO;
 import com.luvbrite.model.Pagination;
 import com.luvbrite.model.PaginationLogic;
 import com.luvbrite.model.RoundTripDistanceDTO;
@@ -35,9 +35,14 @@ public class DispatchServiceImpl implements IDispatchService {
 	@Autowired
 	JdbcTemplate jdbcTemplate;
 
-
 	@Autowired
 	IDispatchSalesInfoRepository dispatchSalesInfoRepoImpl;
+
+	@Autowired
+	MasterInventoryService masterInvService;
+
+	@Autowired
+	ITookanService tookanServiceImpl;
 
 	private Pagination pg;
 	private final int itemsPerPage = 15;
@@ -335,7 +340,7 @@ public class DispatchServiceImpl implements IDispatchService {
 	}
 
 	@Override
-	public ResponseEntity<CommonResponse> markArrived(DispatchUpdateDTO dispatchUpdateDTO) throws Exception {
+	public ResponseEntity<CommonResponse> markArrived(DispatchUpdateDTO dispatchUpdateDTO,int shopId) throws Exception {
 
 		CommonResponse response = new CommonResponse();
 
@@ -380,6 +385,7 @@ public class DispatchServiceImpl implements IDispatchService {
 		ct.setActionOn("dispatch");
 		ct.setItemId(dispatchUpdateDTO.getDispatchId());
 		ct.setOperatorId(dispatchUpdateDTO.getOpsId());
+		ct.setShopId(shopId);
 
 		tracker.track(ct);
 
@@ -387,28 +393,26 @@ public class DispatchServiceImpl implements IDispatchService {
 	}
 
 	@Override
-	public ResponseEntity<CommonResponse> markSold(DispatchUpdateDTO dispatchUpdateDTO,int operatorId) throws Exception {
+	public ResponseEntity<CommonResponse> markSold(DispatchUpdateDTO dispatchUpdateDTO, int operatorId,int shopId)
+			throws Exception {
 
-
-		CommonResponse response  =  new CommonResponse();
+		CommonResponse response = new CommonResponse();
 
 		String datetime = dispatchUpdateDTO.getDatetime();
 		String soldPackets = dispatchUpdateDTO.getSoldPackets();
 		String paymentMode = dispatchUpdateDTO.getPaymentMode();
-		String split = dispatchUpdateDTO.getSplit() == null ?"":dispatchUpdateDTO.getSplit();
+		String split = dispatchUpdateDTO.getSplit() == null ? "" : dispatchUpdateDTO.getSplit();
 
 		double discount = dispatchUpdateDTO.getDiscount();
 
-
-		if ((datetime == null)
-				|| ((soldPackets == null) || soldPackets.equals(""))
+		if ((datetime == null) || ((soldPackets == null) || soldPackets.equals(""))
 				|| ((paymentMode == null) || paymentMode.equals(""))) {
 
 			response.setData(null);
 			response.setStatus("FAILED");
 			response.setCode(400);
 			response.setMessage("Invalid update parameters");
-			new ResponseEntity<>(response,HttpStatus.OK);
+			new ResponseEntity<>(response, HttpStatus.OK);
 		}
 
 		String discountString = "";
@@ -416,12 +420,13 @@ public class DispatchServiceImpl implements IDispatchService {
 			discountString = ", additional_info = additional_info || '**Discount provided:" + discount + "%**' ";
 		}
 
-		//Find distance travelled for this sales and the latitude and longitude for the location
-		RoundTripDistanceDTO roundTripDistance =  dispatchSalesInfoRepoImpl.getLocationOfClient(dispatchUpdateDTO.getDispatchId());
+		// Find distance travelled for this sales and the latitude and longitude for the
+		// location
+		RoundTripDistanceDTO roundTripDistance = dispatchSalesInfoRepoImpl
+				.getLocationOfClient(dispatchUpdateDTO.getDispatchId(),shopId);
 
-		boolean updateStatus = dispatchSalesInfoRepoImpl.updateDispatchSalesInfo(roundTripDistance, dispatchUpdateDTO, discountString);
-
-
+		boolean updateStatus = dispatchSalesInfoRepoImpl.updateDispatchSalesInfo(roundTripDistance, dispatchUpdateDTO,
+				discountString,shopId);
 
 		ChangeTrackerDTO ct = new ChangeTrackerDTO();
 		ct.setActionDetails("Marked Sold");
@@ -435,85 +440,82 @@ public class DispatchServiceImpl implements IDispatchService {
 		ArrayList<Integer> packetIds = new ArrayList<Integer>();
 		SoldPacketsDTO[] spArray = new Gson().fromJson(soldPackets, SoldPacketsDTO[].class);
 		List<SoldPacketsDTO> sps = Arrays.asList(spArray);
+
 		if ((sps != null) && (sps.size() > 0)) {
 			/**
 			 * Update each packets and mark then as sold! *
 			 */
-			List<Integer> salesIdlist = new ArrayList();
+			List<Integer> salesIdlist = new ArrayList<Integer>();
+
 			for (SoldPacketsDTO sp : sps) {
 
-				pst = ncon.prepareStatement("UPDATE packet_inventory "
-						+ "SET date_sold=to_timestamp(?,'MM/dd/yyyy HH:MI AM'), sales_id = ?, selling_price = ? "
-						+ "WHERE id = ?");
-				pst.setString(1, datetime);
-				pst.setInt(2, id);
-				salesIdlist.add(id);                    //Adding salesId to the list so that we can update products_available table
+				salesIdlist.add(sp.getId());
 
-				pst.setDouble(3, sp.getSellingPrice());
-				pst.setInt(4, sp.getId());
-				//System.out.println("Update Dispatch - packet_inventory update. Q - " + pst);
-				if (pst.executeUpdate() == 0) {
-					log.error("packet_inventory - date_sold, sales_id update failed. Q - " + pst + ". PacketCodes = " + soldPackets + ". OperatorId - " + opsId);
-				} else {
-
-					//new ProductInfo().execute(id); // Updating products_available Table
-					//new UpdateProductsAvailable().updateProductsAvailable(id);
-					ct = new ChangeTracker();
-					ct.setActionDetails("date_sold, sales_id, selling_price  updated to " + datetime + ", " + id + ", " + sp.getSellingPrice());
+				if (dispatchSalesInfoRepoImpl.updatePacketsAsSold(sp, dispatchUpdateDTO, operatorId,shopId)) {
+					ct = new ChangeTrackerDTO();
+					ct.setActionDetails("date_sold, sales_id, selling_price  updated to " + datetime + ", " + operatorId + ", "
+							+ sp.getSellingPrice());
 					ct.setActionType("update");
 					ct.setActionOn("packet");
 					ct.setItemId(sp.getId());
-					ct.setOperatorId(opsId);
-
-					new UpdateTracker(ct, ncon);
-
+					ct.setOperatorId(operatorId);
+					ct.setShopId(shopId);
 					packetIds.add(sp.getId());
-					/* Updating Remaing Products Available table*/
+					tracker.track(ct);
+
 				}
 			}
 
-			for (int i = 0; i < salesIdlist.size(); i++) {  //Updating products_available table, when some product is markSold
-				new UpdateProductsAvailable().updateProductsAvailable(salesIdlist.get(i));
+			for (int i = 0; i < salesIdlist.size(); i++) { // Updating products_available table, when some product is
+				// markSold
+				masterInvService.updateProductsAvailable(salesIdlist.get(i), shopId);
+
 			}
 
-
-			if (packetIds.size() > 0) {
-				InvAlertOps ivo = new InvAlertOps();
-				ivo.CheckInventoryStatus(ncon, packetIds);
-
-				ivo = null;
-			}
+			/*
+			 * if (packetIds.size() > 0) { InvAlertOps ivo = new InvAlertOps();
+			 * ivo.CheckInventoryStatus(ncon, packetIds);
+			 *
+			 * ivo = null; }
+			 */
 
 		}
 
 		String misPackets = "";
 		try {
-			misPackets = req.getParameter("mis");
+			misPackets = dispatchUpdateDTO.getMis();
 			if ((misPackets != null) && (misPackets.length() > 3)) {
-				MiscPackets[] mpArray = new Gson().fromJson(misPackets, MiscPackets[].class);
-				List<MiscPackets> mps = Arrays.asList(mpArray);
+				MiscPacketsDTO[] mpArray = new Gson().fromJson(misPackets, MiscPacketsDTO[].class);
+				List<MiscPacketsDTO> mps = Arrays.asList(mpArray);
 				if (mps.size() > 0) {
 
 					AddMiscPackets amp = new AddMiscPackets();
-					for (MiscPackets mp : mps) {
-						amp.addPackets(mp.getItemDesc(), datetime, mp.getItemPrice(), opsId, id);
+					for (MiscPacketsDTO mp : mps) {
+						amp.addPackets(mp.getItemDesc(), datetime, mp.getItemPrice(), operatorId, dispatchUpdateDTO.getDispatchId(),shopId);
 					}
 
 					amp = null;
 				}
 			}
 		} catch (Exception e) {
-			logger.error("Error working with Misc Packets. Sales ID:"
-					+ id + ", opsId:"
-					+ opsId + ", misPackets:" + misPackets + ". " + e.getMessage());
+			log.error("Error working with Misc Packets. Sales ID:" + dispatchUpdateDTO.getId() + ", opsId:" + operatorId + ", misPackets:"
+					+ misPackets + ". " + e.getMessage());
 		}
-
 
 		/**
 		 * This will create Tookan task and save job details *
 		 */
-		new CreateTookanTask().createTaskRequest(id, sps);
-		return null;
+
+		tookanServiceImpl.createTaskRequestOnTookan(dispatchUpdateDTO.getDispatchId(), sps, shopId, operatorId);
+
+		response.setCode(200);
+		response.setStatus("SUCCESS");
+		response.setMessage("Packet sold successfully");
+		response.setData(true);
+
+		return new ResponseEntity<CommonResponse>(response,HttpStatus.ACCEPTED);
+
+
 	}
 
 	@Override
@@ -523,27 +525,195 @@ public class DispatchServiceImpl implements IDispatchService {
 	}
 
 	@Override
-	public ResponseEntity<CommonResponse> dateUpdate(DispatchUpdateDTO dispatchUpdateDTO) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+	public ResponseEntity<CommonResponse> dateUpdate(DispatchUpdateDTO dispatchUpdateDTO,int shopId ,int operatorId) throws Exception {
+
+
+		CommonResponse response =  new CommonResponse();
+
+		String datetime = dispatchUpdateDTO.getDateArrived();
+
+		if (datetime == null) {
+
+			response.setMessage("Invalid date");
+			response.setCode(400);
+			response.setStatus("FAILED");
+			response.setData(false);
+
+			new ResponseEntity<CommonResponse>(response , HttpStatus.ACCEPTED);
+
+		}
+
+
+		if(!dispatchSalesInfoRepoImpl.updateDate(dispatchUpdateDTO, shopId)) {
+
+			response.setCode(500);
+			response.setData(false);
+			response.setMessage("Date arrived update failed");
+			response.setStatus("FAILED");
+
+			log.error("date arrived failed");
+			return new ResponseEntity<CommonResponse>(response,HttpStatus.ACCEPTED);
+
+		}
+
+
+		ChangeTrackerDTO ct = new ChangeTrackerDTO();
+		ct.setActionDetails("date_finished updated to " + datetime);
+		ct.setActionType("update");
+		ct.setActionOn("dispatch");
+		ct.setShopId(shopId);
+		ct.setItemId(dispatchUpdateDTO.getDispatchId());
+		ct.setOperatorId(operatorId);
+
+		tracker.track(ct);
+
+		if(!dispatchSalesInfoRepoImpl.updatePacketSoldDate(dispatchUpdateDTO.getDatetime(), shopId)) {
+
+			response.setCode(500);
+			response.setData(false);
+			response.setMessage("Packet sold date update failed");
+			response.setStatus("FAILED");
+
+			log.error("packet date sold update failed ");
+			return new ResponseEntity<CommonResponse>(response,HttpStatus.ACCEPTED);
+		}
+
+
+
+		ct = new ChangeTrackerDTO();
+		ct.setActionDetails("date_sold on corresponding packets updated to " + datetime);
+		ct.setActionType("update");
+		ct.setActionOn("dispatch");
+		ct.setItemId(dispatchUpdateDTO.getDispatchId());
+		ct.setOperatorId(operatorId);
+
+		tracker.track(ct);
+
+		response.setCode(200);
+		response.setData(false);
+		response.setMessage("date updated successfully");
+		response.setStatus("FAILED");
+
+		log.error("packet date sold update failed ");
+		return new ResponseEntity<CommonResponse>(response,HttpStatus.ACCEPTED);
+
 	}
 
 	@Override
-	public ResponseEntity<CommonResponse> pmtModeUpdate(DispatchUpdateDTO dispatchUpdateDTO) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+	public ResponseEntity<CommonResponse> pmtModeUpdate(DispatchUpdateDTO dispatchUpdateDTO,int shopId,int operatorId) throws Exception {
+
+		CommonResponse response = new CommonResponse();
+		String pmtMode = dispatchUpdateDTO.getPaymentMode();
+
+		if (pmtMode == null) {
+			response.setCode(400);
+			response.setData(false);
+			response.setMessage("Invalid payment mode");
+			response.setStatus("FAILED");;
+
+			return new ResponseEntity<CommonResponse>(response,HttpStatus.ACCEPTED);
+		}
+
+		if(!dispatchSalesInfoRepoImpl.updatePaymentMode(dispatchUpdateDTO.getDispatchId(), pmtMode, shopId)) {
+			response.setCode(500);
+			response.setData(false);
+			response.setMessage("dispatch_sales_info - pmtMode update failed");
+			response.setStatus("FAILED");;
+
+			return new ResponseEntity<CommonResponse>(response,HttpStatus.ACCEPTED);
+		}
+		//System.out.println("Update Dispatch - dispatch_sales_info update. Q - " + pst);
+
+
+		ChangeTrackerDTO ct = new ChangeTrackerDTO();
+		ct.setActionDetails("payment mode updated to " + pmtMode);
+		ct.setActionType("update");
+		ct.setActionOn("dispatch");
+		ct.setItemId(dispatchUpdateDTO.getDispatchId());
+		ct.setOperatorId(operatorId);
+
+		tracker.track(ct);
+
+
+		response.setCode(200);
+		response.setData(true);
+		response.setMessage("payment mode updated to "+pmtMode);
+		response.setStatus("SUCCESS");;
+
+		return new ResponseEntity<CommonResponse>(response,HttpStatus.ACCEPTED);
+
+	}
+
+
+
+
+
+
+	@Override
+	public ResponseEntity<CommonResponse> tipUpdate(DispatchUpdateDTO dispatchUpdateDTO,int shopId,int operatorId) throws Exception {
+
+		CommonResponse response  =  new CommonResponse();
+
+		if(!dispatchSalesInfoRepoImpl.updateTip(dispatchUpdateDTO.getDispatchId(), dispatchUpdateDTO.getTip(), shopId)) {
+
+			response.setCode(500);
+			response.setData(false);
+			response.setMessage("Tip update failed !!");
+			response.setStatus("FAILED");
+
+			return new ResponseEntity<CommonResponse>(response,HttpStatus.ACCEPTED);
+		}
+
+
+		ChangeTrackerDTO ct = new ChangeTrackerDTO();
+		ct.setActionDetails("tip updated to " + dispatchUpdateDTO.getTip());
+		ct.setActionType("update");
+		ct.setActionOn("dispatch");
+		ct.setItemId(dispatchUpdateDTO.getDispatchId());
+		ct.setOperatorId(operatorId);
+
+		tracker.track(ct);
+
+		response.setCode(200);
+		response.setData(false);
+		response.setMessage("Tip update success !!");
+		response.setStatus("SUCCESS");
+
+		return new ResponseEntity<CommonResponse>(response,HttpStatus.ACCEPTED);
 	}
 
 	@Override
-	public ResponseEntity<CommonResponse> tipUpdate(DispatchUpdateDTO dispatchUpdateDTO) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	public ResponseEntity<CommonResponse> splitUpdate(DispatchUpdateDTO dispatchUpdateDTO,int shopId,int opsId) throws Exception {
 
-	@Override
-	public ResponseEntity<CommonResponse> splitUpdate(DispatchUpdateDTO dispatchUpdateDTO) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+		String spliAmt = dispatchUpdateDTO.getSplitAmt() == null ? "":dispatchUpdateDTO.getSplitAmt();
+
+		CommonResponse response =  new CommonResponse();
+
+		if(!dispatchSalesInfoRepoImpl.updateSplitAmt(dispatchUpdateDTO.getDispatchId(), shopId)) {
+			response.setCode(500);
+			response.setStatus("FAILED");
+			response.setMessage("dispatch_sales_info - splitAmt update failed");
+			response.setData(false);
+
+			return new ResponseEntity<CommonResponse>(response,HttpStatus.ACCEPTED);
+		}
+
+
+		ChangeTrackerDTO ct = new ChangeTrackerDTO();
+		ct.setActionDetails("splitAmt updated to " + spliAmt);
+		ct.setActionType("update");
+		ct.setActionOn("dispatch");
+		ct.setItemId(dispatchUpdateDTO.getDispatchId());
+		ct.setOperatorId(opsId);
+
+		tracker.track(ct);
+
+		response.setCode(200);
+		response.setStatus("SUCCESS");
+		response.setMessage("dispatch_sales_info - splitAmt update successfully");
+		response.setData(false);
+
+		return new ResponseEntity<CommonResponse>(response,HttpStatus.ACCEPTED);
 	}
 
 	@Override
@@ -554,20 +724,52 @@ public class DispatchServiceImpl implements IDispatchService {
 
 	@Override
 	public ResponseEntity<CommonResponse> closeTheseSales(DispatchUpdateDTO dispatchUpdateDTO) throws Exception {
-		// TODO Auto-generated method stub
+
 		return null;
 	}
 
 	@Override
 	public ResponseEntity<CommonResponse> reopenTheseSales(DispatchUpdateDTO dispatchUpdateDTO) throws Exception {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public ResponseEntity<CommonResponse> resetSale(DispatchUpdateDTO dispatchUpdateDTO) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+	public ResponseEntity<CommonResponse> resetSale(DispatchUpdateDTO dispatchUpdateDTO,int shopId,int operatorId) throws Exception {
+
+		CommonResponse response =  new CommonResponse();
+
+		if(!dispatchSalesInfoRepoImpl.resetDateFinished(dispatchUpdateDTO.getDispatchId(), shopId)) {
+
+			response.setCode(500);
+			response.setData(false);
+			response.setData("Sales could not be reset");
+			response.setStatus("FAILED");
+
+			return new ResponseEntity<CommonResponse>(response,HttpStatus.ACCEPTED);
+		}
+		//Getting list of different productIds for particular sales
+
+
+		List<Integer> productIdsForSales = 	masterInvService.getListOfProductIdsForSales(dispatchUpdateDTO.getDispatchId() ,shopId);
+
+		int noOfPacketsReset = 	dispatchSalesInfoRepoImpl.resetPacketUpdate(dispatchUpdateDTO.getDispatchId(), shopId);
+
+
+		for(Integer productId :productIdsForSales) {
+			masterInvService.updateProducts(productId, shopId);
+
+		}
+
+		tookanServiceImpl.cancelJobCreated(dispatchUpdateDTO.getDispatchId(), shopId, operatorId);
+
+		response.setCode(200);
+		response.setData(true);
+		response.setData("");
+		response.setStatus(noOfPacketsReset+" are removed from sales successfully !!!");
+
+		return new ResponseEntity<CommonResponse>(response,HttpStatus.ACCEPTED);
 	}
 
 }
+
+

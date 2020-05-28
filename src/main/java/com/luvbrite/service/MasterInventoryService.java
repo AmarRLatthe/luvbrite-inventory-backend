@@ -1,6 +1,7 @@
 package com.luvbrite.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,14 +45,13 @@ public class MasterInventoryService {
 
 			StringBuilder sql_distinctPurchaseIdsForSalesId = new StringBuilder();
 			sql_distinctPurchaseIdsForSalesId.append("SELECT DISTINCT purchase_id  FROM packet_inventory ")
-			.append("WHERE sales_id = ?")
-			.append(" AND shop_id = ?");
+			.append("WHERE sales_id = ?").append(" AND shop_id = ?");
 
 			List<Integer> distinctPurchaseIdsForSalesIds = null;
 			distinctPurchaseIdsForSalesIds = jdbcTemplate.queryForList(sql_distinctPurchaseIdsForSalesId.toString(),
-					new Object[] { salesID ,shopId}, Integer.class);
+					new Object[] { salesID, shopId }, Integer.class);
 
-			log.info("Query  sql_distinctPurchaseIdsForSalesId :: "+sql_distinctPurchaseIdsForSalesId);
+			log.info("Query  sql_distinctPurchaseIdsForSalesId :: " + sql_distinctPurchaseIdsForSalesId);
 			log.info("Size of list distinctPurchaseIdsForSalesIds :: " + distinctPurchaseIdsForSalesIds.size());
 
 			for (Integer salesPurchaseId : distinctPurchaseIdsForSalesIds) {
@@ -71,7 +71,6 @@ public class MasterInventoryService {
 					String sql_listOfPurchaseIdsForProd = "SELECT id FROM purchase_inventory WHERE product_id =  "
 							+ productId + " AND id > 204026  ";
 
-
 					List<Integer> listOfPurchaseIdsForProducts = jdbcTemplate.queryForList(sql_listOfPurchaseIdsForProd,
 							null, Integer.class);
 
@@ -84,22 +83,21 @@ public class MasterInventoryService {
 						qryBuffer.append(
 								"SELECT pi.growth_condition, pi.quantity, (pi.quantity*pi.weight_in_grams) AS purchased, ")
 						.append("to_char(pi.date_added, 'MM/dd/YYYY') AS date_purchased,")
-						.append("p.product_name, ")
-						.append("v.vendor_name, ")
-						.append("c.category_name, ")
+						.append("p.product_name, ").append("v.vendor_name, ").append("c.category_name, ")
 						.append("s.strain_name, ").append("s.id AS strainId,").append("c.id AS categoryId ")
 						.append("FROM purchase_inventory pi ")
 						.append("JOIN products p on pi.product_id = p.id  ")
 						.append("JOIN vendors v on pi.vendor_id = v.id  ")
 						.append("JOIN categories c on p.category_id = c.id ")
-						.append("JOIN strains s on p.strain_id = s.id ")
-						.append("WHERE pi.id = ?");
+						.append("JOIN strains s on p.strain_id = s.id ").append("WHERE pi.id = ?");
 
-						childProductDetailsDTO =  jdbcTemplate.queryForObject(qryBuffer.toString(),
+						childProductDetailsDTO = jdbcTemplate.queryForObject(qryBuffer.toString(),
 								new Object[] { productPurchaseID }, new ProductDetailsDTOMapper());
 
-						if (childProductDetailsDTO == null) {log.error("ProducDetails Object is null");  return false;}
-
+						if (childProductDetailsDTO == null) {
+							log.error("ProducDetails Object is null");
+							return false;
+						}
 
 						int soldCount = 0;
 
@@ -132,26 +130,17 @@ public class MasterInventoryService {
 						totsold_qty = totsold_qty + soldCount;
 
 						StringBuilder adjustedAndReturned = new StringBuilder();
-						adjustedAndReturned.append(" WITH ")
-						.append("returned AS  ")
-						.append("(SELECT COUNT(*) AS tot_returned ")
-						.append(" FROM packet_inventory ")
-						.append(" WHERE returns_detail_id > 0 AND purchase_id IN ")
-						.append("(")
-						.append("?")
-						.append(")")
-						.append("), ")
-						.append("adjusted AS ")
-						.append("(SELECT SUM(quantity) AS tot_adjusted ")
-						.append(" FROM purchase_inventory ")
-						.append(" WHERE growth_condition = 'Adjustment' ")
-						.append(" AND id IN")
-						.append("(?)")
-						.append(")")
-						.append("SELECT returned.*, adjusted.* FROM returned, adjusted ");
+						adjustedAndReturned.append(" WITH ").append("returned AS  ")
+						.append("(SELECT COUNT(*) AS tot_returned ").append(" FROM packet_inventory ")
+						.append(" WHERE returns_detail_id > 0 AND purchase_id IN ").append("(").append("?")
+						.append(")").append("), ").append("adjusted AS ")
+						.append("(SELECT SUM(quantity) AS tot_adjusted ").append(" FROM purchase_inventory ")
+						.append(" WHERE growth_condition = 'Adjustment' ").append(" AND id IN").append("(?)")
+						.append(")").append("SELECT returned.*, adjusted.* FROM returned, adjusted ");
 
-						List<AdjustedAndReturnedDTO> adjustedAndReturnedCount = jdbcTemplate
-								.query(adjustedAndReturned.toString(),new Object[] { productPurchaseID ,productPurchaseID} ,new ReturnedAndAdjustProductMapper());
+						List<AdjustedAndReturnedDTO> adjustedAndReturnedCount = jdbcTemplate.query(
+								adjustedAndReturned.toString(), new Object[] { productPurchaseID, productPurchaseID },
+								new ReturnedAndAdjustProductMapper());
 
 						for (AdjustedAndReturnedDTO adjustedNdReturnd : adjustedAndReturnedCount) {
 							tot_returnd = adjustedNdReturnd.getReturnedProducts() + tot_returnd;
@@ -160,7 +149,6 @@ public class MasterInventoryService {
 
 						childProductDetailsDTO.setReturned(tot_returnd);
 						childProductDetailsDTO.setReturned(tot_adjusted);
-
 
 					}
 
@@ -197,8 +185,6 @@ public class MasterInventoryService {
 		return false;
 	}
 
-
-
 	public void updateProducts(Integer productID, Integer shopId) throws Exception {
 
 		int tot_returnd = 0;
@@ -212,25 +198,15 @@ public class MasterInventoryService {
 		ProductDetailsDTO childProductDetailsDTO = null;
 		ArrayList<ProductDetailsDTO> productDetailsList = new ArrayList<ProductDetailsDTO>();
 
-		StringBuilder sql_listOfPurchaseIdsForProd  = new StringBuilder();
-		sql_listOfPurchaseIdsForProd
-		.append("SELECT")
-		.append("id ")
-		.append("FROM ")
-		.append("purchase_inventory")
-		.append("WHERE")
-		.append("product_id = ")
-		.append("?")
-		.append("AND id > 204026")
-		.append("AND shop_id = ")
+		StringBuilder sql_listOfPurchaseIdsForProd = new StringBuilder();
+		sql_listOfPurchaseIdsForProd.append("SELECT").append("id ").append("FROM ").append("purchase_inventory")
+		.append("WHERE").append("product_id = ").append("?").append("AND id > 204026").append("AND shop_id = ")
 		.append("?");
-
-
 
 		log.info("Query sql_listOfPurchaseIdsForProd ::" + sql_listOfPurchaseIdsForProd);
 
 		List<Integer> listOfPurchaseIdsForProducts = jdbcTemplate.queryForList(sql_listOfPurchaseIdsForProd.toString(),
-				new Object[] {productID,shopId}, Integer.class);
+				new Object[] { productID, shopId }, Integer.class);
 
 		log.info("listOfPurchaseIdsForProducts :: " + listOfPurchaseIdsForProducts.size());
 
@@ -238,26 +214,24 @@ public class MasterInventoryService {
 
 			StringBuilder qryBuffer = new StringBuilder();
 
-			qryBuffer.append(
-					"SELECT pi.growth_condition, pi.quantity, (pi.quantity*pi.weight_in_grams) AS purchased, ")
-			.append("to_char(pi.date_added, 'MM/dd/YYYY') AS date_purchased,")
-			.append("p.product_name, ")
-			.append("v.vendor_name, ")
-			.append("c.category_name, ")
-			.append("s.strain_name, ").append("s.id AS strainId,").append("c.id AS categoryId ")
-			.append("FROM purchase_inventory pi ")
+			qryBuffer.append("SELECT pi.growth_condition, pi.quantity, (pi.quantity*pi.weight_in_grams) AS purchased, ")
+			.append("to_char(pi.date_added, 'MM/dd/YYYY') AS date_purchased,").append("p.product_name, ")
+			.append("v.vendor_name, ").append("c.category_name, ").append("s.strain_name, ")
+			.append("s.id AS strainId,").append("c.id AS categoryId ").append("FROM purchase_inventory pi ")
 			.append("JOIN products p on pi.product_id = p.id  ")
 			.append("JOIN vendors v on pi.vendor_id = v.id  ")
 			.append("JOIN categories c on p.category_id = c.id ")
-			.append("JOIN strains s on p.strain_id = s.id ")
-			.append("WHERE pi.id = ?");
+			.append("JOIN strains s on p.strain_id = s.id ").append("WHERE pi.id = ?");
 
-			log.info("qryBuffer :: "+qryBuffer.toString());
-			log.info("productPurchaseID :: "+productPurchaseID);
+			log.info("qryBuffer :: " + qryBuffer.toString());
+			log.info("productPurchaseID :: " + productPurchaseID);
 			childProductDetailsDTO = jdbcTemplate.queryForObject(qryBuffer.toString(),
 					new Object[] { productPurchaseID }, new ProductDetailsDTOMapper());
 
-			if (childProductDetailsDTO == null) {log.error("ProducDetails Object is null");  return ;}
+			if (childProductDetailsDTO == null) {
+				log.error("ProducDetails Object is null");
+				return;
+			}
 
 			int soldCount = 0;
 
@@ -278,8 +252,8 @@ public class MasterInventoryService {
 
 			StringBuilder strTotalCountAndWeightOfAReturnedProduct = new StringBuilder();
 			strTotalCountAndWeightOfAReturnedProduct.append("SELECT COUNT(id), SUM(weight_in_grams) ")
-			.append("FROM packet_inventory ").append("AND returns_detail_id = 0 ")
-			.append("AND purchase_id =  ").append("?");
+			.append("FROM packet_inventory ").append("AND returns_detail_id = 0 ").append("AND purchase_id =  ")
+			.append("?");
 
 			ProductCountAndWeightOfPurchase soldProductCountAndWeight = jdbcTemplate.queryForObject(
 					strTotalCountAndWeightOfAProduct.toString(), new Object[] { productPurchaseID },
@@ -290,25 +264,15 @@ public class MasterInventoryService {
 			totsold_qty = totsold_qty + soldCount;
 
 			StringBuilder adjustedAndReturned = new StringBuilder();
-			adjustedAndReturned.append(" WITH ").append("returned AS  ")
-			.append("(SELECT COUNT(*) AS tot_returned ")
-			.append(" FROM packet_inventory ")
-			.append(" WHERE returns_detail_id > 0 AND purchase_id IN ")
-			.append("(")
-			.append("?")
-			.append(")")
-			.append("), ")
-			.append("adjusted AS ")
-			.append("(SELECT SUM(quantity) AS tot_adjusted ")
-			.append(" FROM purchase_inventory ")
-			.append(" WHERE growth_condition = 'Adjustment' ")
-			.append(" AND id IN")
-			.append("(?)")
-			.append(")")
+			adjustedAndReturned.append(" WITH ").append("returned AS  ").append("(SELECT COUNT(*) AS tot_returned ")
+			.append(" FROM packet_inventory ").append(" WHERE returns_detail_id > 0 AND purchase_id IN ")
+			.append("(").append("?").append(")").append("), ").append("adjusted AS ")
+			.append("(SELECT SUM(quantity) AS tot_adjusted ").append(" FROM purchase_inventory ")
+			.append(" WHERE growth_condition = 'Adjustment' ").append(" AND id IN").append("(?)").append(")")
 			.append("SELECT returned.*, adjusted.* FROM returned, adjusted ");
 
-			List<AdjustedAndReturnedDTO> adjustedAndReturnedCount = jdbcTemplate
-					.query(adjustedAndReturned.toString(),new Object[] { productPurchaseID ,productPurchaseID} ,new ReturnedAndAdjustProductMapper());
+			List<AdjustedAndReturnedDTO> adjustedAndReturnedCount = jdbcTemplate.query(adjustedAndReturned.toString(),
+					new Object[] { productPurchaseID, productPurchaseID }, new ReturnedAndAdjustProductMapper());
 
 			for (AdjustedAndReturnedDTO adjustedNdReturnd : adjustedAndReturnedCount) {
 				tot_returnd = adjustedNdReturnd.getReturnedProducts() + tot_returnd;
@@ -334,17 +298,49 @@ public class MasterInventoryService {
 
 		productDetailsList.add(childProductDetailsDTO);
 
-
-
-
 	}
 
+	public List<Integer> getListOfProductIdsForSales(Integer salesID,int shopId) {
+
+		List<Integer> listOfDistinctProdIds = new ArrayList<Integer>();
+		List<Integer> distinctPurchaseIds = null;
+		List<Integer> productIds = null;
+
+		StringBuffer distinctPurchaseIdQry = new StringBuffer();
+
+		distinctPurchaseIdQry
+		.append("SELECT DISTINCT purchase_id FROM packet_inventory  WHERE sales_id = ?")
+		.append(" AND shop_id = ?");
+
+		distinctPurchaseIds = jdbcTemplate.queryForList(distinctPurchaseIdQry.toString(),
+				new Object[] { distinctPurchaseIdQry, shopId}, Integer.class);
 
 
+		if(distinctPurchaseIds == null) {log.error("Could not fetch distinct purchase id from packetInventory"); return Collections.emptyList();}
+
+		StringBuffer distinctProductId = new StringBuffer();
+		distinctProductId.append("SELECT product_id FROM purchase_inventory WHERE id= ?")
+		.append(" AND shop_id = ?");
 
 
+		for (Integer purchaseId : distinctPurchaseIds) {
+			productIds = jdbcTemplate.queryForList(distinctProductId.toString(),
+					new Object[] { purchaseId,shopId }, Integer.class);
 
 
+			if(productIds==null) {log.error("Product list is empty for purchaseID "+purchaseId); continue;}
+			for (Integer productId : productIds) {
 
+				if (listOfDistinctProdIds.contains(productId)) {
+					continue;
+				}
 
+				listOfDistinctProdIds.contains(productId);
+			}
+
+		}
+
+		return listOfDistinctProdIds;
+
+	}
 }

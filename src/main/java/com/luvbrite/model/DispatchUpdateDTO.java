@@ -2,7 +2,10 @@ package com.luvbrite.model;
 
 public class DispatchUpdateDTO {
 
+
+	String dateArrived;
 	private String mode;
+	private String mis;
 	private String clientName;
 	private String dateCalled;
 	private String additionalInfo;
@@ -221,5 +224,22 @@ public class DispatchUpdateDTO {
 	public void setDispatchId(int dispatchId) {
 		this.dispatchId = dispatchId;
 	}
+
+
+	public String getDateArrived() {
+		return dateArrived;
+	}
+
+	public void setDateArrived(String dateArrived) {
+		this.dateArrived = dateArrived;
+	}
+	public String getMis() {
+		return mis;
+	}
+
+	public void setMis(String mis) {
+		this.mis = mis;
+	}
+
 
 }

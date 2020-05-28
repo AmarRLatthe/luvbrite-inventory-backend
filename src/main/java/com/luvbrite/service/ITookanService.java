@@ -30,5 +30,6 @@ public interface ITookanService {
 
 	public TookanResponse postCancelJobRequest(long jobId, RestTemplate restTemplate);
 
+	public boolean cancelJobCreated(int salesId, int shopId, int operatorId);
 
 }

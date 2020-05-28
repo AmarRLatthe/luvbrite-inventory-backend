@@ -20,7 +20,7 @@ public class DispatchSalesInfoRepositoryImpl implements IDispatchSalesInfoReposi
 	JdbcTemplate jdbcTemplate;
 
 	@Override
-	public RoundTripDistanceDTO getLocationOfClient(int dispatchId) throws Exception {
+	public RoundTripDistanceDTO getLocationOfClient(int dispatchId, int shopId) throws Exception {
 
 		RoundTripDistanceDTO roundTripDTO = new RoundTripDistanceDTO();
 
@@ -28,9 +28,11 @@ public class DispatchSalesInfoRepositoryImpl implements IDispatchSalesInfoReposi
 
 		double distance = 0.0d;
 
-		locationQuery.append("SELECT address FROM online_order_info WHERE dispatch_sales_id = ").append(dispatchId);
+		locationQuery.append("SELECT address FROM online_order_info WHERE dispatch_sales_id = ").append("?")
+		.append("AND shop_id = ?");
 
-		String destination = jdbcTemplate.queryForObject(locationQuery.toString(), String.class);
+		String destination = jdbcTemplate.queryForObject(locationQuery.toString(), new Object[] { dispatchId, shopId },
+				String.class);
 
 		FindDistance findDistance = new FindDistance(destination);
 
@@ -47,7 +49,7 @@ public class DispatchSalesInfoRepositoryImpl implements IDispatchSalesInfoReposi
 
 	@Override
 	public boolean updateDispatchSalesInfo(RoundTripDistanceDTO roundTripDistanceDetails,
-			DispatchUpdateDTO dispatchUpdateDTO, String discountString) throws Exception {
+			DispatchUpdateDTO dispatchUpdateDTO, String discountString, int shopId) throws Exception {
 		// TODO Auto-generated method stub
 
 		StringBuffer updateDispatchQuery = new StringBuffer();
@@ -56,14 +58,14 @@ public class DispatchSalesInfoRepositoryImpl implements IDispatchSalesInfoReposi
 		.append("SET date_finished=to_timestamp(?,'MM/dd/yyyy HH:MI AM'), ")
 		.append("payment_mode = ?, split_amount = ?, tip = ?, dist_in_miles = ?, ")
 		.append("lat = ?, lng = ?, rush_fee_applied = ?, total_tax_applied = ? ").append(discountString)
-		.append("WHERE id=?;");
+		.append("WHERE id=?;").append(" AND shop_id = ?");
 
 		int rowUpdated = jdbcTemplate.update(updateDispatchQuery.toString(),
 				new Object[] { dispatchUpdateDTO.getDatetime(), dispatchUpdateDTO.getPmtMode(),
 						dispatchUpdateDTO.getSplit(), dispatchUpdateDTO.getTip(),
 						roundTripDistanceDetails.getRoundTripDistance(), roundTripDistanceDetails.getLatLng().lat,
 						roundTripDistanceDetails.getLatLng().lng, dispatchUpdateDTO.getRushFeeApplied(),
-						dispatchUpdateDTO.getTaxApplied(), dispatchUpdateDTO.getId()
+						dispatchUpdateDTO.getTaxApplied(), dispatchUpdateDTO.getId(), shopId
 
 		});
 
@@ -77,39 +79,173 @@ public class DispatchSalesInfoRepositoryImpl implements IDispatchSalesInfoReposi
 	}
 
 	@Override
-	public boolean updateEachPacketsAsSold(SoldPacketsDTO sp) {
-
+	public boolean updatePacketsAsSold(SoldPacketsDTO sp, DispatchUpdateDTO dispatchUpdateDTO, int operatorId,
+			int shopId) {
 
 		StringBuffer upadatePacketInv = new StringBuffer();
 
-		upadatePacketInv
-		.append("UPDATE packet_inventory ")
+		upadatePacketInv.append("UPDATE packet_inventory ")
 		.append("SET date_sold=to_timestamp(?,'MM/dd/yyyy HH:MI AM'), sales_id = ?, selling_price = ? ")
-		.append("WHERE id = ?");
+		.append("WHERE id = ?").append(" AND shop_id = ?");
 
+		int rowsUpdated = jdbcTemplate.update(upadatePacketInv.toString(),
+				new Object[] { dispatchUpdateDTO.getDatetime(), dispatchUpdateDTO.getDispatchId(), sp.getSellingPrice(),
+						sp.getId(), shopId });
 
+		if (rowsUpdated == 0) {
+			log.error("packet_inventory - date_sold, sales_id update failed PacketsCode = " + sp.getPacketCode()
+			+ ". OperatorId  " + operatorId);
+			return false;
+		}
 
-		jdbcTemplate.update(upadatePacketInv.toString(), new Object[] {});
-		pst = ncon.prepareStatement("UPDATE packet_inventory "
-				+ "SET date_sold=to_timestamp(?,'MM/dd/yyyy HH:MI AM'), sales_id = ?, selling_price = ? "
-				+ "WHERE id = ?");
-		pst.setString(1, datetime);
-		pst.setInt(2, id);
-		salesIdlist.add(id);                    //Adding salesId to the list so that we can update products_available table
+		return true;
+	}
 
-		pst.setDouble(3, sp.getSellingPrice());
-		pst.setInt(4, sp.getId());
+	@Override
+	public boolean updateDate(DispatchUpdateDTO dispatchDto, int shopId) {
 
+		StringBuffer updateDate = new StringBuffer();
 
-		return false;
+		updateDate.append("UPDATE dispatch_sales_info ")
+		.append("SET date_finished=to_timestamp(?,'MM/dd/yyyy HH:MI AM') ").append("WHERE id=?")
+		.append("AND shop_id = ?");
+
+		int rowsUpdated = jdbcTemplate.update(updateDate.toString(), new Object[] { dispatchDto.getId(), shopId });
+
+		if (rowsUpdated == 0) {
+			log.error("Could not update dateArrived for dispatch_saes_info {} and shopId {} " + dispatchDto.getId()
+			+ " " + shopId);
+			return false;
+		}
+
+		return true;
+
+	}
+
+	@Override
+	public boolean updatePacketSoldDate(String dateSold, int shopId) {
+
+		StringBuffer updatePacketSoldDate = new StringBuffer();
+
+		updatePacketSoldDate.append("UPDATE packet_inventory ")
+		.append("SET date_sold=to_timestamp(?,'MM/dd/yyyy HH:MI AM') ").append("WHERE sales_id = ?")
+		.append("AND shop_id = ?");
+
+		int rowsUpdated = jdbcTemplate.update(updatePacketSoldDate.toString(), new Object[] { dateSold, shopId });
+
+		if (rowsUpdated == 0) {
+			log.error("Could not update packet date sold date to " + dateSold + "for shopId : " + shopId);
+			return false;
+		}
+
+		log.info("Successfully updated packet sold date to " + dateSold + " for shopId " + shopId);
+		return true;
+	}
+
+	@Override
+	public boolean updateTip(int dispatchId, double tip, int shopId) {
+
+		StringBuffer updateTip = new StringBuffer();
+
+		updateTip.append("UPDATE dispatch_sales_info ").append("SET tip = ? ").append("WHERE id=?")
+		.append("shop_id = ?");
+
+		int rowsUpdated = jdbcTemplate.update(updateTip.toString(), new Object[] { tip, dispatchId, shopId });
+
+		if (rowsUpdated == 0) {
+			log.error("Could not update tip = " + tip + " for dispacthId = " + dispatchId + " and shopId = " + shopId);
+			return false;
+		}
+
+		return true;
+
 	}
 
 
+	@Override
+	public boolean resetDateFinished(int dispatchId , int shopId) {
 
 
+		StringBuffer resetSale =  new StringBuffer();
+
+		resetSale
+		.append("UPDATE dispatch_sales_info ")
+		.append("SET date_finished = NULL ")
+		.append("WHERE id  = ?")
+		.append(" AND shop_id = ?");
 
 
+		int rowsUpdated = jdbcTemplate.update(resetSale.toString(), new Object[] {dispatchId,shopId});
 
+		if(rowsUpdated == 0) {
+			log.error("dispatch sales reset update failed");
+			return false;
+		}
+
+
+		return true;
+	}
+
+
+	@Override
+	public int resetPacketUpdate(int dispatchId , int shopId) {
+
+		StringBuffer resetPacketUpdate = new StringBuffer();
+		resetPacketUpdate.append("UPDATE packet_inventory ")
+		.append("SET date_sold=NULL, sales_id = 0, selling_price = 0 ")
+		.append("WHERE sales_id = ?")
+		.append(" AND shop_id = ?");
+
+		int rowsUpdated = 	jdbcTemplate.update(resetPacketUpdate.toString(), new Object[] {dispatchId,shopId});
+
+		if(rowsUpdated == 0) {
+			log.error("could not reset packets for salesID = "+dispatchId+" for shopId = "+shopId);
+			return rowsUpdated;
+		}
+
+		return rowsUpdated;
+	}
+
+
+	@Override
+	public boolean updatePaymentMode(int dispatchId,String paymentMode , int shopId) {
+
+
+		StringBuffer updatePaymentMode =  new StringBuffer();
+		updatePaymentMode.append("UPDATE dispatch_sales_info ")
+		.append("SET payment_mode = ? ")
+		.append("WHERE id=?")
+		.append("shop_id = ?");
+
+		int rowsUpdated = jdbcTemplate.update(updatePaymentMode.toString(), new Object[] {dispatchId,paymentMode,shopId});
+
+		if(rowsUpdated==0) {
+			log.error("could not updaet payment mode  to "+paymentMode+" for dispatch "+dispatchId+" for shop "+shopId);
+			return false;
+		}
+
+		return true;
+
+	}
+
+	@Override
+	public boolean updateSplitAmt(int dispatchId ,  int shopId ) {
+
+		StringBuffer updateSplitAmt =  new StringBuffer();
+		updateSplitAmt.append("UPDATE dispatch_sales_info ")
+		.append("SET split_amount = ? ")
+		.append("WHERE id=?")
+		.append(" AND shop_id = ?");
+
+		int rowsUpdated = 	jdbcTemplate.update(updateSplitAmt.toString(), new Object[] {dispatchId,shopId});
+
+		if(rowsUpdated == 0) {
+			log.error("could not update split amount for shopId = "+shopId+" dispatchId = "+dispatchId);
+			return false;
+		}
+
+		return true;
+	}
 
 
 }

@@ -98,8 +98,7 @@ public class DispatchController {
 		CommonResponse commonResponse = new CommonResponse();
 
 		UserDetails userDetails = iUserService.getByUsername(authentication.getName());
-		dispatchUpdateDTO.setOpsId(userDetails.getId());
-		boolean success = false;
+
 		if (userDetails == null) {
 			commonResponse.setCode(401);
 			commonResponse.setData(null);
@@ -108,42 +107,59 @@ public class DispatchController {
 			return new ResponseEntity<CommonResponse>(commonResponse, HttpStatus.OK);
 		}
 
+		int operatorId = userDetails.getId();
+		int shopId =   userDetails.getShopId();
+
+		dispatchUpdateDTO.setOpsId(userDetails.getId());
+
+
+
 		dispatchUpdateDTO.setShopId(userDetails.getShopId());
 
-		if (dispatchUpdateDTO.getMode().equals("basic")) {
-			return dispatchServiceImpl.updatePacketInfo(dispatchUpdateDTO);
-		} else if (dispatchUpdateDTO.getMode().equals("assigndrv")) {
-			return  dispatchServiceImpl.assignDriver(dispatchUpdateDTO);
-		} else if (dispatchUpdateDTO.getMode().equals("cancelled")) {
-			return  dispatchServiceImpl.cancelDispatch(dispatchUpdateDTO);
-		} else if (dispatchUpdateDTO.getMode().equals("arrived")) {
-			return  dispatchServiceImpl.markArrived(dispatchUpdateDTO);
-		} else if (dispatchUpdateDTO.getMode().equals("sold")) {
-			commonResponse = dispatchServiceImpl.markSold(dispatchUpdateDTO);
-			String resp = inOfficeOrderProcess(dispatchUpdateDTO);
-			if (resp.equals("Y")) {
-				message = "Order Loopback created";
+		try {
+
+			if (dispatchUpdateDTO.getMode().equals("basic")) {
+				return dispatchServiceImpl.updatePacketInfo(dispatchUpdateDTO);
+			} else if (dispatchUpdateDTO.getMode().equals("assigndrv")) {
+				return  dispatchServiceImpl.assignDriver(dispatchUpdateDTO);
+			} else if (dispatchUpdateDTO.getMode().equals("cancelled")) {
+				return  dispatchServiceImpl.cancelDispatch(dispatchUpdateDTO);
+			} else if (dispatchUpdateDTO.getMode().equals("arrived")) {
+				return  dispatchServiceImpl.markArrived(dispatchUpdateDTO,shopId);
+			} else if (dispatchUpdateDTO.getMode().equals("sold")) {
+				return  dispatchServiceImpl.markSold(dispatchUpdateDTO,operatorId,shopId);
+				//			String resp = inOfficeOrderProcess(dispatchUpdateDTO);
+				//			if (resp.equals("Y")) {
+				//				message = "Order Loopback created";
+				//			}
+			} else if (dispatchUpdateDTO.getMode().equals("dateupdate")) {
+				return  dispatchServiceImpl.dateUpdate(dispatchUpdateDTO,shopId,operatorId);
+			} else if (dispatchUpdateDTO.getMode().equals("pmtmodeupdate")) {
+				return dispatchServiceImpl.pmtModeUpdate(dispatchUpdateDTO,shopId,operatorId);
+			} else if (dispatchUpdateDTO.getMode().equals("tipupdate")) {
+				return dispatchServiceImpl.tipUpdate(dispatchUpdateDTO,shopId,operatorId);
+			} else if (dispatchUpdateDTO.getMode().equals("splitupdate")) {
+				return  dispatchServiceImpl.splitUpdate(dispatchUpdateDTO,shopId,operatorId);
+			} else if (dispatchUpdateDTO.getMode().equals("recal_dist")) {
+				//	commonResponse = dispatchServiceImpl.recalculateDistance(dispatchUpdateDTO);
+			} else if (dispatchUpdateDTO.getMode().equals("closesales")) {
+				//	commonResponse = dispatchServiceImpl.closeTheseSales(dispatchUpdateDTO);
+			} else if (dispatchUpdateDTO.getMode().equals("reopensales")) {
+				//	return  dispatchServiceImpl.reopenTheseSales(dispatchUpdateDTO);
+			} else if (dispatchUpdateDTO.getMode().equals("reset")) {
+				return  dispatchServiceImpl.resetSale(dispatchUpdateDTO,shopId,operatorId);
 			}
-		} else if (dispatchUpdateDTO.getMode().equals("dateupdate")) {
-			commonResponse = dispatchServiceImpl.dateUpdate(dispatchUpdateDTO);
-		} else if (dispatchUpdateDTO.getMode().equals("pmtmodeupdate")) {
-			commonResponse = dispatchServiceImpl.pmtModeUpdate(dispatchUpdateDTO);
-		} else if (dispatchUpdateDTO.getMode().equals("tipupdate")) {
-			commonResponse = dispatchServiceImpl.tipUpdate(dispatchUpdateDTO);
-		} else if (dispatchUpdateDTO.getMode().equals("splitupdate")) {
-			commonResponse = dispatchServiceImpl.splitUpdate(dispatchUpdateDTO);
-		} else if (dispatchUpdateDTO.getMode().equals("recal_dist")) {
-			commonResponse = dispatchServiceImpl.recalculateDistance(dispatchUpdateDTO);
-		} else if (dispatchUpdateDTO.getMode().equals("closesales")) {
-			commonResponse = dispatchServiceImpl.closeTheseSales(dispatchUpdateDTO);
-		} else if (dispatchUpdateDTO.getMode().equals("reopensales")) {
-			commonResponse = dispatchServiceImpl.reopenTheseSales(dispatchUpdateDTO);
-		} else if (dispatchUpdateDTO.getMode().equals("reset")) {
-			success = dispatchServiceImpl.resetSale(dispatchUpdateDTO);
+
+			return null;
 		}
-
-		return null;
-
+		catch(Exception e) {
+			commonResponse.setCode(500);
+			commonResponse.setData(null);
+			commonResponse.setMessage("Ooops !!! something went wrong please check logs");
+			commonResponse.setStatus("FAILED");
+			log.error("Exception occured while updating dispatch ",e);
+			return new ResponseEntity<CommonResponse>(commonResponse, HttpStatus.OK);
+		}
 	}
 
 }
