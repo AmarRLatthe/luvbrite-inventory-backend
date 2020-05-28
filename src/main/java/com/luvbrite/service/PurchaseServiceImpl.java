@@ -46,35 +46,56 @@ public class PurchaseServiceImpl implements IPurchaseService {
 			Integer vendorId, String startDate, String endDate, String source, Integer productId,
 			Boolean adjustmentsOnly, Integer currentPage, Integer shopId) {
 
+
+	public PaginatedPurchase getPurchases(String orderBy,
+			String sortDirection,
+			String productName,
+			String packetCode,
+			Integer vendorId,
+			String startDate,
+			String endDate,
+			String source,
+			Integer productId,
+			Boolean adjustmentsOnly,
+			Integer currentPage)  {
+
+
 		int offset = 0;
 		String caller = "";
-		String qWHERE = "", qOFFSET = "", qLIMIT = " LIMIT " + itemsPerPage + " ", qORDERBY = "ORDER BY id DESC";
+		String qWHERE = "",
+				qOFFSET = "",
+				qLIMIT = " LIMIT " + itemsPerPage + " ",
+				qORDERBY = "ORDER BY id DESC";
 
 		PaginationLogic pgl = null;
 
-		if (source != null && source.equals("report"))
+		if ((source != null) && source.equals("report")) {
 			caller = "report";
-
-		if (vendorId != 0)
-			qWHERE = " WHERE pi.vendor_id = " + vendorId + " ";
-
-		if (productName != null && !productName.trim().equals("")) {
-			if (qWHERE.equals(""))
-				qWHERE = " WHERE p.product_name ~* '.*" + productName.replace("'", "''") + ".*' ";
-			else
-				qWHERE += " AND p.product_name ~* '.*" + productName.replace("'", "''") + ".*' ";
 		}
 
-		if (packetCode != null && !packetCode.trim().equals("")) {
-			if (qWHERE.equals(""))
+		if (vendorId != 0) {
+			qWHERE = " WHERE pi.vendor_id = " + vendorId + " ";
+		}
+
+		if ((productName != null) && !productName.trim().equals("")) {
+			if (qWHERE.equals("")) {
+				qWHERE = " WHERE p.product_name ~* '.*" + productName.replace("'", "''") + ".*' ";
+			} else {
+				qWHERE += " AND p.product_name ~* '.*" + productName.replace("'", "''") + ".*' ";
+			}
+		}
+
+		if ((packetCode != null) && !packetCode.trim().equals("")) {
+			if (qWHERE.equals("")) {
 				qWHERE = " WHERE pi.id IN (SELECT DISTINCT(purchase_id) "
 						+ "FROM packet_inventory WHERE packet_code ~* '.*" + packetCode + ".*') ";
-			else
+			} else {
 				qWHERE += " AND pi.id IN (SELECT DISTINCT(purchase_id) "
 						+ "FROM packet_inventory WHERE packet_code ~* '.*" + packetCode + ".*') ";
+			}
 		}
 
-		if (orderBy != null && !orderBy.trim().equals("")) {
+		if ((orderBy != null) && !orderBy.trim().equals("")) {
 			switch (orderBy) {
 			case "product":
 				qORDERBY = "ORDER BY p.product_name " + sortDirection + " ";
@@ -107,12 +128,13 @@ public class PurchaseServiceImpl implements IPurchaseService {
 		}
 
 		// Ignore old purchases, if its a generic listing
-		if (qWHERE.equals(""))
+		if (qWHERE.equals("")) {
 			qWHERE = " WHERE pi.id > 204026 ";
+		}
 
 		if (caller.equals("report")) {
 
-			if (startDate == null || startDate.trim().equals("")) {
+			if ((startDate == null) || startDate.trim().equals("")) {
 
 				return null;
 			}
@@ -157,8 +179,11 @@ public class PurchaseServiceImpl implements IPurchaseService {
 				offset = pg.getOffset();
 			}
 
-			if (offset > 0)
+			pg = pgl.getPg();
+			offset = pg.getOffset();
+			if (offset > 0) {
 				qOFFSET = " OFFSET " + offset;
+			}
 		}
 
 		ArrayList<PurchaseDTO> purchases = new ArrayList<PurchaseDTO>();
@@ -166,12 +191,18 @@ public class PurchaseServiceImpl implements IPurchaseService {
 		qWHERE += " AND pi.shop_id = " + shopId + " ";
 		StringBuilder queryStringBuilder = new StringBuilder();
 		queryStringBuilder.append("SELECT pi.*, p.product_name, p.category_id, v.vendor_name, ")
-				.append("TO_CHAR(pi.date_added, 'MM/dd/yyyy') as date ").append("FROM purchase_inventory pi ")
-				.append("JOIN  products p ON p.id = pi.product_id ").append("JOIN  vendors v ON v.id = pi.vendor_id ")
-				.append(qWHERE).append(qORDERBY).append(qLIMIT).append(qOFFSET);
+		.append("TO_CHAR(pi.date_added, 'MM/dd/yyyy') as date ")
+		.append("FROM purchase_inventory pi ")
+		.append("JOIN  products p ON p.id = pi.product_id ")
+		.append("JOIN  vendors v ON v.id = pi.vendor_id ")
+		.append(qWHERE)
+		.append(qORDERBY)
+		.append(qLIMIT)
+		.append(qOFFSET);
 
 		log.info("String builder is {}", queryStringBuilder.toString());
 		jdbcTemplate.query(queryStringBuilder.toString(), new RowCallbackHandler() {
+			@Override
 			public void processRow(ResultSet resultSet) throws SQLException {
 				if (resultSet != null) {
 					do {
