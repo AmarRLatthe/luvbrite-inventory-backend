@@ -15,6 +15,6 @@ public interface IPurchaseRepository  {
 
 	public PurchasedOrderDTO getPurchasedOrderDetailsById(Integer id);
 
-PurchasedOrderDTO getPurchasedOrderDetailsById(Integer id);
+
 
 }
