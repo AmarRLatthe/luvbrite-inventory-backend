@@ -47,26 +47,9 @@ public class PurchaseServiceImpl implements IPurchaseService {
 			Integer vendorId, String startDate, String endDate, String source, Integer productId,
 			Boolean adjustmentsOnly, Integer currentPage, Integer shopId) {
 
-
-	public PaginatedPurchase getPurchases(String orderBy,
-			String sortDirection,
-			String productName,
-			String packetCode,
-			Integer vendorId,
-			String startDate,
-			String endDate,
-			String source,
-			Integer productId,
-			Boolean adjustmentsOnly,
-			Integer currentPage)  {
-
-
 		int offset = 0;
 		String caller = "";
-		String qWHERE = "",
-				qOFFSET = "",
-				qLIMIT = " LIMIT " + itemsPerPage + " ",
-				qORDERBY = "ORDER BY id DESC";
+		String qWHERE = "", qOFFSET = "", qLIMIT = " LIMIT " + itemsPerPage + " ", qORDERBY = "ORDER BY id DESC";
 
 		PaginationLogic pgl = null;
 
@@ -169,8 +152,8 @@ public class PurchaseServiceImpl implements IPurchaseService {
 			StringBuilder countString = new StringBuilder();
 
 			countString.append("SELECT COUNT(*) ").append("FROM purchase_inventory pi  ")
-					.append("JOIN  products p ON p.id = pi.product_id ")
-					.append("JOIN  vendors v ON v.id = pi.vendor_id ").append(qWHERE).append(" AND pi.shop_id = ").append(shopId);
+			.append("JOIN  products p ON p.id = pi.product_id ")
+			.append("JOIN  vendors v ON v.id = pi.vendor_id ").append(qWHERE).append(" AND pi.shop_id = ").append(shopId);
 
 			Integer totalPurchase = jdbcTemplate.queryForObject(countString.toString(), Integer.class);
 
@@ -180,8 +163,6 @@ public class PurchaseServiceImpl implements IPurchaseService {
 				offset = pg.getOffset();
 			}
 
-			pg = pgl.getPg();
-			offset = pg.getOffset();
 			if (offset > 0) {
 				qOFFSET = " OFFSET " + offset;
 			}
@@ -192,14 +173,9 @@ public class PurchaseServiceImpl implements IPurchaseService {
 		qWHERE += " AND pi.shop_id = " + shopId + " ";
 		StringBuilder queryStringBuilder = new StringBuilder();
 		queryStringBuilder.append("SELECT pi.*, p.product_name, p.category_id, v.vendor_name, ")
-		.append("TO_CHAR(pi.date_added, 'MM/dd/yyyy') as date ")
-		.append("FROM purchase_inventory pi ")
-		.append("JOIN  products p ON p.id = pi.product_id ")
-		.append("JOIN  vendors v ON v.id = pi.vendor_id ")
-		.append(qWHERE)
-		.append(qORDERBY)
-		.append(qLIMIT)
-		.append(qOFFSET);
+		.append("TO_CHAR(pi.date_added, 'MM/dd/yyyy') as date ").append("FROM purchase_inventory pi ")
+		.append("JOIN  products p ON p.id = pi.product_id ").append("JOIN  vendors v ON v.id = pi.vendor_id ")
+		.append(qWHERE).append(qORDERBY).append(qLIMIT).append(qOFFSET);
 
 		log.info("String builder is {}", queryStringBuilder.toString());
 		jdbcTemplate.query(queryStringBuilder.toString(), new RowCallbackHandler() {
@@ -239,7 +215,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
 
 	public int updatePurchaseById(Integer id, PurchaseDTO purchase) {
 		try {
-		  return iPurchaseRepository.updatePurchaseById(id,purchase);
+			return iPurchaseRepository.updatePurchaseById(id,purchase);
 		} catch (Exception e) {
 			log.error("Message is {} and exception is {}",e.getMessage(),e);
 			return -1;

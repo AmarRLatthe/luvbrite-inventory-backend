@@ -10,7 +10,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import com.luvbrite.jdbcUtils.ProductsInfoDTOMapper;
+import com.luvbrite.jdbcutils.ProductsInfoDTOMapper;
 import com.luvbrite.model.ProductsExt;
 
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +34,7 @@ public class ProductRepositoryImpl implements IProductRepository {
 		.append("FROM products p ")
 		.append("JOIN  categories c ON c.id = p.category_id ")
 		.append("ORDER by p.product_name");
-		
+
 		log.info("product query is {}",getAllProductsQuery);
 		List<ProductsExt> productExtList = 	jdbcTemplate.query(getAllProductsQuery.toString(), new ProductsInfoDTOMapper());
 
@@ -52,7 +52,7 @@ public class ProductRepositoryImpl implements IProductRepository {
 				public String[] mapRow(ResultSet rs, int rowNum) throws SQLException {
 					String[] st = new String[2];
 					st[0]= rs.getString(1);
-					st[1]= rs.getString(2);		
+					st[1]= rs.getString(2);
 					return st;
 				}});
 		} catch (Exception e) {

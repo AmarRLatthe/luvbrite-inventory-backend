@@ -7,11 +7,13 @@ import com.luvbrite.model.PurchasedOrderDTO;
 
 public interface IPurchaseRepository  {
 
- PurchaseDTO addPurchase(PurchaseDTO purchase) throws Exception;
- 
- List<PurchaseDTO> getAllPurchases() throws Exception;
+	PurchaseDTO addPurchase(PurchaseDTO purchase) throws Exception;
 
-int updatePurchaseById(Integer id, PurchaseDTO purchase);
+	List<PurchaseDTO> getAllPurchases() throws Exception;
+
+	int updatePurchaseById(Integer id, PurchaseDTO purchase);
+
+	public PurchasedOrderDTO getPurchasedOrderDetailsById(Integer id);
 
 PurchasedOrderDTO getPurchasedOrderDetailsById(Integer id);
 
