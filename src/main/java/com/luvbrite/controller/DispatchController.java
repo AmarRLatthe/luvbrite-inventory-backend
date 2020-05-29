@@ -155,7 +155,7 @@ public class DispatchController {
 		catch(Exception e) {
 			commonResponse.setCode(500);
 			commonResponse.setData(null);
-			commonResponse.setMessage("Ooops !!! something went wrong please check logs");
+			commonResponse.setMessage("Ooops !!! something went wrong please contact developers");
 			commonResponse.setStatus("FAILED");
 			log.error("Exception occured while updating dispatch ",e);
 			return new ResponseEntity<CommonResponse>(commonResponse, HttpStatus.OK);

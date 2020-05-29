@@ -1,8 +1,11 @@
 package com.luvbrite.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.luvbrite.model.PacketExtDTO;
 import com.luvbrite.model.SinglePacketDTO;
 import com.luvbrite.repository.IPacketRepository;
 
@@ -14,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PacketServiceImpl implements IPacketService{
 
-	
+
 	@Autowired
 	private IPacketRepository iPacketRepository;
 
@@ -23,7 +26,34 @@ public class PacketServiceImpl implements IPacketService{
 		try {
 			return -1;
 		} catch (Exception e) {
-			return -1;				
+			return -1;
 		}
 	}
+
+	@Override
+	public List<PacketExtDTO> listPackets(Integer purchaseId, Integer salesId, Integer shopId, Boolean notSold,
+			Boolean sold, Boolean allPackets, String orderBy, String sortDirection, String packetCode, String allmisc,
+			Integer currentPage) throws Exception{
+
+		return	iPacketRepository.listPackets(purchaseId,
+				salesId,
+				shopId,
+				notSold,
+				sold,
+				allPackets,
+				orderBy,
+				sortDirection,
+				packetCode,
+				allmisc,
+				currentPage) ;
+	}
+
+
+
+
+
+
+
+
+
 }
