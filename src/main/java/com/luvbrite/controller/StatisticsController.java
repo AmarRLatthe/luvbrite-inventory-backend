@@ -73,7 +73,8 @@ public class StatisticsController {
 		try {
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 			if (userDetails != null) {
-				List<OrderBreakDownDTO> list = iStatisticsService.getProdStat(startDate, endDate);
+				List<OrderBreakDownDTO> list = new ArrayList<>();
+				list = iStatisticsService.getProdStat(startDate, endDate);
 				if ((list != null) && !list.isEmpty()) {
 					response.setCode(200);
 					response.setStatus("SUCCESS");
@@ -83,6 +84,7 @@ public class StatisticsController {
 				response.setCode(400);
 				response.setStatus("Bad Request");
 				response.setMessage("Something went wrong. Please try again later");
+				response.setData(list);
 				return new ResponseEntity<>(response, HttpStatus.OK);
 			}
 			response.setCode(401);
@@ -141,13 +143,15 @@ public class StatisticsController {
 		try {
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 			if (userDetails != null) {
-				List<OrderBreakDownDTO> list = iStatisticsService.getOrderStatData(startDate, endDate, showFirstOrder, paymentMode);
+				List<OrderBreakDownDTO> list = new ArrayList<>();
+				list = iStatisticsService.getOrderStatData(startDate, endDate, showFirstOrder, paymentMode);
 				if ((list != null) && !list.isEmpty()) {
 					response.setCode(200);
 					response.setStatus("SUCCESS");
 					response.setData(list);
 					return new ResponseEntity<>(response, HttpStatus.OK);
 				}
+				response.setData(list);
 				response.setCode(400);
 				response.setStatus("Bad Request");
 				response.setMessage("Something went wrong. Please try again later");
@@ -174,13 +178,15 @@ public class StatisticsController {
 		try {
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 			if (userDetails != null) {
-				List<OrderBreakDownDTO> list = iStatisticsService.getCustomerStatData(startDate, endDate);
+				List<OrderBreakDownDTO> list = new ArrayList<>();
+				list = iStatisticsService.getCustomerStatData(startDate, endDate);
 				if ((list != null) && !list.isEmpty()) {
 					response.setCode(200);
 					response.setStatus("SUCCESS");
 					response.setData(list);
 					return new ResponseEntity<>(response, HttpStatus.OK);
 				}
+				response.setData(list);
 				response.setCode(400);
 				response.setStatus("Bad Request");
 				response.setMessage("Something went wrong. Please try again later");
@@ -207,7 +213,8 @@ public class StatisticsController {
 		try {
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 			if (userDetails != null) {
-				List<SalesProfitDataExtDTO> list = iStatisticsService.getSalesProfitInfo(startDate, endDate);
+				List<SalesProfitDataExtDTO> list = new ArrayList<>();
+				list = iStatisticsService.getSalesProfitInfo(startDate, endDate);
 				log.info("{} ", list);
 				if ((list != null) && !list.isEmpty()) {
 					response.setCode(200);
@@ -216,6 +223,7 @@ public class StatisticsController {
 					return new ResponseEntity<>(response, HttpStatus.OK);
 				}
 				response.setCode(400);
+				response.setData(list);
 				response.setStatus("Bad Request");
 				response.setMessage("Something went wrong. Please try again later");
 				return new ResponseEntity<>(response, HttpStatus.OK);

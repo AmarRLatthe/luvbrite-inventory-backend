@@ -305,7 +305,6 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 
 						obd = new OrderBreakDownDTO();
 						groupAmount = 0d;
-						System.out.println(results);
 						orArray = new ArrayList<>();
 					} else {
 						first = false;
@@ -387,7 +386,6 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 
 									creditCardPayment = Double.parseDouble(
 											splitAmongCashNCredit[0].replace("$", "").replace("CC", "").trim());
-									System.out.println("Setting split CREDIT amount : $$ " + creditCardPayment);
 									or.setTotal(creditCardPayment);
 
 								} else if (splitAmongCashNCredit.length == 2) {
@@ -433,7 +431,7 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 			}
 			return results;
 		} catch (Exception e) {
-
+			log.error("Exception while getting order breakdown info {} ", e);
 		}
 
 		return results;
@@ -914,21 +912,20 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 				statQueryByDriverId, driverID);
 		List<DriverStatDTO> dtos = null;
 		if (driverID > 0) {
-			dtos = jdbcTemplate.query(statQueryByDriverId.toString(), new Object[] { driverID },
-					new RowMapper<DriverStatDTO>() {
-						@Override
-						public DriverStatDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
-							DriverStatDTO dto = new DriverStatDTO();
-							dto.setDriver(rs.getString("driver"));
-							dto.setPaymentMode(rs.getString("payment_mode"));
-							dto.setDriverId(rs.getInt("driver_id"));
-							dto.setDispatchIds(rs.getString("dis_ids"));
-							dto.setAmount(rs.getDouble("amount"));
-							dto.setCount(rs.getInt("count"));
-							dto.setProduct(rs.getString("product"));
-							return dto;
-						}
-					});
+			dtos = jdbcTemplate.query(statQueryByDriverId.toString(), new RowMapper<DriverStatDTO>() {
+				@Override
+				public DriverStatDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
+					DriverStatDTO dto = new DriverStatDTO();
+					dto.setDriver(rs.getString("driver"));
+					dto.setPaymentMode(rs.getString("payment_mode"));
+					dto.setDriverId(rs.getInt("driver_id"));
+					dto.setDispatchIds(rs.getString("dis_ids"));
+					dto.setAmount(rs.getDouble("amount"));
+					dto.setCount(rs.getInt("count"));
+					dto.setProduct(rs.getString("product"));
+					return dto;
+				}
+			});
 		} else {
 			dtos = jdbcTemplate.query(statQueryByDriverId.toString(), new RowMapper<DriverStatDTO>() {
 				@Override
