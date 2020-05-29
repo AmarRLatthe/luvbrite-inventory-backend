@@ -14,6 +14,7 @@ import com.luvbrite.model.PaginatedPurchase;
 import com.luvbrite.model.Pagination;
 import com.luvbrite.model.PaginationLogic;
 import com.luvbrite.model.PurchaseDTO;
+import com.luvbrite.model.PurchasedOrderDTO;
 import com.luvbrite.repository.IPurchaseRepository;
 
 import lombok.extern.slf4j.Slf4j;
@@ -242,6 +243,15 @@ public class PurchaseServiceImpl implements IPurchaseService {
 		} catch (Exception e) {
 			log.error("Message is {} and exception is {}",e.getMessage(),e);
 			return -1;
+		}
+	}
+
+	public PurchasedOrderDTO getPurchasedOrderDetailsById(Integer id) {
+		try {
+			return iPurchaseRepository.getPurchasedOrderDetailsById(id);
+		} catch (Exception e) {
+			log.error("Message is {} and exception is {}",e.getMessage(),e);
+			return null;
 		}
 	}
 
