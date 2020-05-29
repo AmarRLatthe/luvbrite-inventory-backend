@@ -42,6 +42,7 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 	@Override
 	public List<OrderBreakDownDTO> getBaseStatsData(int shopId) {
 		log.info("Inside getBaseStatsData to get base statistics data ");
+		results = new ArrayList<>();
 		StatisticsDTO dto = (StatisticsDTO) jdbcTemplate.queryForObject(getExtractQuery(),
 				new BeanPropertyRowMapper(StatisticsDTO.class));
 		dow = dto.getDow();
@@ -71,11 +72,14 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 	public List<OrderBreakDownDTO> getStatsByDriverId(String startDate, String endDate, String driverId) {
 		log.info("Inside get stats by driver id, for driver id {} ", driverId);
 		List<OrderBreakDownDTO> results = new ArrayList<>();
-		String previousDriver = "", currentDriver = "", previousPaymentMode = "",
-				currentPaymentMode = "", dispatchId = "0";
+		String previousDriver = "", currentDriver = "", previousPaymentMode = "", currentPaymentMode = "",
+				dispatchId = "0";
 		double groupAmount = 0d;
 
 		boolean first = true;
+
+		OrderBreakDownDTO obd = new OrderBreakDownDTO();
+		OrderStatisticDTO or = new OrderStatisticDTO();
 
 		int currentDriverId = 0, previousDriverId = 0;
 		try {
@@ -86,8 +90,6 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 			}
 			List<DriverStatDTO> dtos = getDataBasedOnDriverId(driverId, startDate, endDate);
 			for (DriverStatDTO dto : dtos) {
-				OrderBreakDownDTO obd = new OrderBreakDownDTO();
-				OrderStatisticDTO or = new OrderStatisticDTO();
 				currentDriver = dto.getDriver();
 				currentPaymentMode = dto.getPaymentMode();
 				currentDriverId = dto.getDriverId();
@@ -146,6 +148,19 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 				previousDriverId = currentDriverId;
 				previousPaymentMode = currentPaymentMode;
 				dispatchId = dto.getDispatchIds();
+			}
+			if (!first) {
+				obd.setName(previousDriver);
+				obd.setAmount(groupAmount);
+				obd.setMode(currentPaymentMode);
+				obd.setOstat(orArray);
+
+				setTip(dispatchId, obd);
+				setDistance(previousDriverId, obd, startDate, endDate);
+
+				obd.setCommission(getDriverCommision(dispatchId));
+
+				results.add(obd);
 			}
 			return results;
 		} catch (Exception e) {
@@ -290,7 +305,6 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 
 						obd = new OrderBreakDownDTO();
 						groupAmount = 0d;
-						System.out.println(results);
 						orArray = new ArrayList<>();
 					} else {
 						first = false;
@@ -372,7 +386,6 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 
 									creditCardPayment = Double.parseDouble(
 											splitAmongCashNCredit[0].replace("$", "").replace("CC", "").trim());
-									System.out.println("Setting split CREDIT amount : $$ " + creditCardPayment);
 									or.setTotal(creditCardPayment);
 
 								} else if (splitAmongCashNCredit.length == 2) {
@@ -418,7 +431,7 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 			}
 			return results;
 		} catch (Exception e) {
-
+			log.error("Exception while getting order breakdown info {} ", e);
 		}
 
 		return results;
@@ -583,6 +596,14 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 
 				previousDate = currentDate;
 			}
+			// Add the file item to the array
+			if (!previousDate.equals("")) {
+				spdExt.setDate(currentDate);
+				results.add(spdExt);
+				spdExt.setTotal(total);
+				spdExt.setPurchaseTotal(purchaseTotal);
+				spdExt.setSellingTotal(sellingTotal);
+			}
 			return results;
 		} catch (Exception e) {
 			log.info("Exception while getting sales profile data, message is: {}, exception is {} ", e.getMessage(), e);
@@ -641,22 +662,20 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 			vQuery.append(
 					"SELECT array_to_string(array_agg(dis.id), ',') As dis_ids, COUNT(DISTINCT pi.sales_id), SUM(pi.selling_price), ");
 			vQuery.append("dis.payment_mode FROM packet_inventory pi ");
-			vQuery.append(
-					"JOIN dispatch_sales_info dis ON dis.id = pi.sales_id WHERE sales_id <> 0 AND date_sold  ");
+			vQuery.append("JOIN dispatch_sales_info dis ON dis.id = pi.sales_id WHERE sales_id <> 0 AND date_sold  ");
 			vQuery.append(cqueryWhere + groupBy + "ORDER BY dis.payment_mode");
 			log.info("Executing query for base stats, query is: {} ", vQuery);
-			List<OrderStatisticDTO> dtos = jdbcTemplate.query(vQuery.toString(),
-					new RowMapper<OrderStatisticDTO>() {
-						@Override
-						public OrderStatisticDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
-							OrderStatisticDTO or = new OrderStatisticDTO();
-							or.setCountF(rs.getFloat(2));
-							or.setAmount(rs.getDouble(3));
-							or.setMode(rs.getString("payment_mode"));
-							or.setDisIds(rs.getString("dis_ids"));
-							return or;
-						}
-					});
+			List<OrderStatisticDTO> dtos = jdbcTemplate.query(vQuery.toString(), new RowMapper<OrderStatisticDTO>() {
+				@Override
+				public OrderStatisticDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
+					OrderStatisticDTO or = new OrderStatisticDTO();
+					or.setCountF(rs.getFloat(2));
+					or.setAmount(rs.getDouble(3));
+					or.setMode(rs.getString("payment_mode"));
+					or.setDisIds(rs.getString("dis_ids"));
+					return or;
+				}
+			});
 			for (OrderStatisticDTO dto : dtos) {
 				totalCount += dto.getCountF();
 				total += dto.getAmount();
@@ -863,7 +882,9 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 	}
 
 	public List<DriverStatDTO> getDataBasedOnDriverId(String driverId, String startDate, String endDate) {
+
 		String whereQuery = "", SELECTS = "", groupBy = " GROUP BY d.id, d.driver_name, dis.payment_mode ";
+
 		if (endDate.trim().equals("")) {
 			whereQuery = " >= to_date('" + startDate + "', 'MM/dd/YYYY')";
 		} else {
