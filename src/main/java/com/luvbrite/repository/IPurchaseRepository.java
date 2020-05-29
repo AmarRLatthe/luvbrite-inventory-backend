@@ -3,6 +3,7 @@ package com.luvbrite.repository;
 import java.util.List;
 
 import com.luvbrite.model.PurchaseDTO;
+import com.luvbrite.model.PurchasedOrderDTO;
 
 public interface IPurchaseRepository  {
 
@@ -11,5 +12,7 @@ public interface IPurchaseRepository  {
  List<PurchaseDTO> getAllPurchases() throws Exception;
 
 int updatePurchaseById(Integer id, PurchaseDTO purchase);
+
+PurchasedOrderDTO getPurchasedOrderDetailsById(Integer id);
 
 }

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.luvbrite.commonresponse.CommonResponse;
 import com.luvbrite.model.PaginatedPurchase;
 import com.luvbrite.model.PurchaseDTO;
+import com.luvbrite.model.PurchasedOrderDTO;
 import com.luvbrite.model.UserDetails;
 import com.luvbrite.service.IUserService;
 import com.luvbrite.service.PurchaseServiceImpl;
@@ -138,13 +139,34 @@ public class PurchaseController {
 			}
 
 		} catch (Exception e) {
-			log.info("qwertyuiop");
 			commonResponse.setCode(500);
 			commonResponse.setMessage(e.getMessage());
 			commonResponse.setStatus("SERVER ERROR");
 			log.error("Message is {} and exception is {}", e.getMessage(),e);
 			return new ResponseEntity<>(commonResponse, HttpStatus.OK);
 		}
+	}
+	
+	
+	@GetMapping("getPurchasedOrderDetailsById/{id}")
+	public ResponseEntity<CommonResponse> getPurchasedOrderDetailsById(@PathVariable("id") Integer id){
+		CommonResponse commonResponse = new CommonResponse();
+		log.info("Id is {}",id);
+		try {
+			PurchasedOrderDTO purchasedOrderDTO = purchaseService.getPurchasedOrderDetailsById(id);
+			commonResponse.setCode(200);
+			commonResponse.setStatus("SUCCESS");
+			commonResponse.setData(purchasedOrderDTO);
+			commonResponse.setMessage("Purchases retrieved successfully");
+			return new ResponseEntity<>(commonResponse, HttpStatus.OK);
+		} catch (Exception e) {
+			commonResponse.setCode(500);
+			commonResponse.setMessage(e.getMessage());
+			commonResponse.setStatus("SERVER ERROR");
+			log.error("Message is {} and exception is {}", e.getMessage(),e);
+			return new ResponseEntity<>(commonResponse, HttpStatus.OK);
+		}
+		
 	}
 
 
