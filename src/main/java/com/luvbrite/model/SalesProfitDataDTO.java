@@ -13,4 +13,5 @@ public class SalesProfitDataDTO {
 	private double purchasePrice;
 	private double sellingPrice;
 	private double profit;
+	private String categoryName;
 }
