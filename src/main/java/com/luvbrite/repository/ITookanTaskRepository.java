@@ -3,7 +3,7 @@ package com.luvbrite.repository;
 import java.sql.SQLException;
 import java.util.List;
 
-import com.luvbrite.jdbcutils.model.JobInsertDetail;
+import com.luvbrite.jdbcUtils.model.JobInsertDetail;
 import com.luvbrite.model.DeliveredPacketDTO;
 import com.luvbrite.model.SoldPacketsDTO;
 import com.luvbrite.model.tookan.TaskRequest;
