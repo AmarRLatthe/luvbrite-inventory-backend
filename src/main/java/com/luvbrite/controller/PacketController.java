@@ -32,7 +32,6 @@ public class PacketController {
 
 	@Autowired
 	private IPacketService iPacketService;
-
 	@Autowired
 	private IUserService iUserService;
 

@@ -20,8 +20,10 @@ public class SinglePacketDTO implements Serializable{/**
 	private Double weight;
 	private Double price;
 	private Integer id;
-	private Integer opsid;
+	private Integer operatorId;
 	private String mode;
+	private Integer purchaseId;
+	private Integer shopId;
 	
 	
 }

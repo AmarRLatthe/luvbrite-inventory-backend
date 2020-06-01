@@ -1,4 +1,4 @@
-package com.luvbrite.jdbcutils.model;
+package com.luvbrite.jdbcUtils.model;
 
 public class JobInsertDetail {
 

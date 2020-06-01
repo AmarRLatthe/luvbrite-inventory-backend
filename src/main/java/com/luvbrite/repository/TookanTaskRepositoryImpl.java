@@ -1,6 +1,6 @@
 package com.luvbrite.repository;
 
-import java.sql.SQLException;
+import java.sql.SQLException; 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -10,10 +10,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.google.gson.Gson;
-import com.luvbrite.jdbcutils.DeliveryPacketDTOMapper;
-import com.luvbrite.jdbcutils.JobInsertRowMapper;
-import com.luvbrite.jdbcutils.TaskRequestDTOMapper;
-import com.luvbrite.jdbcutils.model.JobInsertDetail;
+import com.luvbrite.jdbcUtils.DeliveryPacketDTOMapper;
+import com.luvbrite.jdbcUtils.JobInsertRowMapper;
+import com.luvbrite.jdbcUtils.TaskRequestDTOMapper;
+import com.luvbrite.jdbcUtils.model.JobInsertDetail;
 import com.luvbrite.model.DeliveredPacketDTO;
 import com.luvbrite.model.SoldPacketsDTO;
 import com.luvbrite.model.tookan.TaskRequest;

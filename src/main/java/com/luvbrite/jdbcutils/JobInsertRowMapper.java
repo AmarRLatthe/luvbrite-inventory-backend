@@ -1,11 +1,11 @@
-package com.luvbrite.jdbcutils;
+package com.luvbrite.jdbcUtils;
 
-import java.sql.ResultSet;
+import java.sql.ResultSet; 
 import java.sql.SQLException;
 
 import org.springframework.jdbc.core.RowMapper;
 
-import com.luvbrite.jdbcutils.model.JobInsertDetail;
+import com.luvbrite.jdbcUtils.model.JobInsertDetail;
 
 public class JobInsertRowMapper implements RowMapper<JobInsertDetail> {
 

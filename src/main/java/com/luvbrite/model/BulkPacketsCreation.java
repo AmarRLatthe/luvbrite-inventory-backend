@@ -21,5 +21,6 @@ public class BulkPacketsCreation implements Serializable {
 	private Double weight;
 	private Integer totalPackets;
 	private Integer purchaseId;
-	private Integer opsId;
+	private Integer operatorId;
+	private Integer shopId;
 }

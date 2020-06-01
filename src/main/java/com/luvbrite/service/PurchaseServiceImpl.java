@@ -43,9 +43,24 @@ public class PurchaseServiceImpl implements IPurchaseService {
 		return null;
 	}
 
-	public PaginatedPurchase getPurchases(String orderBy, String sortDirection, String productName, String packetCode,
-			Integer vendorId, String startDate, String endDate, String source, Integer productId,
-			Boolean adjustmentsOnly, Integer currentPage, Integer shopId) {
+//	public PaginatedPurchase getPurchases(String orderBy, String sortDirection, String productName, String packetCode,
+//			Integer vendorId, String startDate, String endDate, String source, Integer productId,
+//			Boolean adjustmentsOnly, Integer currentPage, Integer shopId) {
+
+
+	public PaginatedPurchase getPurchases(String orderBy,
+			String sortDirection,
+			String productName,
+			String packetCode,
+			Integer vendorId,
+			String startDate,
+			String endDate,
+			String source,
+			Integer productId,
+			Boolean adjustmentsOnly,
+			Integer currentPage,
+			Integer shopId)  {
+
 
 		int offset = 0;
 		String caller = "";
@@ -212,6 +227,7 @@ public class PurchaseServiceImpl implements IPurchaseService {
 
 		return pgPurchase;
 	}
+	
 
 	public int updatePurchaseById(Integer id, PurchaseDTO purchase) {
 		try {
