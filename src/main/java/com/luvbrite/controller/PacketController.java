@@ -1,7 +1,6 @@
 package com.luvbrite.controller;
 
 import java.util.HashMap;
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.luvbrite.commonresponse.CommonResponse;
 import com.luvbrite.model.BulkPacketsCreation;
-import com.luvbrite.model.PacketExtDTO;
+import com.luvbrite.model.PaginatedPackets;
 import com.luvbrite.model.SinglePacketDTO;
 import com.luvbrite.model.UserDetails;
 import com.luvbrite.service.IPacketService;
@@ -121,7 +120,7 @@ public class PacketController {
 		salesId = salesId == null ? 0 : salesId;
 		shopId = shopId == null ? 0 : shopId;
 
-		List<PacketExtDTO> listPackets = null;
+		PaginatedPackets paginatedPackets = null;
 
 		if (shopId == 0) {
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
@@ -131,14 +130,14 @@ public class PacketController {
 
 		try {
 
-			listPackets = iPacketService.listPackets(purchaseId, salesId, shopId, notSold, sold, all, sort, sortDirection,
+			paginatedPackets = iPacketService.listPackets(purchaseId, salesId, shopId, notSold, sold, all, sort, sortDirection,
 					packetCode, allmisc, currentPage);
 
 
-			if(listPackets==null) {throw new NullPointerException();}
+			if(paginatedPackets==null) {throw new NullPointerException();}
 
 			response.setCode(200);
-			response.setData(listPackets);
+			response.setData(paginatedPackets);
 			response.setMessage("List of packets fetched successfully");
 			response.setStatus("SUCCESS");
 
@@ -149,7 +148,7 @@ public class PacketController {
 			log.error("Exception occurred while fetching paginated packets {} ",e);
 
 			response.setCode(500);
-			response.setData(listPackets);
+			response.setData(paginatedPackets);
 			response.setMessage("could not fetch list of packets");
 			response.setStatus("FAILED");
 

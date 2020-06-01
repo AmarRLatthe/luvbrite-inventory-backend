@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import com.luvbrite.jdbcutils.PacketExtDTOMapper;
 import com.luvbrite.model.PacketExtDTO;
+import com.luvbrite.model.PaginatedPackets;
 import com.luvbrite.model.Pagination;
 import com.luvbrite.model.PaginationLogic;
 
@@ -23,7 +24,7 @@ public class PacketRepositoryImpl implements IPacketRepository {
 	private int itemsPerPage = 15;
 
 	@Override
-	public List<PacketExtDTO> listPackets(Integer purchaseId, Integer salesId, Integer shopId, Boolean notSold,
+	public PaginatedPackets listPackets(Integer purchaseId, Integer salesId, Integer shopId, Boolean notSold,
 			Boolean sold, Boolean allPackets, String orderBy, String sortDirection, String packetCode, String allmisc,
 			Integer currentPage) throws Exception {
 		String qWHERE = "", qOFFSET = "", qLIMIT = " LIMIT " + itemsPerPage + " ", qORDERBY = "ORDER BY pi.id DESC";
@@ -215,7 +216,7 @@ public class PacketRepositoryImpl implements IPacketRepository {
 			throw e;
 		}
 
-		return packetList;
+		return new PaginatedPackets(pg, packetList);
 	}
 
 }
