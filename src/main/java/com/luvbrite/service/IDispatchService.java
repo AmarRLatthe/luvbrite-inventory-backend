@@ -1,16 +1,14 @@
 package com.luvbrite.service;
 
-import java.util.List;
-
 import org.springframework.http.ResponseEntity;
 
 import com.luvbrite.commonresponse.CommonResponse;
-import com.luvbrite.model.DispatchSalesExt;
 import com.luvbrite.model.DispatchUpdateDTO;
+import com.luvbrite.model.PaginatedDispatch;
 
 public interface IDispatchService {
 
-	public List<DispatchSalesExt> listDispatches(Integer driverId, Integer dispatchId, Boolean cancelled,
+	public PaginatedDispatch listDispatches(Integer driverId, Integer dispatchId, Boolean cancelled,
 			Boolean finished, Boolean notFinished, String q, String orderBy, String mode, String qSORTDIR,
 			Integer currentPage, Integer deliveryRtId, Integer shopId) throws Exception;
 

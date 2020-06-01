@@ -17,6 +17,7 @@ import com.luvbrite.jdbcutils.DispatchSalesRowMapper;
 import com.luvbrite.model.DispatchSalesExt;
 import com.luvbrite.model.DispatchUpdateDTO;
 import com.luvbrite.model.MiscPacketsDTO;
+import com.luvbrite.model.PaginatedDispatch;
 import com.luvbrite.model.Pagination;
 import com.luvbrite.model.PaginationLogic;
 import com.luvbrite.model.RoundTripDistanceDTO;
@@ -48,7 +49,7 @@ public class DispatchServiceImpl implements IDispatchService {
 	private final int itemsPerPage = 15;
 
 	@Override
-	public List<DispatchSalesExt> listDispatches(Integer driverId, Integer dispatchId, Boolean cancelled,
+	public PaginatedDispatch listDispatches(Integer driverId, Integer dispatchId, Boolean cancelled,
 			Boolean finished, Boolean notFinished, String q, String orderBy, String mode, String qSORTDIR,
 			Integer currentPage, Integer deliveryRtId, Integer shopId) throws Exception {
 
@@ -69,7 +70,7 @@ public class DispatchServiceImpl implements IDispatchService {
 
 		String qWHERE = "", qOFFSET = "", qLIMIT = " LIMIT " + itemsPerPage + " ", qORDERBY = " ORDER by ds.id ";
 
-		qSORTDIR = " ASC";
+		qSORTDIR = " DESC";
 
 		int offset = 0;
 		PaginationLogic pgl = null;
@@ -186,8 +187,7 @@ public class DispatchServiceImpl implements IDispatchService {
 
 			StringBuffer queryBuffer = new StringBuffer();
 
-			queryBuffer.append(
-					"SELECT jobd.job_status,jobd.tookan_driver_name,jobd.distance_travelled, ds.id as dispatch_sales_id , ds.*, ooi.*, ")
+			queryBuffer.append("SELECT jobd.job_status,jobd.tookan_driver_name,jobd.distance_travelled, ds.id as dispatch_sales_id , ds.*, ooi.*, ")
 			.append("TO_CHAR(ds.date_called, 'MM/dd/yyyy HH:MI AM') AS formatted_date_called, ")
 			.append("TO_CHAR(ds.date_arrived, 'MM/dd/yyyy HH:MI AM') AS formatted_date_arrived, ")
 			.append("TO_CHAR(ds.date_finished, 'MM/dd/yyyy HH:MI AM') AS formatted_date_finished, ")
@@ -195,13 +195,18 @@ public class DispatchServiceImpl implements IDispatchService {
 			.append("FROM dispatch_sales_info ds ")
 			.append("LEFT JOIN online_order_info ooi ON ooi.dispatch_sales_id = ds.id ")
 			.append(tookan_job_details).append(deliveryRouteFilter).append(driverIdIdFilter)
-			.append(dispatchIdFilter).append(qWHERE).append("AND ooi.shop_id = " + shopId + " ")
-			.append(qORDERBY).append(qLIMIT).append(qOFFSET);
+			.append(dispatchIdFilter)
+			.append(qWHERE)
+			.append("AND ooi.shop_id = " + shopId + " ")
+			.append(qORDERBY)
+			.append(qLIMIT)
+			.append(qOFFSET);
 
+			System.out.println("ListDispatch -- >"+queryBuffer.toString());
 			dispatches = jdbcTemplate.query(queryBuffer.toString(), new DispatchSalesRowMapper());
 
 		}
-		return dispatches;
+		return new PaginatedDispatch(pg, dispatches);
 
 	}
 

@@ -1,19 +1,18 @@
 package com.luvbrite.controller;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.luvbrite.commonresponse.CommonResponse;
-import com.luvbrite.model.DispatchSalesExt;
 import com.luvbrite.model.DispatchUpdateDTO;
+import com.luvbrite.model.PaginatedDispatch;
 import com.luvbrite.model.UserDetails;
 import com.luvbrite.service.IDispatchService;
 import com.luvbrite.service.IUserService;
@@ -21,7 +20,8 @@ import com.luvbrite.service.IUserService;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@RestController("/api/")
+@RestController
+@RequestMapping("/api/dispatch/")
 public class DispatchController {
 
 	@Autowired
@@ -30,8 +30,9 @@ public class DispatchController {
 	@Autowired
 	private IUserService iUserService;
 
-	@GetMapping("api/listdispatches")
-	public ResponseEntity<CommonResponse> listdispatches(@RequestParam(value = "d", required = true) Integer driverId,
+	@GetMapping("listdispatches")
+	public ResponseEntity<CommonResponse> listdispatches(
+			@RequestParam(value = "d", required = true) Integer driverId,
 			@RequestParam(value = "id", required = false) Integer dispatchId,
 			@RequestParam(value = "ca", required = false) Boolean cancelled,
 			@RequestParam(value = "fn", required = false) Boolean finished,
@@ -50,12 +51,12 @@ public class DispatchController {
 
 		if (userDetails == null) {
 			commonResponse.setCode(401);
-			commonResponse.setData(null);
+			//commonResponse.setData(null);
 			commonResponse.setMessage("Please login to access dispatches");
 			commonResponse.setStatus("FAILED");
 			return new ResponseEntity<CommonResponse>(commonResponse, HttpStatus.OK);
 		}
-		List<DispatchSalesExt> dispatches = null;
+		PaginatedDispatch dispatches = null;
 
 		int shopId = userDetails.getShopId();
 
