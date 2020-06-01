@@ -1,13 +1,11 @@
 package com.luvbrite.repository;
 
-import java.util.List;
-
-import com.luvbrite.model.PacketExtDTO;
+import com.luvbrite.model.PaginatedPackets;
 
 public interface IPacketRepository {
 
 
-	public List<PacketExtDTO> listPackets(Integer purchaseId, Integer salesId, Integer shopId, Boolean notSold,
+	public PaginatedPackets listPackets(Integer purchaseId, Integer salesId, Integer shopId, Boolean notSold,
 			Boolean sold, Boolean allPackets, String orderBy, String sortDirection, String packetCode, String allmisc,
 			Integer currentPage) throws Exception;
 }

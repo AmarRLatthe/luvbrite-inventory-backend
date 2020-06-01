@@ -1,11 +1,9 @@
 package com.luvbrite.service;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.luvbrite.model.PacketExtDTO;
+import com.luvbrite.model.PaginatedPackets;
 import com.luvbrite.model.SinglePacketDTO;
 import com.luvbrite.repository.IPacketRepository;
 
@@ -31,7 +29,7 @@ public class PacketServiceImpl implements IPacketService{
 	}
 
 	@Override
-	public List<PacketExtDTO> listPackets(Integer purchaseId, Integer salesId, Integer shopId, Boolean notSold,
+	public PaginatedPackets listPackets(Integer purchaseId, Integer salesId, Integer shopId, Boolean notSold,
 			Boolean sold, Boolean allPackets, String orderBy, String sortDirection, String packetCode, String allmisc,
 			Integer currentPage) throws Exception{
 
