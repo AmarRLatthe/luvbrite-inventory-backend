@@ -5,7 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import com.luvbrite.controller.ChangeTrackerDTO;
-import com.luvbrite.jdbcUtils.model.JobInsertDetail;
+import com.luvbrite.jdbcutils.model.JobInsertDetail;
 import com.luvbrite.model.tookan.TookanResponse;
 import com.luvbrite.repository.ITookanTaskRepository;
 

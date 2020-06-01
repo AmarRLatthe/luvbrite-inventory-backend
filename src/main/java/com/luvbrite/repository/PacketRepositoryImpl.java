@@ -13,6 +13,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.luvbrite.jdbcutils.PacketExtDTOMapper;
 import com.luvbrite.model.BarcodeSequenceDTO;
 import com.luvbrite.model.BulkPacketsCreation;
 import com.luvbrite.model.SinglePacketDTO;
