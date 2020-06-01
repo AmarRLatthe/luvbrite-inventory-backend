@@ -13,4 +13,5 @@ public class CommonSalesProfitDTO {
 	private double sellingPrice;
 	private double purchasePrice;
 	private int categoryId;
+	private String categoryName;
 }

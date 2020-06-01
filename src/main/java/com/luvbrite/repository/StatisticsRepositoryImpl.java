@@ -534,11 +534,10 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 
 			StringBuilder salesProfitSubQuery = new StringBuilder();
 			salesProfitSubQuery.append(" SELECT ").append(dateQuery)
-					.append("CASE p.category_id WHEN 1 THEN 1 ELSE 2 END ")
-					.append("AS category_id, pi.selling_price, CASE WHEN (p.category_id = 1 AND pur.date_added < '2016-11-30')")
+					.append("category_id, pi.selling_price, c.category_name, CASE WHEN (p.category_id = 1 AND pur.date_added < '2016-11-30')")
 					.append("THEN pur.unit_price*pi.weight_in_grams ELSE pur.unit_price END AS purchase_price ")
 					.append("FROM packet_inventory pi JOIN purchase_inventory pur ON pur.id = pi.purchase_id ")
-					.append("JOIN products p ON p.id = pur.product_id WHERE pi.sales_id <> 0 AND pi.date_sold >= to_date('")
+					.append("JOIN products p ON p.id = pur.product_id JOIN categories c ON c.id=p.category_id WHERE pi.sales_id <> 0 AND pi.date_sold >= to_date('")
 					.append(startDate).append("', 'MM/dd/YYYY') ").append("AND  pi.date_sold < to_date('")
 					.append(endDate).append("', 'MM/dd/YYYY') + interval '1 day'");
 
@@ -546,9 +545,10 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 			String currentDate = "", previousDate = "";
 			double total = 0d, purchaseTotal = 0d, sellingTotal = 0d, profit = 0d;
 			StringBuilder vQuery = new StringBuilder();
-			vQuery.append("WITH sub AS (").append(salesProfitSubQuery).append(") SELECT date_formatted, category_id, ")
+			vQuery.append("WITH sub AS (").append(salesProfitSubQuery).append(") SELECT date_formatted, category_id, category_name, ")
 					.append("SUM(selling_price) AS selling_price, SUM(purchase_price) AS purchase_price FROM sub ")
-					.append("GROUP BY date_formatted, category_id ORDER BY date_formatted ASC, category_id ASC");
+					.append("GROUP BY date_formatted, category_id, category_name ORDER BY date_formatted ASC, category_id ASC");
+			log.info("query ::::::::::::::::: {} ", vQuery.toString()); 
 			List<CommonSalesProfitDTO> dtos = jdbcTemplate.query(vQuery.toString(),
 					new RowMapper<CommonSalesProfitDTO>() {
 
@@ -559,6 +559,7 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 							dto.setPurchasePrice(rs.getDouble("purchase_price"));
 							dto.setSellingPrice(rs.getDouble("selling_price"));
 							dto.setCategoryId(rs.getInt("category_id"));
+							dto.setCategoryName(rs.getString("category_name"));
 							return dto;
 						}
 					});
@@ -591,6 +592,7 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 				spd.setPurchasePrice(salesProfitDTO.getPurchasePrice());
 				spd.setSellingPrice(salesProfitDTO.getSellingPrice());
 				spd.setProfit(profit);
+				spd.setCategoryName(salesProfitDTO.getCategoryName());
 
 				spdExt.addSpData(spd);
 
