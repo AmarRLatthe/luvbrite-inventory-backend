@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,29 +37,75 @@ public class PacketController {
 	private IUserService iUserService;
 
 	@PostMapping("/bulkPacketsCreation")
-	public ResponseEntity<CommonResponse> bulkPacketsCreation(@RequestBody BulkPacketsCreation packets) {
-		CommonResponse commonResponse = new CommonResponse();
+	public ResponseEntity<CommonResponse> bulkPacketsCreation(@RequestBody BulkPacketsCreation packets,
+			Authentication authentication) {
+		CommonResponse response = new CommonResponse();
 		log.info("Bulk Packets Creation {}", packets);
 		try {
-
-			return new ResponseEntity<>(commonResponse, HttpStatus.OK);
+			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
+			if (userDetails != null) {
+				packets.setOperatorId(userDetails.getId());
+				packets.setShopId(userDetails.getShopId());
+				log.info("Single Packet is {}", packets);
+				int insert = iPacketService.createBulkPacket(packets);
+				if (insert > 0) {
+					response.setCode(201);
+					response.setMessage("Packets is created successfully.");
+					response.setStatus("CREATED");
+					return new ResponseEntity<>(response, HttpStatus.OK);
+				}
+				response.setCode(422);
+				response.setStatus("Unprocessable");
+				response.setMessage("Not able to create packet.");
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}
+			response.setCode(401);
+			response.setMessage("User is not authorized.");
+			response.setStatus("Unauthorised");
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
-			log.error("Message is {} and Exception {}", e.getMessage(), e);
-			return new ResponseEntity<>(commonResponse, HttpStatus.OK);
+			log.error("Message is {} and exception is {}", e.getMessage(), e);
+			response.setCode(500);
+			response.setMessage("Packet is not created.please try again later.");
+			response.setStatus("SERVER ERROR");
+			return new ResponseEntity<>(response, HttpStatus.OK);
 		}
 	}
 
 	@PostMapping("/createSinglePacket")
-	public ResponseEntity<CommonResponse> createSinglePacket(@RequestBody SinglePacketDTO singlePacket) {
+	public ResponseEntity<CommonResponse> createSinglePacket(@RequestBody SinglePacketDTO singlePacket,
+			Authentication authentication) {
 		CommonResponse response = new CommonResponse();
 		try {
-			log.info("Single Packet is {}", singlePacket);
-			int insert = iPacketService.createSinglePacket(singlePacket);
-			if (insert > 0) {
-				response.setCode(201);
-				response.setMessage("Packet is created successfully.");
-				response.setStatus("CREATED");
+			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
+			if (userDetails != null) {
+				singlePacket.setOperatorId(userDetails.getId());
+				singlePacket.setShopId(userDetails.getShopId());
+				log.info("Single Packet is {}", singlePacket);
+				boolean isAvail = iPacketService.isAvailPacketBySKU(singlePacket.getSku());
+				if(!isAvail) {
+					int insert = iPacketService.createSinglePacket(singlePacket);
+					if (insert > 0) {
+						response.setCode(201);
+						response.setMessage("Packet is created successfully.");
+						response.setStatus("CREATED");
+						return new ResponseEntity<>(response, HttpStatus.OK);
+					}
+					response.setCode(422);
+					response.setStatus("Unprocessable");
+					response.setMessage("Not able to create packet.");
+					return new ResponseEntity<>(response, HttpStatus.OK);	
+				}else {
+					response.setCode(422);
+					response.setStatus("Unprocessable");
+					response.setMessage(singlePacket.getSku()+ "  is already available in system" );
+					return new ResponseEntity<>(response, HttpStatus.OK);
+				}
+				
 			}
+			response.setCode(401);
+			response.setMessage("User is not authorized.");
+			response.setStatus("Unauthorised");
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
 			log.error("Message is {} and exception is {}", e.getMessage(), e);
@@ -71,18 +118,72 @@ public class PacketController {
 
 	@PutMapping("/editSinglePacket/{id}")
 	public ResponseEntity<CommonResponse> editSinglePacket(@PathVariable("id") Integer id,
-			@RequestBody SinglePacketDTO singlePacket) {
+			@RequestBody SinglePacketDTO singlePacket, Authentication authentication) {
 		CommonResponse response = new CommonResponse();
-		log.info("Single Packet is {}", singlePacket);
-		return new ResponseEntity<>(response, HttpStatus.OK);
+		try {
+			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
+			if (userDetails != null) {
+				log.info("Single Packet is {}", singlePacket);
+				int updte = iPacketService.updatePktById(id, singlePacket);
+				if (updte > 0) {
+					response.setCode(200);
+					response.setMessage("Packet is updated successfully.");
+					response.setStatus("SUCCESS");
+					return new ResponseEntity<>(response, HttpStatus.OK);
+				}
+				response.setCode(422);
+				response.setStatus("Unprocessable");
+				response.setMessage("Not able to update packet.");
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}
+			response.setCode(401);
+			response.setMessage("User is not authorized.");
+			response.setStatus("Unauthorised");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (Exception e) {
+			log.error("Message is {} and exception is {}", e.getMessage(), e);
+			response.setCode(500);
+			response.setMessage("Packet is not updated.please try again later.");
+			response.setStatus("SERVER ERROR");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+
 	}
 
 	@PutMapping("/bulkUpdate/{id}")
-	public ResponseEntity<CommonResponse> bulkUpdate(@PathVariable("id") Integer id,
-			@RequestBody HashMap<String, Object> bulk) {
+	public ResponseEntity<CommonResponse> bulkUpdate(@PathVariable("id") Integer purchaseId,
+			@RequestBody HashMap<String, Object> bulk, Authentication authentication) {
 		CommonResponse response = new CommonResponse();
-		log.info("Bulk Packet is {}", bulk);
-		return new ResponseEntity<>(response, HttpStatus.OK);
+		try {
+			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
+			if (userDetails != null) {
+//			log.info("Single Packet is {}",singlePacket);
+				Double price = Double.parseDouble(((String) bulk.get("price")));
+				Double weight = Double.parseDouble(((String) bulk.get("weight")));
+//				Integer purchaseId = (Integer) bulk.get("purchaseId");
+				int updte = iPacketService.updatePktsByPriceNWeightNPurchaseId(price, weight, purchaseId);
+				if (updte > 0) {
+					response.setCode(200);
+					response.setMessage("Packet is updated successfully.");
+					response.setStatus("SUCCESS");
+					return new ResponseEntity<>(response, HttpStatus.OK);
+				}
+				response.setCode(422);
+				response.setStatus("Unprocessable");
+				response.setMessage("Not able to update packet.");
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}
+			response.setCode(401);
+			response.setMessage("User is not authorized.");
+			response.setStatus("Unauthorised");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (Exception e) {
+			log.error("Message is {} and exception is {}", e.getMessage(), e);
+			response.setCode(500);
+			response.setMessage("Packet is not updated.please try again later.");
+			response.setStatus("SERVER ERROR");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
 	}
 
 	@GetMapping("getPacketsList")
@@ -100,7 +201,8 @@ public class PacketController {
 			@RequestParam(value = "ib", required = false) Boolean inShops,
 			@RequestParam(value = "mis", required = false) String allmisc,
 			@RequestParam(value = "si", required = false) Integer salesId,
-			@RequestParam(value = "shopId", required = false) Integer shopId, Authentication authentication) {
+			@RequestParam(value = "shopId", required = false) Integer shopId, 
+			Authentication authentication) {
 
 		CommonResponse response = new CommonResponse();
 
@@ -156,5 +258,32 @@ public class PacketController {
 
 
 	}
+	
+	
+	
+	@DeleteMapping("deletePktById/{id}")
+	public ResponseEntity<CommonResponse> deletePktById(@PathVariable Integer id){
+		CommonResponse response = new CommonResponse();
+		log.info("Id is {}",id);
+		try {
+			int del = iPacketService.deletePktById(id);
+			if(del>0) {
+				response.setCode(200);
+				response.setMessage("Packet successfully deleted");
+				response.setStatus("SUCCESS");
+				
+			}else {
+				response.setCode(422);
+				response.setStatus("Unprocessable");
+				response.setMessage("Not able to delete packet.");
+			}
+			return new ResponseEntity<CommonResponse>(response, HttpStatus.OK);
+		} catch (Exception e) {
+			response.setCode(500);
+			response.setMessage("Something went Wrong. Please try again later");
+			response.setStatus("SERVER ERROR");
 
+			return new ResponseEntity<CommonResponse>(response, HttpStatus.OK);
+		}
+	}
 }

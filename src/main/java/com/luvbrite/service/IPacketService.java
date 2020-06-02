@@ -20,4 +20,6 @@ public interface IPacketService {
 
 	boolean isAvailPacketBySKU(String sku);
 
+	int deletePktById(Integer id);
+
 }

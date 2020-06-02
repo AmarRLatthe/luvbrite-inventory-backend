@@ -388,4 +388,23 @@ public class PacketRepositoryImpl implements IPacketRepository{
 		}
 				
 	}
+
+	@Transactional
+	@Override
+	public int deletePktById(Integer id) {
+		try {
+			StringBuilder qry = new StringBuilder();
+			qry.append(" DELETE ")
+				.append(" FROM ")
+				.append(" packet_inventory ")
+				.append(" WHERE ")
+				.append(" id = ? ");
+			  
+			
+			return jdbcTemplate.update(qry.toString(),id);
+		} catch (Exception e) {
+			log.error("Message is {} and Exception is {}",e.getMessage(),e);
+			return -1;
+		}
+	}
 }

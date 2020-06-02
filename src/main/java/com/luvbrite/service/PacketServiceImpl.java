@@ -98,4 +98,15 @@ public class PacketServiceImpl implements IPacketService{
 		}
 
 	}
+
+	@Override
+	public int deletePktById(Integer id) {
+		try {
+			return iPacketRepository.deletePktById(id);
+		} catch (Exception e) {
+			log.error("Message is {} and exception is {}",e.getMessage(),e);
+			return -1;
+		}
+		
+	}
 }
