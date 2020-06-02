@@ -12,7 +12,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-<<<<<<< HEAD
 
 import com.luvbrite.jdbcutils.PacketExtDTOMapper;
 import com.luvbrite.model.BarcodeSequenceDTO;
@@ -23,7 +22,6 @@ import com.luvbrite.model.SinglePacketDTO;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-=======
 
 import com.luvbrite.model.BarcodeSequenceDTO;
 import com.luvbrite.model.BulkPacketsCreation;
@@ -32,7 +30,6 @@ import com.luvbrite.model.SinglePacketDTO;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
->>>>>>> rebase before working on purchase
 import com.luvbrite.model.PacketExtDTO;
 import com.luvbrite.model.PaginatedPackets;
 import com.luvbrite.model.Pagination;
@@ -311,12 +308,7 @@ public class PacketRepositoryImpl implements IPacketRepository{
 			BarcodeSequenceDTO barcodeSequenceDTO = getBarcodeInfo();
 			long nextVal = createBulkPktsNRtrnNxtVl(barcodeSequenceDTO, packets);
 			int updateNextVal = updateBarcodeNextValueById(barcodeSequenceDTO.getId() , nextVal);
-<<<<<<< HEAD
 			
-			
-			
-=======
->>>>>>> rebase before working on purchase
 			return updateNextVal;
 		} catch (Exception e) {
 			log.error("Message is {} and exception is {}",e.getMessage(),e);
@@ -408,7 +400,7 @@ public class PacketRepositoryImpl implements IPacketRepository{
 		}
 				
 	}
-<<<<<<< HEAD
+
 
 	@Transactional
 	@Override
@@ -428,6 +420,5 @@ public class PacketRepositoryImpl implements IPacketRepository{
 			return -1;
 		}
 	}
-=======
->>>>>>> rebase before working on purchase
+
 }
