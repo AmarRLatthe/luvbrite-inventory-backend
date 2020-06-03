@@ -16,6 +16,9 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import com.luvbrite.model.CommonSalesProfitDTO;
+import com.luvbrite.model.CustomerDrillDownDTO;
+import com.luvbrite.model.CustomerStatDrillDownDTO;
+import com.luvbrite.model.CustomerStatsDTO;
 import com.luvbrite.model.DriverStatDTO;
 import com.luvbrite.model.OrderBreakDownDTO;
 import com.luvbrite.model.OrderStatDTO;
@@ -533,8 +536,8 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 			 */
 
 			StringBuilder salesProfitSubQuery = new StringBuilder();
-			salesProfitSubQuery.append(" SELECT ").append(dateQuery)
-					.append("category_id, pi.selling_price, c.category_name, CASE WHEN (p.category_id = 1 AND pur.date_added < '2016-11-30')")
+			salesProfitSubQuery.append(" SELECT ").append(dateQuery).append(
+					"category_id, pi.selling_price, c.category_name, CASE WHEN (p.category_id = 1 AND pur.date_added < '2016-11-30')")
 					.append("THEN pur.unit_price*pi.weight_in_grams ELSE pur.unit_price END AS purchase_price ")
 					.append("FROM packet_inventory pi JOIN purchase_inventory pur ON pur.id = pi.purchase_id ")
 					.append("JOIN products p ON p.id = pur.product_id JOIN categories c ON c.id=p.category_id WHERE pi.sales_id <> 0 AND pi.date_sold >= to_date('")
@@ -545,10 +548,11 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 			String currentDate = "", previousDate = "";
 			double total = 0d, purchaseTotal = 0d, sellingTotal = 0d, profit = 0d;
 			StringBuilder vQuery = new StringBuilder();
-			vQuery.append("WITH sub AS (").append(salesProfitSubQuery).append(") SELECT date_formatted, category_id, category_name, ")
+			vQuery.append("WITH sub AS (").append(salesProfitSubQuery)
+					.append(") SELECT date_formatted, category_id, category_name, ")
 					.append("SUM(selling_price) AS selling_price, SUM(purchase_price) AS purchase_price FROM sub ")
 					.append("GROUP BY date_formatted, category_id, category_name ORDER BY date_formatted ASC, category_id ASC");
-			log.info("query ::::::::::::::::: {} ", vQuery.toString()); 
+			log.info("query ::::::::::::::::: {} ", vQuery.toString());
 			List<CommonSalesProfitDTO> dtos = jdbcTemplate.query(vQuery.toString(),
 					new RowMapper<CommonSalesProfitDTO>() {
 
@@ -944,5 +948,96 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 			});
 		}
 		return dtos;
+	}
+
+	@Override
+	public List<CustomerDrillDownDTO> getCustomerDrillDownStat(String startDate, String endDate) {
+		List<CustomerDrillDownDTO> results = new ArrayList<CustomerDrillDownDTO>();
+		String cquery_where = "", GROUPBY = " GROUP BY dis.client_name, date_formatted ";
+
+		CustomerDrillDownDTO sddc = new CustomerDrillDownDTO();
+		ArrayList<CustomerStatDrillDownDTO> cstats = new ArrayList<>();
+
+		if (endDate.trim().equals("")) {
+			cquery_where = " >= to_date('" + startDate + "', 'MM/dd/YYYY')";
+		} else {
+			cquery_where = " >= to_date('" + startDate + "', 'MM/dd/YYYY') " + "AND  pi.date_sold < to_date('" + endDate
+					+ "', 'MM/dd/YYYY') + interval '1 day'";
+		}
+
+		StringBuilder vQuery = new StringBuilder();
+		vQuery.append("SELECT dis.client_name, COUNT(DISTINCT dis.id) AS count, SUM(pi.selling_price) AS amount, ")
+				.append("TO_CHAR(dis.date_finished, 'yyyy/MM/dd') AS date_formatted  FROM packet_inventory pi ")
+				.append("JOIN dispatch_sales_info dis ON dis.id = pi.sales_id WHERE pi.sales_id <> 0 AND dis.date_finished ")
+				.append(cquery_where).append(" ").append(GROUPBY).append("ORDER BY client_name, date_formatted ");
+
+		boolean firstTime = true;
+		String prevClient = "", currClient = "";
+		double totalAmount = 0d;
+		int totalCount = 0;
+		List<CustomerStatsDTO> dtos = new ArrayList<CustomerStatsDTO>();
+		log.info("Query ::::::::::::: {} ", vQuery);
+		dtos = jdbcTemplate.query(vQuery.toString(), new RowMapper<CustomerStatsDTO>() {
+			@Override
+			public CustomerStatsDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
+				CustomerStatsDTO dto = new CustomerStatsDTO();
+				dto.setAmount(rs.getDouble("amount"));
+				dto.setCount(rs.getInt("count"));
+				dto.setClientName(rs.getString("client_name"));
+				dto.setDateFormatted(rs.getString("date_formatted"));
+				return dto;
+			}
+		});
+		for (CustomerStatsDTO customerStatsDTO : dtos) {
+			currClient = customerStatsDTO.getClientName();
+			
+			if(!prevClient.equals(currClient)){
+				
+				if(!firstTime){
+					
+					sddc.setCustomer(prevClient);
+					
+					sddc.setPurchaseAmount(totalAmount);
+					totalAmount = 0d;
+					
+					sddc.setPurchaseCount(totalCount);
+					totalCount = 0;
+					
+					sddc.setCstats(cstats);
+					cstats = new ArrayList<>();
+					
+					results.add(sddc);
+					sddc = new CustomerDrillDownDTO();
+				}
+				
+				else{
+					firstTime = false;
+				}
+			}
+			
+			double amount = customerStatsDTO.getAmount();
+			int count = customerStatsDTO.getCount();
+			
+			CustomerStatDrillDownDTO cstat = new CustomerStatDrillDownDTO();
+			cstat.setAmount(amount);
+			cstat.setCount(count);
+			cstat.setDate(customerStatsDTO.getDateFormatted());
+			cstats.add(cstat);
+			
+			totalAmount+= amount;
+			totalCount+= count;
+			
+			prevClient = currClient;
+		}
+		//Add the last customer info into results
+		if(!firstTime){
+			
+			sddc.setCustomer(prevClient);
+			sddc.setPurchaseAmount(totalAmount);
+			sddc.setPurchaseCount(totalCount);
+			sddc.setCstats(cstats);
+			results.add(sddc);
+		}
+		return results;
 	}
 }

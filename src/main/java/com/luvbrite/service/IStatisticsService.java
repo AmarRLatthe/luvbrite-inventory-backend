@@ -2,6 +2,7 @@ package com.luvbrite.service;
 
 import java.util.List;
 
+import com.luvbrite.model.CustomerDrillDownDTO;
 import com.luvbrite.model.OrderBreakDownDTO;
 import com.luvbrite.model.SalesProfitDataExtDTO;
 
@@ -20,4 +21,7 @@ public interface IStatisticsService {
 			String paymentMode);
 
 	public List<SalesProfitDataExtDTO> getSalesProfitInfo(String startDate, String endDate);
+	
+	public List<CustomerDrillDownDTO> getCustomerStats(String startDate, String endDate);
+	
 }
