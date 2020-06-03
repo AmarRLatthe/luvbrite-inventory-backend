@@ -32,16 +32,16 @@ public class DispatchController {
 
 	@GetMapping("listdispatches")
 	public ResponseEntity<CommonResponse> listdispatches(
-			@RequestParam(value = "d", required = true) Integer driverId,
+			@RequestParam(value = "d", required = false) Integer driverId,
 			@RequestParam(value = "id", required = false) Integer dispatchId,
 			@RequestParam(value = "ca", required = false) Boolean cancelled,
 			@RequestParam(value = "fn", required = false) Boolean finished,
 			@RequestParam(value = "nf", required = false) Boolean notFinished,
-			@RequestParam(value = "q", required = true) String q,
+			@RequestParam(value = "q", required = false) String q,
 			@RequestParam(value = "sort", required = false) String orderBy,
 			@RequestParam(value = "mode", required = false) String mode,
 			@RequestParam(value = "sdir", required = false) String qSORTDIR,
-			@RequestParam(value = "cpage", required = true) Integer currentPage,
+			@RequestParam(value = "cpage", required = false) Integer currentPage,
 			@RequestParam(value = "deliveryRtId", required = false) Integer deliveryRtId,
 			Authentication authentication) {
 
