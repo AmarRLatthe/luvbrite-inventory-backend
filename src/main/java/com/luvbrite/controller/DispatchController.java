@@ -6,10 +6,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.gson.Gson;
 import com.luvbrite.commonresponse.CommonResponse;
 import com.luvbrite.model.DispatchUpdateDTO;
 import com.luvbrite.model.PaginatedDispatch;
@@ -65,7 +67,7 @@ public class DispatchController {
 			dispatches = dispatchServiceImpl.listDispatches(driverId, dispatchId, cancelled, finished, notFinished, q,
 					orderBy, mode, qSORTDIR, currentPage, deliveryRtId, shopId);
 
-			if (dispatches != null) {
+			if (dispatches != null ) {
 				commonResponse.setCode(200);
 				commonResponse.setData(dispatches);
 				commonResponse.setMessage("Dispatces retrieved successfully");
@@ -93,12 +95,16 @@ public class DispatchController {
 	}
 
 	@PostMapping("/updatedisptach")
-	public ResponseEntity<CommonResponse> updateDispatch(DispatchUpdateDTO dispatchUpdateDTO,
+	public ResponseEntity<CommonResponse> updateDispatch(@RequestBody DispatchUpdateDTO dispatchUpdateDTO,
 			Authentication authentication) {
 
 		CommonResponse commonResponse = new CommonResponse();
 
 		UserDetails userDetails = iUserService.getByUsername(authentication.getName());
+
+		Gson g  = new Gson();
+		g.toJson(dispatchUpdateDTO);
+		log.info("logging request coming to dispatch controller "+g.toJson(dispatchUpdateDTO));
 
 		if (userDetails == null) {
 			commonResponse.setCode(401);
@@ -119,7 +125,8 @@ public class DispatchController {
 
 		try {
 
-			if (dispatchUpdateDTO.getMode().equals("basic")) {
+			if (dispatchUpdateDTO.getMode().equalsIgnoreCase("basic")) {
+				System.out.print("Hello world inside basic");
 				return dispatchServiceImpl.updatePacketInfo(dispatchUpdateDTO);
 			} else if (dispatchUpdateDTO.getMode().equals("assigndrv")) {
 				return  dispatchServiceImpl.assignDriver(dispatchUpdateDTO);

@@ -203,6 +203,8 @@ public class DispatchServiceImpl implements IDispatchService {
 			.append(qOFFSET);
 
 			System.out.println("ListDispatch -- >"+queryBuffer.toString());
+			System.out.println("Hiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii");
+
 			dispatches = jdbcTemplate.query(queryBuffer.toString(), new DispatchSalesRowMapper());
 
 		}
@@ -307,8 +309,10 @@ public class DispatchServiceImpl implements IDispatchService {
 		}
 
 		StringBuffer updateOrderCancelReason = new StringBuffer();
-		updateOrderCancelReason.append("UPDATE dispatch_sales_info ").append("SET").append("cancellation_reason=?")
-		.append("WHERE id=?");
+		updateOrderCancelReason.append("UPDATE dispatch_sales_info ")
+		.append("SET ")
+		.append(" cancellation_reason=? ")
+		.append(" WHERE id=?");
 
 		int updateStatus = jdbcTemplate.update(updateOrderCancelReason.toString(),
 				new Object[] { dispatchUpdateDTO.getReason(), dispatchUpdateDTO.getDispatchId() });
