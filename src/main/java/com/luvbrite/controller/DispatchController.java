@@ -22,8 +22,7 @@ import com.luvbrite.service.IUserService;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@RestController
-@RequestMapping("/api/dispatch/")
+@RestController("/api/dispatch")
 public class DispatchController {
 
 	@Autowired
@@ -32,9 +31,8 @@ public class DispatchController {
 	@Autowired
 	private IUserService iUserService;
 
-	@GetMapping("listdispatches")
-	public ResponseEntity<CommonResponse> listdispatches(
-			@RequestParam(value = "d", required = false) Integer driverId,
+	@GetMapping("/listdispatches")
+	public ResponseEntity<CommonResponse> listdispatches(@RequestParam(value = "d", required = true) Integer driverId,
 			@RequestParam(value = "id", required = false) Integer dispatchId,
 			@RequestParam(value = "ca", required = false) Boolean cancelled,
 			@RequestParam(value = "fn", required = false) Boolean finished,

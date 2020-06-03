@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.luvbrite.jdbcutils.PacketExtDTOMapper;
 import com.luvbrite.model.BarcodeSequenceDTO;
 import com.luvbrite.model.BulkPacketsCreation;
+import com.luvbrite.model.ChangeTrackerDTO;
 import com.luvbrite.model.SinglePacketDTO;
 
 import lombok.NoArgsConstructor;
@@ -35,7 +36,9 @@ public class PacketRepositoryImpl implements IPacketRepository{
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
-
+	
+	
+	
 	private Pagination pg;
 	private int itemsPerPage = 15;
 
@@ -297,6 +300,9 @@ public class PacketRepositoryImpl implements IPacketRepository{
 			BarcodeSequenceDTO barcodeSequenceDTO = getBarcodeInfo();
 			long nextVal = createBulkPktsNRtrnNxtVl(barcodeSequenceDTO, packets);
 			int updateNextVal = updateBarcodeNextValueById(barcodeSequenceDTO.getId() , nextVal);
+			
+			
+			
 			return updateNextVal;
 		} catch (Exception e) {
 			log.error("Message is {} and exception is {}",e.getMessage(),e);

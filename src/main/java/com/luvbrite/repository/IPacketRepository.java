@@ -18,6 +18,7 @@ public interface IPacketRepository {
 
 	boolean isAvailPacketBySKU(String sku);
 
+	public int deletePktById(Integer id);
 
 	public PaginatedPackets listPackets(Integer purchaseId, Integer salesId, Integer shopId, Boolean notSold,
 			Boolean sold, Boolean allPackets, String orderBy, String sortDirection, String packetCode, String allmisc,

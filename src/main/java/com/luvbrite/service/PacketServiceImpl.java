@@ -2,11 +2,13 @@ package com.luvbrite.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.luvbrite.model.PaginatedPackets;
-import com.luvbrite.model.PacketExtDTO;
 import com.luvbrite.model.BulkPacketsCreation;
+import com.luvbrite.model.ChangeTrackerDTO;
+import com.luvbrite.model.PaginatedPackets;
 import com.luvbrite.model.SinglePacketDTO;
+import com.luvbrite.model.tookan.CreateTaskResponse_Data;
 import com.luvbrite.repository.IPacketRepository;
 
 import lombok.NoArgsConstructor;
@@ -20,7 +22,9 @@ public class PacketServiceImpl implements IPacketService{
 
 	@Autowired
 	private IPacketRepository iPacketRepository;
-
+	@Autowired
+	private Tracker tracker; 
+	
 	@Override
 	public int createSinglePacket(SinglePacketDTO singlePacket) {
 		try {
@@ -68,9 +72,17 @@ public class PacketServiceImpl implements IPacketService{
 
 	}
 
+	@Transactional
 	@Override
 	public int createBulkPacket(BulkPacketsCreation packets) {
 		try {
+//			int createBulk = iPacketRepository.createBulkPackets(packets);
+//			if(createBulk>0) {
+//				ChangeTrackerDTO ct = new ChangeTrackerDTO();
+//				ct.setShopId(packets.getShopId());
+//				ct.setOperatorId(packets.getOperatorId());
+//				ct.setItemId(packets.get);
+//			}
 			return iPacketRepository.createBulkPackets(packets);
 		} catch (Exception e) {
 			log.error("Message is {} and exception is {}",e.getMessage(),e);

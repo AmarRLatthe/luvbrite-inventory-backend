@@ -16,6 +16,7 @@ public class SinglePacketDTO implements Serializable{/**
 	 */
 	private static final long serialVersionUID = 4480918645522548007L;
 
+	private String productName;
 	private String sku;
 	private Double weight;
 	private Double price;
