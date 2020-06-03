@@ -19,7 +19,7 @@ public class TrackerRepository {
 
 		StringBuffer trackerUpdateQry = new StringBuffer();
 		trackerUpdateQry.append(
-				"INSERT INTO change_tracker(operator_id, item_id, action_type, action_details, action_on,shop_id) VALUES (?, ?, ?, ?, ?);");
+				"INSERT INTO change_tracker(operator_id, item_id, action_type, action_details, action_on,shop_id) VALUES (?, ?, ?, ?, ?,?);");
 
 		boolean status = false;
 		int updateStatus = 0;
