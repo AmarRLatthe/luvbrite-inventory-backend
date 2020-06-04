@@ -53,7 +53,7 @@ public class DispatchServiceImpl implements IDispatchService {
 			Boolean finished, Boolean notFinished, String q, String orderBy, String mode, String qSORTDIR,
 			Integer currentPage, Integer deliveryRtId, Integer shopId) throws Exception {
 
-		log.error("Inside list dispatches");
+
 
 		driverId = (driverId == null) ? 0 : driverId;
 		dispatchId = (dispatchId == null) ? 0 : dispatchId;
@@ -67,6 +67,9 @@ public class DispatchServiceImpl implements IDispatchService {
 		currentPage = (currentPage == null) ? 0 : currentPage;
 		deliveryRtId = (deliveryRtId == null) ? 0 : deliveryRtId;
 		shopId = (shopId == null) ? 0 : shopId;
+
+
+
 
 		String qWHERE = "", qOFFSET = "", qLIMIT = " LIMIT " + itemsPerPage + " ", qORDERBY = " ORDER by ds.id ";
 
@@ -146,9 +149,10 @@ public class DispatchServiceImpl implements IDispatchService {
 
 		String dispatchIdFilter = "", deliveryRouteFilter = "LEFT JOIN disp_delv_rel ddr ON ddr.dispatch_id = ds.id ";
 		if (dispatchId != 0) {
+
 			dispatchIdFilter = "WHERE ds.id = " + dispatchId + " ";
 		} else if (mode.equals("rd")) {
-
+			log.info("Inside rd mode $$$ "+mode.equals("rd"));
 			qORDERBY = " ORDER by ds.id DESC";
 
 			if (qWHERE.equals("")) {
@@ -163,12 +167,14 @@ public class DispatchServiceImpl implements IDispatchService {
 				qWHERE += " AND " + qString;
 			}
 		} else if (mode.equals("rd-disp")) {
+			log.info("Inside rd rd-disp $$$ "+mode.equals("rd-disp"));
 			// int deliveryRtId = routine.getInteger(req.getParameter("dr_id"));
 			deliveryRouteFilter = "JOIN disp_delv_rel ddr ON ddr.dispatch_id = ds.id AND ddr.dr_id = " + deliveryRtId
 					+ " ";
 			qORDERBY = " ORDER by ddr.indx ASC";
 
 		} else {
+			log.info("Inside else");
 			String countString = "SELECT COUNT(*) " + "FROM dispatch_sales_info ds "
 					+ "LEFT JOIN online_order_info ooi ON ooi.dispatch_sales_id = ds.id "
 					+ (driverId != 0 ? driverIdIdFilter : " ") + qWHERE;
@@ -182,32 +188,33 @@ public class DispatchServiceImpl implements IDispatchService {
 			if (offset > 0) {
 				qOFFSET = " OFFSET " + offset;
 			}
-
-			String tookan_job_details = "LEFT JOIN job_details jobd ON jobd.sales_id = ooi.dispatch_sales_id ";
-
-			StringBuffer queryBuffer = new StringBuffer();
-
-			queryBuffer.append("SELECT jobd.job_status,jobd.tookan_driver_name,jobd.distance_travelled, ds.id as dispatch_sales_id , ds.*, ooi.*, ")
-			.append("TO_CHAR(ds.date_called, 'MM/dd/yyyy HH:MI AM') AS formatted_date_called, ")
-			.append("TO_CHAR(ds.date_arrived, 'MM/dd/yyyy HH:MI AM') AS formatted_date_arrived, ")
-			.append("TO_CHAR(ds.date_finished, 'MM/dd/yyyy HH:MI AM') AS formatted_date_finished, ")
-			.append("d.driver_name, ").append("COALESCE(ddr.dr_id,0) AS dr_id ")
-			.append("FROM dispatch_sales_info ds ")
-			.append("LEFT JOIN online_order_info ooi ON ooi.dispatch_sales_id = ds.id ")
-			.append(tookan_job_details).append(deliveryRouteFilter).append(driverIdIdFilter)
-			.append(dispatchIdFilter)
-			.append(qWHERE)
-			.append("AND ooi.shop_id = " + shopId + " ")
-			.append(qORDERBY)
-			.append(qLIMIT)
-			.append(qOFFSET);
-
-			System.out.println("ListDispatch -- >"+queryBuffer.toString());
-			System.out.println("Hiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii");
-
-			dispatches = jdbcTemplate.query(queryBuffer.toString(), new DispatchSalesRowMapper());
-
 		}
+
+		String tookan_job_details = "LEFT JOIN job_details jobd ON jobd.sales_id = ooi.dispatch_sales_id ";
+
+		StringBuffer queryBuffer = new StringBuffer();
+
+		queryBuffer.append("SELECT jobd.job_status,jobd.tookan_driver_name,jobd.distance_travelled, ds.id as dispatch_sales_id , ds.*, ooi.*, ")
+		.append("TO_CHAR(ds.date_called, 'MM/dd/yyyy HH:MI AM') AS formatted_date_called, ")
+		.append("TO_CHAR(ds.date_arrived, 'MM/dd/yyyy HH:MI AM') AS formatted_date_arrived, ")
+		.append("TO_CHAR(ds.date_finished, 'MM/dd/yyyy HH:MI AM') AS formatted_date_finished, ")
+		.append("d.driver_name, ").append("COALESCE(ddr.dr_id,0) AS dr_id ")
+		.append("FROM dispatch_sales_info ds ")
+		.append("LEFT JOIN online_order_info ooi ON ooi.dispatch_sales_id = ds.id ")
+		.append(tookan_job_details).append(deliveryRouteFilter).append(driverIdIdFilter)
+		.append(dispatchIdFilter)
+		.append(qWHERE)
+		.append("AND ooi.shop_id = " + shopId + " ")
+		.append(qORDERBY)
+		.append(qLIMIT)
+		.append(qOFFSET);
+
+		System.out.println("ListDispatch -- >"+queryBuffer.toString());
+		System.out.println("Hiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii");
+
+		dispatches = jdbcTemplate.query(queryBuffer.toString(), new DispatchSalesRowMapper());
+
+
 		return new PaginatedDispatch(pg, dispatches);
 
 	}
