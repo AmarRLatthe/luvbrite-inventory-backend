@@ -22,7 +22,8 @@ import com.luvbrite.service.IUserService;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@RestController("/api/dispatch")
+@RestController
+@RequestMapping("/api/dispatch")
 public class DispatchController {
 
 	/*Dispatch Controller Api Issue*/
