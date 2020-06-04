@@ -12,8 +12,8 @@ import org.springframework.stereotype.Service;
 
 import com.google.gson.Gson;
 import com.luvbrite.commonresponse.CommonResponse;
-import com.luvbrite.controller.ChangeTrackerDTO;
 import com.luvbrite.jdbcutils.DispatchSalesRowMapper;
+import com.luvbrite.model.ChangeTrackerDTO;
 import com.luvbrite.model.DispatchSalesExt;
 import com.luvbrite.model.DispatchUpdateDTO;
 import com.luvbrite.model.MiscPacketsDTO;
