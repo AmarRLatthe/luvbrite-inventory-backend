@@ -1,4 +1,4 @@
-package com.luvbrite.controller;
+package com.luvbrite.model;
 
 public class ChangeTrackerDTO {
 

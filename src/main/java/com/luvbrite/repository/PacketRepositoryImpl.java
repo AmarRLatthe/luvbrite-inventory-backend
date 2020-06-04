@@ -2,24 +2,51 @@ package com.luvbrite.repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.luvbrite.jdbcutils.PacketExtDTOMapper;
+import com.luvbrite.model.BarcodeSequenceDTO;
+import com.luvbrite.model.BulkPacketsCreation;
+import com.luvbrite.model.ChangeTrackerDTO;
+import com.luvbrite.model.SinglePacketDTO;
+
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+
+import com.luvbrite.model.BarcodeSequenceDTO;
+import com.luvbrite.model.BulkPacketsCreation;
+import com.luvbrite.model.SinglePacketDTO;
+
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import com.luvbrite.model.PacketExtDTO;
 import com.luvbrite.model.PaginatedPackets;
 import com.luvbrite.model.Pagination;
 import com.luvbrite.model.PaginationLogic;
 
 
+
 @Repository
-public class PacketRepositoryImpl implements IPacketRepository {
+@NoArgsConstructor
+@Slf4j
+public class PacketRepositoryImpl implements IPacketRepository{
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
-
+	
+	
+	
 	private Pagination pg;
 	private int itemsPerPage = 15;
 
@@ -217,6 +244,181 @@ public class PacketRepositoryImpl implements IPacketRepository {
 		}
 
 		return new PaginatedPackets(pg, packetList);
+	}
+
+//	@Autowired
+//	private MasterInventoryService inventoryService;
+	
+	@Transactional
+	@Override
+	public int createSinglePkt(SinglePacketDTO singlePacket) {
+		try {
+			StringBuilder qry = new StringBuilder();
+			qry.append(" INSERT INTO  ")
+				.append(" packet_inventory ( purchase_id, packet_code, weight_in_grams, marked_price ,shop_id)  ")
+				.append(" VALUES (?,?,?,?,?) RETURNING id"); 
+			 Integer pktId =  jdbcTemplate.queryForObject(qry.toString(), new Object[] {
+						 singlePacket.getPurchaseId(),
+						 singlePacket.getSku(),
+						 singlePacket.getWeight(),
+						 singlePacket.getPrice(),
+						 singlePacket.getShopId()
+			 			},
+					 Integer.class);
+			 if(pktId!=null && pktId>0) {
+//				update =updateTrackerDetails(singlePacket.getOperatorId(),pktId,"insert","packet","New packet with id:" + pktId + ": created");
+//				if(update>0) {
+//					int prodId = getProdIdByPurchaseId(singlePacket.getPurchaseId());
+//				}
+//				 inventoryService.
+			 }
+			return pktId;
+		} catch (Exception e) {
+			log.error("Message is {} and Exception exception is {}",e.getMessage(),e);
+			return -1;
+		}
+
+	}
+
+	@Transactional
+	@Override
+	public int updatePktById(Integer id, SinglePacketDTO singlePacket) {
+		try {
+			StringBuilder qry = new StringBuilder();
+			qry.append(" UPDATE packet_inventory  ")
+				.append(" SET ")
+				.append(" packet_code=?, ")
+				.append(" weight_in_grams=?, ")
+				.append(" marked_price=?  ")
+				.append(" WHERE ")
+				.append("  id=? ");
+			
+			return jdbcTemplate.update(qry.toString(),singlePacket.getSku(),singlePacket.getWeight(),singlePacket.getPrice(),id);
+		} catch (Exception e) {
+			log.error("Message is {} and Exception is {}",e.getMessage(),e);
+			return -1;
+		}
+		
+	}
+
+	@Transactional
+	@Override
+	public int createBulkPackets(BulkPacketsCreation packets) {
+		try {
+			BarcodeSequenceDTO barcodeSequenceDTO = getBarcodeInfo();
+			long nextVal = createBulkPktsNRtrnNxtVl(barcodeSequenceDTO, packets);
+			int updateNextVal = updateBarcodeNextValueById(barcodeSequenceDTO.getId() , nextVal);
+			
+			return updateNextVal;
+		} catch (Exception e) {
+			log.error("Message is {} and exception is {}",e.getMessage(),e);
+			return -1;
+		}
+
+	}
+
+	private int updateBarcodeNextValueById(Integer id, long nextVal) {
+		
+		return jdbcTemplate.update("UPDATE barcode_sequence SET next_val = ? WHERE id = ?",nextVal,id);
+	}
+
+	private long createBulkPktsNRtrnNxtVl(BarcodeSequenceDTO barcodeSequenceDTO, BulkPacketsCreation packets) {
+		StringBuilder createPktQry = new StringBuilder();
+		createPktQry.append(" INSERT INTO ")
+					.append(" packet_inventory ")
+					.append(" (purchase_id, packet_code, weight_in_grams, marked_price, shop_id) ")
+					.append(" VALUES ")
+					.append(" (?,?,?,?, ?)  ");
+		   jdbcTemplate.batchUpdate(createPktQry.toString(),
+				 	new BatchPreparedStatementSetter() {
+						Long skuNum = barcodeSequenceDTO.getNextVal();
+						String prefix = barcodeSequenceDTO.getPrefix();
+						@Override
+						public void setValues(PreparedStatement ps, int i) throws SQLException {
+							ps.setInt(1, packets.getPurchaseId());
+							ps.setString(2, prefix+skuNum.toString());
+							ps.setDouble(3,packets.getWeight());
+							ps.setDouble(4,packets.getPrice());
+							ps.setInt(5, packets.getShopId());
+							skuNum++;
+							barcodeSequenceDTO.setNextVal(skuNum);
+						}
+						
+						@Override
+						public int getBatchSize() {
+							return packets.getTotalPackets();
+						}
+					});
+		 
+		return barcodeSequenceDTO.getNextVal();
+	}
+
+	private BarcodeSequenceDTO getBarcodeInfo() {
+		return  jdbcTemplate.queryForObject("SELECT barcode_prefix, id, next_val FROM barcode_sequence WHERE avery_template = ?", new Object[] {"dymo30346"},new RowMapper<BarcodeSequenceDTO>() {
+
+			@Override
+			public BarcodeSequenceDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
+				BarcodeSequenceDTO  dto = new BarcodeSequenceDTO();
+				dto.setId(rs.getInt("id"));
+				dto.setNextVal(rs.getLong("next_val"));
+				dto.setPrefix(rs.getString("barcode_prefix"));
+				
+				return dto;
+			}
+		});
+	}
+
+	@Override
+	public int updatePktsByPriceNWeightNPurchaseId(Double price, Double weight, Integer purchaseId) {
+		try {
+			StringBuilder qry = new StringBuilder();
+				qry.append(" UPDATE packet_inventory ")
+					.append(" SET marked_price=? ")
+					.append(" WHERE purchase_id=? ")
+					.append(" AND weight_in_grams=? ")
+					.append(" AND sales_id = 0 ");
+				
+			return jdbcTemplate.update(qry.toString(), price,purchaseId,weight);
+		} catch (Exception e) {
+			log.error("Message is {} and Exception is {}",e.getMessage(),e);
+			return -1;
+		}
+
+	}
+
+	@Override
+	public boolean isAvailPacketBySKU(String sku) {
+		try {
+			int count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM packet_inventory WHERE packet_code= ?",Integer.class,sku); 
+			if(count>0) {
+				return true;
+			}
+			return false;
+		} catch (Exception e) {
+			log.error("Message is {} and Exception is {}",e.getMessage(),e);
+			return false;
+		}
+				
+	}
+
+
+	@Transactional
+	@Override
+	public int deletePktById(Integer id) {
+		try {
+			StringBuilder qry = new StringBuilder();
+			qry.append(" DELETE ")
+				.append(" FROM ")
+				.append(" packet_inventory ")
+				.append(" WHERE ")
+				.append(" id = ? ");
+			  
+			
+			return jdbcTemplate.update(qry.toString(),id);
+		} catch (Exception e) {
+			log.error("Message is {} and Exception is {}",e.getMessage(),e);
+			return -1;
+		}
 	}
 
 }
