@@ -152,11 +152,11 @@ public class DispatchController {
 			} else if (dispatchUpdateDTO.getMode().equals("splitupdate")) {
 				return  dispatchServiceImpl.splitUpdate(dispatchUpdateDTO,shopId,operatorId);
 			} else if (dispatchUpdateDTO.getMode().equals("recal_dist")) {
-				//	commonResponse = dispatchServiceImpl.recalculateDistance(dispatchUpdateDTO);
+				return dispatchServiceImpl.recalculateDistance(dispatchUpdateDTO);
 			} else if (dispatchUpdateDTO.getMode().equals("closesales")) {
-				//	commonResponse = dispatchServiceImpl.closeTheseSales(dispatchUpdateDTO);
+				return  dispatchServiceImpl.closeTheseSales(dispatchUpdateDTO,shopId,operatorId);
 			} else if (dispatchUpdateDTO.getMode().equals("reopensales")) {
-				//	return  dispatchServiceImpl.reopenTheseSales(dispatchUpdateDTO);
+				return  dispatchServiceImpl.reopenTheseSales(dispatchUpdateDTO,shopId,operatorId);
 			} else if (dispatchUpdateDTO.getMode().equals("reset")) {
 				return  dispatchServiceImpl.resetSale(dispatchUpdateDTO,shopId,operatorId);
 			}
