@@ -248,4 +248,69 @@ public class DispatchSalesInfoRepositoryImpl implements IDispatchSalesInfoReposi
 	}
 
 
+
+	@Override
+	public	boolean updateStatusToClose(String sids,int shopId) {
+
+		String saleIds = sids;
+
+		//		if ((saleIds == null) || (saleIds.split(",").length < 1)) {
+		//			log.info("Invalid SalesIds");
+		//			//message = "Invalid Sale ids";
+		//			return false;
+		//		}
+
+		StringBuffer closeSalesQuery =  new StringBuffer();
+
+		closeSalesQuery.append("UPDATE dispatch_sales_info ")
+		.append("SET status = 'locked' ")
+		.append("WHERE id IN (" + saleIds + ");").
+		append("AND shop_id = ?");
+
+
+		int  rowsUpdated = jdbcTemplate.update(closeSalesQuery.toString(), new Object[] {shopId});
+
+
+		//System.out.println("Update Dispatch - dispatch_sales_info update. Q - " + pst);
+		if (rowsUpdated == 0) {
+			//message = "dispatch_sales_info - status update failed";
+			log.error("dispatch_sales_info - status update failed. Q - ");
+			return false;
+		}
+
+
+		return true;
+
+	}
+
+
+
+	@Override
+	public boolean updateStatusToOpen(String sids, int shopId) {
+
+		String saleIds = sids;
+
+		StringBuffer updateStatusToOpenQuery =  new StringBuffer();
+
+		updateStatusToOpenQuery.append("UPDATE dispatch_sales_info ")
+		.append("SET status = 'open' ")
+		.append("WHERE id IN (" + saleIds + ");")
+		.append("AND ")
+		.append("shop_id = ?");
+
+
+		int rowsUpdated = 	jdbcTemplate.update(updateStatusToOpenQuery.toString(), new Object[] {shopId});
+
+		if(rowsUpdated==0) {
+			log.error("dispatch_sales_info - status update failed");
+			return false;
+		}
+
+		return true;
+	}
+
+
+
+
+
 }

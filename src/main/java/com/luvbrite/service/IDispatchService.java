@@ -34,10 +34,11 @@ public interface IDispatchService {
 
 	public  ResponseEntity<CommonResponse> recalculateDistance(DispatchUpdateDTO dispatchUpdateDTO) throws Exception;
 
-	public  ResponseEntity<CommonResponse> closeTheseSales(DispatchUpdateDTO dispatchUpdateDTO) throws Exception;
-
-	public  ResponseEntity<CommonResponse> reopenTheseSales(DispatchUpdateDTO dispatchUpdateDTO) throws Exception;
 
 	public ResponseEntity<CommonResponse> resetSale(DispatchUpdateDTO dispatchUpdateDTO,int shopId,int operatorId) throws Exception;
+
+	public ResponseEntity<CommonResponse> reopenTheseSales(DispatchUpdateDTO dispatchUpdateDTO,int shopId,int operatorId) throws Exception;
+
+	public ResponseEntity<CommonResponse> closeTheseSales(DispatchUpdateDTO dispatchUpdateDTO,int shopId,int operatorId) throws Exception;
 
 }

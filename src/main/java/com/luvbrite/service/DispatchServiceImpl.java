@@ -732,22 +732,119 @@ public class DispatchServiceImpl implements IDispatchService {
 		return new ResponseEntity<CommonResponse>(response,HttpStatus.ACCEPTED);
 	}
 
+	/*
+	 * @Override public ResponseEntity<CommonResponse>
+	 * recalculateDistance(DispatchUpdateDTO dispatchUpdateDTO,int shopId,int
+	 * operatorId) throws Exception {
+	 *
+	 *
+	 * }
+	 */
 	@Override
-	public ResponseEntity<CommonResponse> recalculateDistance(DispatchUpdateDTO dispatchUpdateDTO) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+	public ResponseEntity<CommonResponse> closeTheseSales(DispatchUpdateDTO dispatchUpdateDTO,int shopId,int operatorId) throws Exception {
+
+		CommonResponse response = new CommonResponse();
+
+
+		String saleIds = dispatchUpdateDTO.getSaleIds();
+
+		if ((saleIds == null) || (saleIds.split(",").length < 1)) {
+
+			response.setCode(400);
+			response.setData(false);
+			response.setMessage("Invalid Sales Ids");
+			response.setStatus("FAILED");
+			return new ResponseEntity<CommonResponse>(response,HttpStatus.ACCEPTED);
+		}
+
+
+		if(!dispatchSalesInfoRepoImpl.updateStatusToClose(saleIds, shopId)) {
+			response.setMessage("dispatch_sales_info - status update failed to closed");
+			response.setCode(500);
+			response.setData(false);
+			response.setStatus("FAILED");
+
+			return new ResponseEntity<CommonResponse>(response,HttpStatus.ACCEPTED);
+
+		}
+		//System.out.println("Update Dispatch - dispatch_sales_info update. Q - " + pst);
+
+
+		String[] saleIdArray = saleIds.split(",");
+		for (String saleId : saleIdArray) {
+			ChangeTrackerDTO ct = new ChangeTrackerDTO();
+			ct.setActionDetails("Sales Status locked");
+			ct.setActionType("update");
+			ct.setActionOn("dispatch");
+			ct.setItemId(Integer.parseInt(saleId.trim()));
+			ct.setOperatorId(operatorId);
+
+			tracker.track(ct);
+		}
+
+
+		response.setCode(200);
+		response.setData(true);
+		response.setMessage("status set to locked");
+		response.setStatus("SUCCESS");
+
+		return new ResponseEntity<CommonResponse>(response,HttpStatus.ACCEPTED);
+
 	}
 
-	@Override
-	public ResponseEntity<CommonResponse> closeTheseSales(DispatchUpdateDTO dispatchUpdateDTO) throws Exception {
-
-		return null;
-	}
 
 	@Override
-	public ResponseEntity<CommonResponse> reopenTheseSales(DispatchUpdateDTO dispatchUpdateDTO) throws Exception {
-		return null;
+	public ResponseEntity<CommonResponse> reopenTheseSales(DispatchUpdateDTO dispatchUpdateDTO,int shopId,int operatorId) throws Exception {
+
+		String saleIds = dispatchUpdateDTO.getSaleIds();
+
+		CommonResponse response =  new CommonResponse();
+
+		if ((saleIds == null) || (saleIds.split(",").length < 1)) {
+			log.error("Invalid Sale ids");
+			response.setCode(400);
+			response.setData(false);
+			response.setMessage("Invalid Sale ids");
+			response.setStatus("FAILED");
+
+			return new ResponseEntity<CommonResponse>(response,HttpStatus.ACCEPTED);
+		}
+
+		if(!dispatchSalesInfoRepoImpl.updateStatusToOpen(saleIds, shopId)) {
+			log.error("Could not update salesIDs to open");
+			response.setCode(500);
+			response.setData(false);
+			response.setMessage("dispatch_sales_info - status update failed to open");
+			response.setStatus("FAILED");
+
+			return new ResponseEntity<CommonResponse>(response,HttpStatus.ACCEPTED);
+
+		}
+
+
+		String[] saleIdArray = saleIds.split(",");
+		for (String saleId : saleIdArray) {
+			ChangeTrackerDTO ct = new ChangeTrackerDTO();
+			ct.setActionDetails("Sales Status Re-opened");
+			ct.setActionType("update");
+			ct.setActionOn("dispatch");
+			ct.setItemId(Integer.parseInt(saleId.trim()));
+			ct.setOperatorId(operatorId);
+
+			tracker.track(ct);
+		}
+
+
+		response.setCode(200);
+		response.setData(true);
+		response.setMessage("status set to opened");
+		response.setStatus("SUCCESS");
+
+		return new ResponseEntity<CommonResponse>(response,HttpStatus.ACCEPTED);
 	}
+
+
+
 
 	@Override
 	public ResponseEntity<CommonResponse> resetSale(DispatchUpdateDTO dispatchUpdateDTO,int shopId,int operatorId) throws Exception {
@@ -785,6 +882,14 @@ public class DispatchServiceImpl implements IDispatchService {
 
 		return new ResponseEntity<CommonResponse>(response,HttpStatus.ACCEPTED);
 	}
+
+	@Override
+	public ResponseEntity<CommonResponse> recalculateDistance(DispatchUpdateDTO dispatchUpdateDTO) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
 
 }
 

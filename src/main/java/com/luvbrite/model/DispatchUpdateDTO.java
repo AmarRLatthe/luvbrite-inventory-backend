@@ -25,6 +25,11 @@ public class DispatchUpdateDTO {
 	private double tip;
 	private double rushFeeApplied;
 
+
+
+
+
+
 	public int getOpsId() {
 		return opsId;
 	}
