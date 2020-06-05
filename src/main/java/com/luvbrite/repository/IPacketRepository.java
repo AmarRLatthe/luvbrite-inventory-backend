@@ -1,9 +1,7 @@
 package com.luvbrite.repository;
 
-import com.luvbrite.model.PaginatedPackets;
-
-
 import com.luvbrite.model.BulkPacketsCreation;
+import com.luvbrite.model.PaginatedPackets;
 import com.luvbrite.model.SinglePacketDTO;
 
 public interface IPacketRepository {
@@ -23,4 +21,13 @@ public interface IPacketRepository {
 	public PaginatedPackets listPackets(Integer purchaseId, Integer salesId, Integer shopId, Boolean notSold,
 			Boolean sold, Boolean allPackets, String orderBy, String sortDirection, String packetCode, String allmisc,
 			Integer currentPage) throws Exception;
+
+
+
+	public int updateSaleDateNSalesIdForPacketCode(String packetCode,String saleDate,int saleId,int shopId);
+
+	public int updateAmountNSaleDateNSaleIdForPacketCode(double amount ,String packetCode,String saleDate,int saleId,int shopId);
+
+
+
 }

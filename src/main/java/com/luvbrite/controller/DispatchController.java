@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.google.gson.Gson;
 import com.luvbrite.commonresponse.CommonResponse;
 import com.luvbrite.model.DispatchUpdateDTO;
 import com.luvbrite.model.PaginatedDispatch;
