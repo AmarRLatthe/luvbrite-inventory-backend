@@ -1,7 +1,13 @@
 package com.luvbrite.model;
 
-public class DispatchUpdateDTO {
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
+@Data
+public class DispatchUpdateDTO {
 
 	String dateArrived;
 	private String mode;
@@ -24,6 +30,7 @@ public class DispatchUpdateDTO {
 	private double discount;
 	private double tip;
 	private double rushFeeApplied;
+	private String sids;
 
 
 
@@ -181,38 +188,6 @@ public class DispatchUpdateDTO {
 	private String cancelled;
 	private String opsid;
 
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
-
-	public String getReason() {
-		return reason;
-	}
-
-	public void setReason(String reason) {
-		this.reason = reason;
-	}
-
-	public String getCancelled() {
-		return cancelled;
-	}
-
-	public void setCancelled(String cancelled) {
-		this.cancelled = cancelled;
-	}
-
-	public String getOpsid() {
-		return opsid;
-	}
-
-	public void setOpsid(String opsid) {
-		this.opsid = opsid;
-	}
-
 	public String getMode() {
 		this.mode = this.mode == null ? "basic" : this.mode;
 		return mode;
@@ -221,30 +196,4 @@ public class DispatchUpdateDTO {
 	public void setMode(String mode) {
 		this.mode = mode;
 	}
-
-	public int getDispatchId() {
-		return dispatchId;
-	}
-
-	public void setDispatchId(int dispatchId) {
-		this.dispatchId = dispatchId;
-	}
-
-
-	public String getDateArrived() {
-		return dateArrived;
-	}
-
-	public void setDateArrived(String dateArrived) {
-		this.dateArrived = dateArrived;
-	}
-	public String getMis() {
-		return mis;
-	}
-
-	public void setMis(String mis) {
-		this.mis = mis;
-	}
-
-
 }

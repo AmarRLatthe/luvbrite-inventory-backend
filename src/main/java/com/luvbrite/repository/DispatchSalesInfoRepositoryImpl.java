@@ -264,7 +264,7 @@ public class DispatchSalesInfoRepositoryImpl implements IDispatchSalesInfoReposi
 
 		closeSalesQuery.append("UPDATE dispatch_sales_info ")
 		.append("SET status = 'locked' ")
-		.append("WHERE id IN (" + saleIds + ");").
+		.append("WHERE id IN (" + saleIds + ")").
 		append("AND shop_id = ?");
 
 
@@ -294,7 +294,7 @@ public class DispatchSalesInfoRepositoryImpl implements IDispatchSalesInfoReposi
 
 		updateStatusToOpenQuery.append("UPDATE dispatch_sales_info ")
 		.append("SET status = 'open' ")
-		.append("WHERE id IN (" + saleIds + ");")
+		.append("WHERE id IN (" + saleIds + ")")
 		.append("AND ")
 		.append("shop_id = ?");
 
