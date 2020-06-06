@@ -26,9 +26,9 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/api/dispatch")
 public class DispatchController {
 
-	/*Dispatch Controller Api Issue*/
+	/* Dispatch Controller Api Issue */
 	@Autowired
-	private	IDispatchService dispatchServiceImpl;
+	private IDispatchService dispatchServiceImpl;
 
 	@Autowired
 	private IUserService iUserService;
@@ -47,16 +47,13 @@ public class DispatchController {
 			@RequestParam(value = "deliveryRtId", required = false) Integer deliveryRtId,
 			Authentication authentication) {
 
-
-
-
 		CommonResponse commonResponse = new CommonResponse();
 
 		UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 
 		if (userDetails == null) {
 			commonResponse.setCode(401);
-			//commonResponse.setData(null);
+			// commonResponse.setData(null);
 			commonResponse.setMessage("Please login to access dispatches");
 			commonResponse.setStatus("FAILED");
 			return new ResponseEntity<CommonResponse>(commonResponse, HttpStatus.OK);
@@ -70,7 +67,7 @@ public class DispatchController {
 			dispatches = dispatchServiceImpl.listDispatches(driverId, dispatchId, cancelled, finished, notFinished, q,
 					orderBy, mode, qSORTDIR, currentPage, deliveryRtId, shopId);
 
-			if (dispatches != null ) {
+			if (dispatches != null) {
 				commonResponse.setCode(200);
 				commonResponse.setData(dispatches);
 				commonResponse.setMessage("Dispatces retrieved successfully");
@@ -100,14 +97,9 @@ public class DispatchController {
 	@PostMapping("/updatedisptach")
 	public ResponseEntity<CommonResponse> updateDispatch(@RequestBody DispatchUpdateDTO dispatchUpdateDTO,
 			Authentication authentication) {
-
 		CommonResponse commonResponse = new CommonResponse();
 
 		UserDetails userDetails = iUserService.getByUsername(authentication.getName());
-
-		Gson g  = new Gson();
-		g.toJson(dispatchUpdateDTO);
-		log.info("logging request coming to dispatch controller "+g.toJson(dispatchUpdateDTO));
 
 		if (userDetails == null) {
 			commonResponse.setCode(401);
@@ -118,11 +110,9 @@ public class DispatchController {
 		}
 
 		int operatorId = userDetails.getId();
-		int shopId =   userDetails.getShopId();
+		int shopId = userDetails.getShopId();
 
 		dispatchUpdateDTO.setOpsId(userDetails.getId());
-
-
 
 		dispatchUpdateDTO.setShopId(userDetails.getShopId());
 
@@ -132,43 +122,42 @@ public class DispatchController {
 				System.out.print("Hello world inside basic");
 				return dispatchServiceImpl.updatePacketInfo(dispatchUpdateDTO);
 			} else if (dispatchUpdateDTO.getMode().equals("assigndrv")) {
-				return  dispatchServiceImpl.assignDriver(dispatchUpdateDTO);
+				return dispatchServiceImpl.assignDriver(dispatchUpdateDTO);
 			} else if (dispatchUpdateDTO.getMode().equals("cancelled")) {
-				return  dispatchServiceImpl.cancelDispatch(dispatchUpdateDTO);
+				return dispatchServiceImpl.cancelDispatch(dispatchUpdateDTO);
 			} else if (dispatchUpdateDTO.getMode().equals("arrived")) {
-				return  dispatchServiceImpl.markArrived(dispatchUpdateDTO,shopId);
+				return dispatchServiceImpl.markArrived(dispatchUpdateDTO, shopId);
 			} else if (dispatchUpdateDTO.getMode().equals("sold")) {
-				return  dispatchServiceImpl.markSold(dispatchUpdateDTO,operatorId,shopId);
-				//			String resp = inOfficeOrderProcess(dispatchUpdateDTO);
-				//			if (resp.equals("Y")) {
-				//				message = "Order Loopback created";
-				//			}
+				return dispatchServiceImpl.markSold(dispatchUpdateDTO, operatorId, shopId);
+				// String resp = inOfficeOrderProcess(dispatchUpdateDTO);
+				// if (resp.equals("Y")) {
+				// message = "Order Loopback created";
+				// }
 			} else if (dispatchUpdateDTO.getMode().equals("dateupdate")) {
-				return  dispatchServiceImpl.dateUpdate(dispatchUpdateDTO,shopId,operatorId);
+				return dispatchServiceImpl.dateUpdate(dispatchUpdateDTO, shopId, operatorId);
 			} else if (dispatchUpdateDTO.getMode().equals("pmtmodeupdate")) {
-				return dispatchServiceImpl.pmtModeUpdate(dispatchUpdateDTO,shopId,operatorId);
+				return dispatchServiceImpl.pmtModeUpdate(dispatchUpdateDTO, shopId, operatorId);
 			} else if (dispatchUpdateDTO.getMode().equals("tipupdate")) {
-				return dispatchServiceImpl.tipUpdate(dispatchUpdateDTO,shopId,operatorId);
+				return dispatchServiceImpl.tipUpdate(dispatchUpdateDTO, shopId, operatorId);
 			} else if (dispatchUpdateDTO.getMode().equals("splitupdate")) {
-				return  dispatchServiceImpl.splitUpdate(dispatchUpdateDTO,shopId,operatorId);
+				return dispatchServiceImpl.splitUpdate(dispatchUpdateDTO, shopId, operatorId);
 			} else if (dispatchUpdateDTO.getMode().equals("recal_dist")) {
 				return dispatchServiceImpl.recalculateDistance(dispatchUpdateDTO);
 			} else if (dispatchUpdateDTO.getMode().equals("closesales")) {
-				return  dispatchServiceImpl.closeTheseSales(dispatchUpdateDTO,shopId,operatorId);
+				return dispatchServiceImpl.closeTheseSales(dispatchUpdateDTO, shopId, operatorId);
 			} else if (dispatchUpdateDTO.getMode().equals("reopensales")) {
-				return  dispatchServiceImpl.reopenTheseSales(dispatchUpdateDTO,shopId,operatorId);
+				return dispatchServiceImpl.reopenTheseSales(dispatchUpdateDTO, shopId, operatorId);
 			} else if (dispatchUpdateDTO.getMode().equals("reset")) {
-				return  dispatchServiceImpl.resetSale(dispatchUpdateDTO,shopId,operatorId);
+				return dispatchServiceImpl.resetSale(dispatchUpdateDTO, shopId, operatorId);
 			}
 
 			return null;
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			commonResponse.setCode(500);
 			commonResponse.setData(null);
 			commonResponse.setMessage("Ooops !!! something went wrong please contact developers");
 			commonResponse.setStatus("FAILED");
-			log.error("Exception occured while updating dispatch ",e);
+			log.error("Exception occured while updating dispatch ", e);
 			return new ResponseEntity<CommonResponse>(commonResponse, HttpStatus.OK);
 		}
 	}
