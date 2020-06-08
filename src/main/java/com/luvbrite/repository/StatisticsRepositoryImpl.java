@@ -2,8 +2,10 @@ package com.luvbrite.repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -20,10 +22,15 @@ import com.luvbrite.model.CustomerDrillDownDTO;
 import com.luvbrite.model.CustomerStatDrillDownDTO;
 import com.luvbrite.model.CustomerStatsDTO;
 import com.luvbrite.model.DriverStatDTO;
+import com.luvbrite.model.GetDailySalesDTO;
 import com.luvbrite.model.OrderBreakDownDTO;
 import com.luvbrite.model.OrderStatDTO;
 import com.luvbrite.model.OrderStatisticDTO;
 import com.luvbrite.model.StatisticsDTO;
+import com.luvbrite.model.googlechart.Col;
+import com.luvbrite.model.googlechart.DataTable;
+import com.luvbrite.model.googlechart.Row;
+import com.luvbrite.model.googlechart.RowItem;
 import com.luvbrite.model.Routine;
 import com.luvbrite.model.SalesProfitDataDTO;
 import com.luvbrite.model.SalesProfitDataExtDTO;
@@ -990,48 +997,48 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 		});
 		for (CustomerStatsDTO customerStatsDTO : dtos) {
 			currClient = customerStatsDTO.getClientName();
-			
-			if(!prevClient.equals(currClient)){
-				
-				if(!firstTime){
-					
+
+			if (!prevClient.equals(currClient)) {
+
+				if (!firstTime) {
+
 					sddc.setCustomer(prevClient);
-					
+
 					sddc.setPurchaseAmount(totalAmount);
 					totalAmount = 0d;
-					
+
 					sddc.setPurchaseCount(totalCount);
 					totalCount = 0;
-					
+
 					sddc.setCstats(cstats);
 					cstats = new ArrayList<>();
-					
+
 					results.add(sddc);
 					sddc = new CustomerDrillDownDTO();
 				}
-				
-				else{
+
+				else {
 					firstTime = false;
 				}
 			}
-			
+
 			double amount = customerStatsDTO.getAmount();
 			int count = customerStatsDTO.getCount();
-			
+
 			CustomerStatDrillDownDTO cstat = new CustomerStatDrillDownDTO();
 			cstat.setAmount(amount);
 			cstat.setCount(count);
 			cstat.setDate(customerStatsDTO.getDateFormatted());
 			cstats.add(cstat);
-			
-			totalAmount+= amount;
-			totalCount+= count;
-			
+
+			totalAmount += amount;
+			totalCount += count;
+
 			prevClient = currClient;
 		}
-		//Add the last customer info into results
-		if(!firstTime){
-			
+		// Add the last customer info into results
+		if (!firstTime) {
+
 			sddc.setCustomer(prevClient);
 			sddc.setPurchaseAmount(totalAmount);
 			sddc.setPurchaseCount(totalCount);
@@ -1039,5 +1046,95 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 			results.add(sddc);
 		}
 		return results;
+	}
+
+	@Override
+	public DataTable getDailySalesStats() {
+		DataTable dt = null;
+		NumberFormat nf = NumberFormat.getCurrencyInstance();
+		dt = new DataTable();
+
+		Col col1 = new Col();
+		col1.setLabel("Year");
+		col1.setType("date");
+
+		Col col2 = new Col();
+		col2.setLabel("Sales in $");
+		col2.setType("number");
+
+		Col col3 = new Col();
+		col3.setLabel("Count");
+		col3.setType("number");
+
+		List<Col> cols = new ArrayList<Col>();
+		cols.add(col1);
+		cols.add(col2);
+		cols.add(col3);
+
+		List<Row> rows = new ArrayList<Row>();
+
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		Calendar now = Calendar.getInstance();
+		now.add(Calendar.MONTH, -6);
+		now.set(Calendar.DAY_OF_MONTH, 1);
+		String sixMonthsBefore = sdf.format(now.getTime());
+		StringBuilder dailySalesQuery = new StringBuilder();
+		dailySalesQuery.append("WITH sales AS (SELECT SUM(count) AS itemcount, SUM(price) AS price, ")
+				.append("to_char(date_sold, 'MM/dd') AS sformat, to_char(date_sold, 'yyyy/MM/dd') AS lformat  ")
+				.append("FROM daily_product_sale WHERE date_sold >= '").append(sixMonthsBefore).append("' ")
+				.append("GROUP BY to_char(date_sold, 'yyyy/MM/dd'), to_char(date_sold, 'MM/dd')),  ")
+				.append("ordercount AS (SELECT COUNT(id) AS count, to_char(date_finished, 'yyyy/MM/dd') AS date_finished ")
+				.append("FROM dispatch_sales_info WHERE date_finished IS NOT NULL AND date_finished > '")
+				.append(sixMonthsBefore).append("' GROUP BY to_char(date_finished, 'yyyy/MM/dd')) ")
+				.append("SELECT sales.*, ordercount.count FROM sales JOIN ordercount ON sales.lformat = ordercount.date_finished ORDER BY lformat DESC");
+		try {
+			List<GetDailySalesDTO> dtos = new ArrayList<>();
+			dtos = jdbcTemplate.query(dailySalesQuery.toString(), new RowMapper<GetDailySalesDTO>() {
+				@Override
+				public GetDailySalesDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
+					GetDailySalesDTO dto = new GetDailySalesDTO();
+					dto.setLFormat(rs.getString("lformat"));
+					dto.setSFormat(rs.getString("sformat"));
+					dto.setCount(rs.getInt("count"));
+					dto.setPrice(rs.getDouble("price"));
+					return dto;
+				}
+			});
+			for (GetDailySalesDTO getDailySalesDTO : dtos) {
+				String date1 = getDailySalesDTO.getSFormat();
+				String date2 = getDailySalesDTO.getLFormat();
+
+				double price = getDailySalesDTO.getPrice();
+
+				// array.add("[{v:new Date(" + date2[2] + "," + date2[0] + "," + date2[1] + "),
+				// f:'" + date1 + "'},'" + rs.getInt("count") + "',{v:'" + price + "', f:'" +
+				// nf.format(price) + "'}]");
+
+				RowItem rowItem1 = new RowItem();
+				rowItem1.setF(date1);
+				rowItem1.setV(date2);
+
+				RowItem rowItem2 = new RowItem();
+				rowItem2.setF(nf.format(price));
+				rowItem2.setV(price);
+
+				RowItem rowItem3 = new RowItem();
+				rowItem3.setF(getDailySalesDTO.getCount() + "");
+				rowItem3.setV(getDailySalesDTO.getCount());
+
+				Row row = new Row();
+				row.setC(Arrays.asList(rowItem1, rowItem2, rowItem3));
+
+				rows.add(row);
+			}
+
+			dt.setCols(cols);
+			dt.setRows(rows);
+
+			return dt;
+		} catch (Exception e) {
+			log.info("Exception while getting daily sales stats ::::: {} ", e.getMessage());
+		}
+		return null;
 	}
 }
