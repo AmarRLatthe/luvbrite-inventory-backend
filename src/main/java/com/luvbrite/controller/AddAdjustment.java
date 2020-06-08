@@ -36,7 +36,7 @@ public class AddAdjustment {
 
 	@GetMapping("/adjust")
 	public ResponseEntity<CommonResponse> addAdjustment(@RequestParam(value = "salesid" ,required=false)Integer salesId,
-			@RequestParam(value="amount",required=false)Double amount,
+			@RequestParam(value="amount",required=false)String amount,
 			@RequestParam(value="notes",required=false) String notes,
 			@RequestParam(value="saleDate",required=false) String saleDate,
 			Authentication authentication){
@@ -53,11 +53,12 @@ public class AddAdjustment {
 
 
 		salesId = salesId == null?0:salesId;
-		amount=amount==null?0:amount;
+		amount=amount==null?"":amount;
 		notes=notes==null?"":notes;
 		saleDate= saleDate==null?"":saleDate;
+		Double amount2 = Double.valueOf(amount.trim());
 
-		if((salesId==0) || (operatorId==0) || ((amount==0) && (notes.trim().length()!=8))
+		if((salesId==0) || (operatorId==0) || ((amount2==0) && (notes.trim().length()!=8))
 				|| saleDate.equals("") || notes.equals("")){
 
 			log.error("Invalid adjustment parameters");
@@ -76,7 +77,7 @@ public class AddAdjustment {
 				((notes.charAt(0)=='P') || (notes.charAt(0)=='L')) &&
 				!notes.equals("PROMOCPN")){
 
-			packetId = 	addPacketsAfterSales.addPackets(notes, saleDate, amount, operatorId, salesId, shopId);
+			packetId = 	addPacketsAfterSales.addPackets(notes, saleDate, amount2, operatorId, salesId, shopId);
 
 
 			if(packetId==0) {
@@ -96,7 +97,7 @@ public class AddAdjustment {
 		}
 		else {
 
-			miscPacketUpdateStatus	=	addMiscPackets.addPackets(notes, saleDate, amount, operatorId, salesId, shopId);
+			miscPacketUpdateStatus	=	addMiscPackets.addPackets(notes, saleDate, amount2, operatorId, salesId, shopId);
 
 			if(!miscPacketUpdateStatus) {
 				response.setCode(500);
@@ -117,7 +118,7 @@ public class AddAdjustment {
 
 		ChangeTrackerDTO ct = new ChangeTrackerDTO();
 		ct.setActionDetails("date_sold, sales_id, selling_price  updated to " + saleDate + ", " + salesId + ", "
-				+ (amount == 0 ? "Marked Price" : amount));
+				+ (amount2 == 0 ? "Marked Price" : amount));
 		ct.setActionType("update");
 		ct.setActionOn("packet");
 		ct.setItemId(packetId);

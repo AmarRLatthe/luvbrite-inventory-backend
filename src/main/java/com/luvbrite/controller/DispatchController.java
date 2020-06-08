@@ -33,7 +33,7 @@ public class DispatchController {
 	private IUserService iUserService;
 
 	@GetMapping("/listdispatches")
-	public ResponseEntity<CommonResponse> listdispatches(@RequestParam(value = "d", required = true) Integer driverId,
+	public ResponseEntity<CommonResponse> listdispatches(@RequestParam(value = "d", required = false) Integer driverId,
 			@RequestParam(value = "id", required = false) Integer dispatchId,
 			@RequestParam(value = "ca", required = false) Boolean cancelled,
 			@RequestParam(value = "fn", required = false) Boolean finished,

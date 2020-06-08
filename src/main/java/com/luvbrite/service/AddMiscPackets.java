@@ -70,10 +70,10 @@ public class AddMiscPackets {
 			StringBuffer insertIntoPacket = new StringBuffer();
 			insertIntoPacket.append("INSERT INTO ")
 			.append("packet_inventory(purchase_id, packet_code, selling_price, date_sold, sales_id,shop_id) ")
-			.append("VALUES (?, ?, ?, to_timestamp(?,'MM/dd/yyyy HH:MI AM'), ?);");
+			.append("VALUES (?, ?, ?, to_timestamp(?,'MM/dd/yyyy HH:MI AM'), ?,?)");
 
 			int rowsUpdated = jdbcTemplate.update(insertIntoPacket.toString(),
-					new Object[] { purchaseId, packetCode, amount, saleDate, shopId });
+					new Object[] { purchaseId, packetCode, amount, saleDate,salesId, shopId });
 
 			if (rowsUpdated > 0) {
 
