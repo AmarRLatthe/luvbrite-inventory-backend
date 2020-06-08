@@ -17,11 +17,11 @@ import com.luvbrite.model.CustomerDrillDownDTO;
 import com.luvbrite.model.OrderBreakDownDTO;
 import com.luvbrite.model.SalesProfitDataExtDTO;
 import com.luvbrite.model.UserDetails;
+import com.luvbrite.model.googlechart.DataTable;
 import com.luvbrite.service.IStatisticsService;
 import com.luvbrite.service.IUserService;
 
 import lombok.extern.slf4j.Slf4j;
-
 
 @RestController
 @RequestMapping("/api/statistics/")
@@ -67,8 +67,8 @@ public class StatisticsController {
 	}
 
 	@GetMapping("/getprodstat")
-	public ResponseEntity<CommonResponse> getProductStat(@RequestParam String startDate,
-			@RequestParam String endDate, Authentication authentication) {
+	public ResponseEntity<CommonResponse> getProductStat(@RequestParam String startDate, @RequestParam String endDate,
+			Authentication authentication) {
 		CommonResponse response = new CommonResponse();
 
 		try {
@@ -138,7 +138,8 @@ public class StatisticsController {
 
 	@GetMapping("/getorderstats")
 	public ResponseEntity<CommonResponse> getOrderStats(@RequestParam String startDate, @RequestParam String endDate,
-			@RequestParam String showFirstOrder, @RequestParam(required = false) String paymentMode, Authentication authentication) {
+			@RequestParam String showFirstOrder, @RequestParam(required = false) String paymentMode,
+			Authentication authentication) {
 		CommonResponse response = new CommonResponse();
 
 		try {
@@ -207,8 +208,8 @@ public class StatisticsController {
 	}
 
 	@GetMapping("/getsalesprofit")
-	public ResponseEntity<CommonResponse> getSalesProfitData(@RequestParam String startDate, @RequestParam String endDate,
-			Authentication authentication) {
+	public ResponseEntity<CommonResponse> getSalesProfitData(@RequestParam String startDate,
+			@RequestParam String endDate, Authentication authentication) {
 		CommonResponse response = new CommonResponse();
 
 		try {
@@ -241,10 +242,10 @@ public class StatisticsController {
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		}
 	}
-	
+
 	@GetMapping(value = "/getcustdrilldownstat")
-	public ResponseEntity<CommonResponse> getCustomerDrillDownStats(@RequestParam String startDate, @RequestParam String endDate,
-			Authentication authentication) {
+	public ResponseEntity<CommonResponse> getCustomerDrillDownStats(@RequestParam String startDate,
+			@RequestParam String endDate, Authentication authentication) {
 		CommonResponse response = new CommonResponse();
 		try {
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
@@ -271,6 +272,38 @@ public class StatisticsController {
 			log.error("Message is {} and Exception is {}" + e.getMessage(), e);
 			response.setCode(500);
 			response.setMessage("Customer drill down stats data is not able to get. please try again later.");
+			response.setStatus("SERVER ERROR");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+	}
+
+	@GetMapping(value = "/getdailysalesstats")
+	public ResponseEntity<CommonResponse> getDailySalesStats(Authentication authentication) {
+		CommonResponse response = new CommonResponse();
+		try {
+			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
+			if (userDetails != null) {
+				DataTable dataTable = new DataTable();
+				dataTable = iStatisticsService.getDailySalesStat();
+				if (dataTable != null) {
+					response.setCode(200);
+					response.setStatus("SUCCESS");
+					response.setData(dataTable);
+					return new ResponseEntity<>(response, HttpStatus.OK);
+				}
+				response.setCode(400);
+				response.setStatus("Bad Request");
+				response.setMessage("something went wrong.please try again later");
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}
+			response.setCode(401);
+			response.setStatus("Unauthorized");
+			response.setMessage("Please try to login and try again");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (Exception e) {
+			log.error("Message is {} and Exception is {}" + e.getMessage(), e);
+			response.setCode(500);
+			response.setMessage("Daily sales stats not able to get. please try again later.");
 			response.setStatus("SERVER ERROR");
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		}

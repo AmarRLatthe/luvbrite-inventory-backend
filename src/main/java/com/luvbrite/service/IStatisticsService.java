@@ -5,6 +5,7 @@ import java.util.List;
 import com.luvbrite.model.CustomerDrillDownDTO;
 import com.luvbrite.model.OrderBreakDownDTO;
 import com.luvbrite.model.SalesProfitDataExtDTO;
+import com.luvbrite.model.googlechart.DataTable;
 
 
 public interface IStatisticsService {
@@ -24,4 +25,5 @@ public interface IStatisticsService {
 	
 	public List<CustomerDrillDownDTO> getCustomerStats(String startDate, String endDate);
 	
+	public DataTable getDailySalesStat();
 }
