@@ -625,7 +625,7 @@ public class DispatchServiceImpl implements IDispatchService {
 			response.setCode(400);
 			response.setData(false);
 			response.setMessage("Invalid payment mode");
-			response.setStatus("FAILED");;
+			response.setStatus("FAILED");
 
 			return new ResponseEntity<CommonResponse>(response,HttpStatus.ACCEPTED);
 		}
@@ -634,7 +634,7 @@ public class DispatchServiceImpl implements IDispatchService {
 			response.setCode(500);
 			response.setData(false);
 			response.setMessage("dispatch_sales_info - pmtMode update failed");
-			response.setStatus("FAILED");;
+			response.setStatus("FAILED");
 
 			return new ResponseEntity<CommonResponse>(response,HttpStatus.ACCEPTED);
 		}
@@ -654,7 +654,7 @@ public class DispatchServiceImpl implements IDispatchService {
 		response.setCode(200);
 		response.setData(true);
 		response.setMessage("payment mode updated to "+pmtMode);
-		response.setStatus("SUCCESS");;
+		response.setStatus("SUCCESS");
 
 		return new ResponseEntity<CommonResponse>(response,HttpStatus.ACCEPTED);
 

@@ -1,6 +1,5 @@
 package com.luvbrite.model.tookan;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class TookanActivityTimelineResponseData {
