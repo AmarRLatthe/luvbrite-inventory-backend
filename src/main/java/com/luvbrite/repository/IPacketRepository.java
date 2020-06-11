@@ -28,6 +28,10 @@ public interface IPacketRepository {
 
 	public int updateAmountNSaleDateNSaleIdForPacketCode(double amount ,String packetCode,String saleDate,int saleId,int shopId);
 
+	boolean checkIfPacketIsReturned(String packetCode,Integer shopId);
+
+
+
 
 
 }

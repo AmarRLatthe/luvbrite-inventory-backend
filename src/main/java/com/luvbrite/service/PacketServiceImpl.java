@@ -4,13 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.luvbrite.model.BulkPacketsCreation;
-import com.luvbrite.model.ChangeTrackerDTO;
 import com.luvbrite.model.PaginatedPackets;
-import com.luvbrite.model.PacketExtDTO;
 import com.luvbrite.model.BulkPacketsCreation;
 import com.luvbrite.model.SinglePacketDTO;
-import com.luvbrite.model.tookan.CreateTaskResponse_Data;
 import com.luvbrite.repository.IPacketRepository;
 
 import lombok.NoArgsConstructor;

@@ -17,6 +17,7 @@ import com.luvbrite.jdbcutils.PacketExtDTOMapper;
 import com.luvbrite.model.BarcodeSequenceDTO;
 import com.luvbrite.model.BulkPacketsCreation;
 import com.luvbrite.model.PacketExtDTO;
+import com.luvbrite.model.PacketInventoryDTO;
 import com.luvbrite.model.PaginatedPackets;
 import com.luvbrite.model.Pagination;
 import com.luvbrite.model.PaginationLogic;
@@ -467,6 +468,35 @@ public class PacketRepositoryImpl implements IPacketRepository{
 
 	}
 
+	@Override
+	public boolean checkIfPacketIsReturned(String packetCode, Integer shopId) {
+
+		StringBuffer checkIfPacketIsReturnedQuery = new StringBuffer();
+		checkIfPacketIsReturnedQuery.append("SELECT id, returns_detail_id FROM packet_inventory WHERE packet_code = ? AND shop_id = ?");
+
+		PacketInventoryDTO packet = null;
+
+		packet = jdbcTemplate.queryForObject(checkIfPacketIsReturnedQuery.toString(),
+				new Object[] {},new RowMapper<PacketInventoryDTO>() {
+
+			@Override
+			public PacketInventoryDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
+				PacketInventoryDTO  dto = new PacketInventoryDTO();
+
+				dto.setId(rs.getInt("id"));
+				dto.setReturnDetailsId(rs.getInt("returns_detail_id"));
+
+				return dto;
+			};
+
+		});
 
 
+		if(packet==null) {
+			log.info("packetCode {} is not marked as returned",packetCode);
+			return false;
+		}
+		return true;
+
+	}
 }
