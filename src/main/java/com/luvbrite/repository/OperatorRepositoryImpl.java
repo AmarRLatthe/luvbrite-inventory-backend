@@ -131,7 +131,7 @@ public class OperatorRepositoryImpl implements IOperatorRepository {
 	@Override
 	public List<String> getListOfAllPermissions() {
 		try {
-			return jdbcTemplate.query("SELECT funct_name FROM custom_roles_details", new RowMapper<String>() {
+			return jdbcTemplate.query("SELECT DISTINCT(funct_name) FROM custom_roles_details WHERE funct_name NOT IN ('view shops','view shops operator')", new RowMapper<String>() {
 
 				@Override
 				public String mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -150,11 +150,16 @@ public class OperatorRepositoryImpl implements IOperatorRepository {
 	public List<String> getListOfAllowedPermissionById(Integer id) {
 		try {
 			StringBuilder qry = new StringBuilder();
-			qry.append(" SELECT DISTINCT(funct_name) ").append(" FROM USER_DETAILS ")
+			qry.append(" SELECT DISTINCT(funct_name) ")
+				.append(" FROM USER_DETAILS ")
 					.append(" RIGHT JOIN USER_CUSTOM_ROLES ON USER_DETAILS.id = USER_CUSTOM_ROLES.user_id ")
 					.append(" RIGHT JOIN CUSTOM_ROLES_DETAILS ON USER_CUSTOM_ROLES.custom_role_id = CUSTOM_ROLES_DETAILS.id ")
-					.append(" WHERE  ").append(" USER_DETAILS.id = ? ");
+					.append(" WHERE  ")
+					.append(" USER_DETAILS.id = ? ")
+					.append(" AND ")
+					.append(" CUSTOM_ROLES_DETAILS.funct_name NOT IN ('view shops','view shops operator') ");
 
+			
 			return jdbcTemplate.query(qry.toString(), new Object[] { id }, new RowMapper<String>() {
 
 				@Override
@@ -213,12 +218,19 @@ public class OperatorRepositoryImpl implements IOperatorRepository {
 		qry.append(" ,");
 		qry.append(authoritiesIds.get(authoritiesIds.size()-1));
 		qry.append(" )");
-		return jdbcTemplate.update(qry.toString());
+		jdbcTemplate.update(qry.toString());
+		
+		return setUserCustomeRoleIfNotExist(authorities.getId());
 		} catch (Exception e) {
 			log.error("Message is {} and Exception is {}", e.getMessage(), e);
 			return -1;
 		}
 		
+	}
+
+	private int setUserCustomeRoleIfNotExist(Integer id) {
+		jdbcTemplate.update("DELETE FROM user_custom_roles WHERE (user_id = ? AND  custom_role_id = 5) OR (user_id = ? AND  custom_role_id = 6);", id, id);
+		return jdbcTemplate.update("INSERT INTO user_custom_roles (user_id, custom_role_id) values (?,5), (?,6)" , id ,id);
 	}
 
 	@Transactional
@@ -249,9 +261,7 @@ public class OperatorRepositoryImpl implements IOperatorRepository {
 					return rs.getInt(1);
 				}
 			});
-			
-			int upd= jdbcTemplate.update("DELETE FROM user_custom_roles WHERE user_id=?",permission.getId());
-			log.info("i is {}",upd);
+			 jdbcTemplate.update("DELETE FROM user_custom_roles WHERE user_id=? AND custom_role_id NOT IN (SELECT id FROM custom_roles_details WHERE funct_name IN ('view shops','view shops operator') )",permission.getId());
 			StringBuilder qry1 = new StringBuilder();
 			qry1.append(" INSERT ")
 				.append(" INTO ")
@@ -274,8 +284,8 @@ public class OperatorRepositoryImpl implements IOperatorRepository {
 			qry1.append(" ,");
 			qry1.append(permissionIds.get(totalPlace-1));
 			qry1.append(" )");
-					
-			log.info("permission ids {}",permissionIds);
+			
+			
 			return jdbcTemplate.update(qry1.toString());
 		} catch (Exception e) {
 			log.error("Message is {} and Exception is {}", e.getMessage(), e);

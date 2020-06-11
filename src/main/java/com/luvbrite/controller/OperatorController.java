@@ -322,4 +322,35 @@ public class OperatorController {
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		}
 	}
+	
+	@GetMapping("getOperatorsListByShopId/{id}")
+	public ResponseEntity<CommonResponse> getOperatorsListByShopId(@PathVariable("id") Integer shopId, Authentication authentication ){
+		CommonResponse response  = new CommonResponse();
+		try {
+			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
+			if(userDetails!=null) {
+				if(userDetails.getUserRoles().contains("ROLE_VIEW_SHOPS_OPERATOR") || userDetails.getUserType().equals("MAIN ADMIN")) {
+					List<UserDetails> list = iOperatorService.getOperatorsDataByShopId(shopId);
+					response.setCode(200);
+					response.setMessage("Manager Authority Updated successfully");
+					response.setStatus("Success");
+					response.setData(list);
+					return new ResponseEntity<>(response,HttpStatus.OK);	
+				}
+			}
+			response.setCode(401);
+			response.setMessage("You are not authorized for this functionality");
+			response.setStatus("Unauthorized");
+//			response.setData(data);
+			return new ResponseEntity<>(response,HttpStatus.OK);	
+		} catch (Exception e) {
+			log.error("Message is {} and Exception is {}" + e.getMessage(), e);
+			response.setCode(500);
+			response.setMessage("Operator password is not updated.please try again later.");
+			response.setStatus("SERVER ERROR");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+	}
+	
+	
 }

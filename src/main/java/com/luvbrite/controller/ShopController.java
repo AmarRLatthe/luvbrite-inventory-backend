@@ -197,4 +197,38 @@ public class ShopController {
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		}
 	}
+
+	@GetMapping("/getPermittedShopsDetails")
+	public ResponseEntity<CommonResponse> getPermittedShopsDetails(Authentication authentication){
+		CommonResponse response = new CommonResponse();
+		try {
+			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
+			if(userDetails!=null) {
+				if(userDetails.getUserType().equals("MAIN ADMIN")) {
+					List<ShopDTO> list = iShopService.getAllShops();
+					if (!list.isEmpty()) {
+						response.setCode(200);
+						response.setStatus("SUCCESS");
+						response.setData(list);
+						return new ResponseEntity<>(response, HttpStatus.OK);
+					}
+				}else if(userDetails.getUserRoles().contains("ROLE_VIEW_SHOPS")) {
+					List<ShopDTO> list = iShopService.getShopListByManagerId(userDetails.getId());
+					response.setCode(200); 
+					response.setStatus("SUCCESS");
+					response.setData(list);
+					return new ResponseEntity<>(response, HttpStatus.OK);
+				}
+			}
+			response.setCode(401);
+			response.setStatus("Unauthorized");
+			response.setMessage("Please try to login and try again");
+			return new ResponseEntity<>(response,HttpStatus.OK);
+		} catch (Exception e) {
+			log.error("Message is {} and exception is {}",e.getMessage(),e);
+			response.setCode(500);
+			response.setStatus("INTERNAL SERVER ERROR");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+	}
 }
