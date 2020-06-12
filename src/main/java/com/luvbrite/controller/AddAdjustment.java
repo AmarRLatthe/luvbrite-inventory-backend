@@ -41,6 +41,7 @@ public class AddAdjustment {
 			@RequestParam(value="saleDate",required=false) String saleDate,
 			Authentication authentication){
 
+
 		UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 
 

@@ -43,6 +43,7 @@ public class ShopController {
 			Authentication authentication) {
 		CommonResponse commonResponse = new CommonResponse();
 		try {
+			//TODO:Integrate Tracker Service
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 			if (userDetails != null) {
 				shopDTO.setOwnerId("1");
@@ -67,6 +68,7 @@ public class ShopController {
 	private ResponseEntity<CommonResponse> validateNCreateShop(CreateShopDTO shopDTO, CommonResponse commonResponse) {
 		Map<String, Object> isvalidate = iShopService.validateData(shopDTO);
 		if ((boolean) isvalidate.get("isValid")) {
+			//TODO:Integrate Tracker Service
 			int addShop = iShopService.saveShop(shopDTO);
 			if (addShop > 0) {
 				commonResponse.setCode(201);
@@ -119,6 +121,7 @@ public class ShopController {
 		log.info("hello {} ", shop);
 		Map<String, Object> isValid = iShopService.isValidateForUpdate(id, shop);
 		if ((boolean) isValid.get("isValid") == true) {
+			//TODO:Integrate Tracker Service
 			int update = iShopService.updateShopById(id, shop);
 			if (update > 0) {
 				response.setCode(200);
@@ -146,6 +149,7 @@ public class ShopController {
 		log.info("id is {}", id);
 		CommonResponse response = new CommonResponse();
 		try {
+			//TODO:Integrate Tracker Service
 			int delete = iShopService.deleteShopById(id);
 			if(delete>0) {
 				response.setCode(200);
@@ -171,6 +175,7 @@ public class ShopController {
 		CommonResponse  response = new CommonResponse();
 		try {
 			if (password.getPassword().equals(password.getConfirmPassword())) {
+				//TODO:Integrate Tracker Service
 				int updatePwd = iShopService.updatePwdByshopId(id, password.getPassword());
 				if (updatePwd > 0) {
 					response.setCode(200);

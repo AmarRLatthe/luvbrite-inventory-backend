@@ -41,7 +41,7 @@ public class PurchaseController {
 			Authentication authentication) {
 		CommonResponse commonResponse = new CommonResponse();
 		try {
-			
+			//TODO:Integrate Tracker Service
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 			if (userDetails != null) {
 				purchaseDTO.setShopId(userDetails.getShopId());
@@ -79,6 +79,7 @@ public class PurchaseController {
 	public ResponseEntity<CommonResponse> updatePurchaseById(@PathVariable("id") Integer id ,@RequestBody PurchaseDTO purchase){
 		CommonResponse commonResponse = new CommonResponse();
 		try {
+			//TODO:Integrate Tracker Service
 			int update = purchaseService.updatePurchaseById(id,purchase);
 			if(update>0) {
 				commonResponse.setCode(200);

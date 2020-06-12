@@ -42,6 +42,7 @@ public class OperatorController {
 			Authentication authentication) {
 		CommonResponse response = new CommonResponse();
 		try {
+			//TODO:Integrate Tracker Service
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 			if (userDetails != null) {
 				if ((userDetails.getId() == 1) || (userDetails.getShopId() == 1)) {
@@ -137,6 +138,7 @@ public class OperatorController {
 			@RequestBody UserDetails operator, Authentication authentication) {
 		CommonResponse response = new CommonResponse();
 		try {
+			//TODO:Integrate Tracker Service
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 			if (userDetails != null) {
 				if ((userDetails.getId() == 1) || (userDetails.getShopId() == 1)) {
@@ -175,9 +177,9 @@ public class OperatorController {
 
 	@DeleteMapping("/deleteOperatorById/{id}")
 	public ResponseEntity<CommonResponse> deleteOperatorById(@PathVariable("id") Integer id) {
-
 		CommonResponse response = new CommonResponse();
 		try {
+			//TODO:Integrate Tracker Service
 			int delete = iOperatorService.deleteOperatorById(id);
 			if(delete>0) {
 				response.setCode(200);
@@ -206,6 +208,7 @@ public class OperatorController {
 		log.info(" operator is  {}" ,password);
 		CommonResponse response = new CommonResponse();
 		try {
+			//TODO:Integrate Tracker Service
 			if (password.getPassword().equals(password.getConfirmPassword())) {
 				int updatePwd = iOperatorService.updatePwdByOperatorId(id, password.getPassword());
 				if (updatePwd > 0) {
@@ -238,6 +241,7 @@ public class OperatorController {
 	public ResponseEntity<CommonResponse> getAuthoritiesNPermissions(@PathVariable("id") Integer id){
 		CommonResponse response = new CommonResponse();
 		try {
+			
 			String userType = iOperatorService.getUsertypeById(id);
 			if("MAIN MANAGER".equals(userType)) {
 				Map<String, Object> data = iOperatorService.getAuthoritiesNPermissions(id);
@@ -266,6 +270,7 @@ public class OperatorController {
 		CommonResponse response = new CommonResponse();
 		log.info("permission is {}",permission);
 		try {
+			//TODO:Integrate Tracker Service
 			String userType = iOperatorService.getUsertypeById(permission.getId());
 			if("MAIN MANAGER".equals(userType)) {
 //				Map<String, Object> data = iOperatorService.getAuthoritiesNPermissions(id);
@@ -296,6 +301,7 @@ public class OperatorController {
 		CommonResponse response = new CommonResponse();
 		log.info("permission is {}",authorities);
 		try {
+			//TODO:Integrate Tracker Service
 			String userType = iOperatorService.getUsertypeById(authorities.getId());
 			if("MAIN MANAGER".equals(userType)) {
 				int isGranted = iOperatorService.authoritiesGrantByUserId(authorities);

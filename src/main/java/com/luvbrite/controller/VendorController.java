@@ -40,12 +40,13 @@ public class VendorController {
 	public ResponseEntity<CommonResponse> createVendor(@RequestBody VendorDTO vendor, Authentication authentication) {
 		CommonResponse response = new CommonResponse();
 		try {
+			
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 			if (userDetails != null) {
 				log.info("user is {}", userDetails);
 				vendor.setShopId(userDetails.getShopId());
 				vendor.setCreatedBy(userDetails.getId());
-
+				//TODO:Integrate Tracker Service
 				return validateNCreateVendor(vendor, response);
 			}
 			response.setCode(401);
@@ -122,6 +123,7 @@ public class VendorController {
 		try {
 			Map<String, Object> isValid = iVendorService.validateVendorForUpdate(id, vendor);
 			if ((boolean) isValid.get("isValid")) {
+				//TODO:Integrate Tracker Service
 				int update = iVendorService.updateVendorDataById(id, vendor);
 				if (update > 0) {
 					response.setCode(200);
@@ -156,6 +158,7 @@ public class VendorController {
 
 		CommonResponse response = new CommonResponse();
 		try {
+			//TODO:Integrate Tracker Service
 			int delete = iVendorService.deleteVendorById(id);
 			if (delete > 0) {
 				response.setCode(200);
