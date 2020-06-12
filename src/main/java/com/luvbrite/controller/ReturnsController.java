@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -38,6 +39,7 @@ public class ReturnsController {
 
 	}
 
+	@PostMapping("/addrturn")
 	ResponseEntity<CommonResponse> addReturn(@RequestParam(value = "pc", required = false) String packetCode,
 			@RequestParam(value = "reason", required = false) String reason, Authentication authentication) {
 
@@ -81,11 +83,14 @@ public class ReturnsController {
 					response.setData(false);
 					response.setMessage("Packet Code " + packetCode + "already marked as returned ");
 					response.setStatus("SUCCESS");
+
 				} else if (returnstatus == 1) {
+
 					response.setCode(200);
 					response.setData(true);
 					response.setMessage("Packet Code " + packetCode + " marked as returned successfully");
 					response.setStatus("SUCCESS");
+
 				} else {
 					response.setCode(200);
 					response.setData(true);
