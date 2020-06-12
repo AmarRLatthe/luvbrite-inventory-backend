@@ -28,6 +28,8 @@ public class PacketServiceImpl implements IPacketService{
 		try {
 			
 			return iPacketRepository.createSinglePkt(singlePacket);
+			
+			//TODO:Integrate Master Service
 		} catch (Exception e) {
 			log.error("Message is {} and exception is {}",e.getMessage(),e);
 			return -1;				
@@ -38,7 +40,7 @@ public class PacketServiceImpl implements IPacketService{
 	public PaginatedPackets listPackets(Integer purchaseId, Integer salesId, Integer shopId, Boolean notSold,
 			Boolean sold, Boolean allPackets, String orderBy, String sortDirection, String packetCode, String allmisc,
 			Integer currentPage) throws Exception{
-
+		//TODO: packets list is not giving pagination properly
 		return	iPacketRepository.listPackets(purchaseId,
 				salesId,
 				shopId,
@@ -63,6 +65,7 @@ public class PacketServiceImpl implements IPacketService{
 	public int updatePktById(Integer id, SinglePacketDTO singlePacket) {
 		try {
 			return iPacketRepository.updatePktById(id,singlePacket);
+			//TODO:Integrate Master Service
 		} catch (Exception e) {
 			log.error("Message is {} and exception is {}",e.getMessage(),e);
 			return -1;
@@ -80,7 +83,9 @@ public class PacketServiceImpl implements IPacketService{
 //				ct.setShopId(packets.getShopId());
 //				ct.setOperatorId(packets.getOperatorId());
 //				ct.setItemId(packets.get);
+//TODO:Integrate Master Service
 //			}
+			
 			return iPacketRepository.createBulkPackets(packets);
 		} catch (Exception e) {
 			log.error("Message is {} and exception is {}",e.getMessage(),e);
@@ -91,6 +96,7 @@ public class PacketServiceImpl implements IPacketService{
 	@Override
 	public int updatePktsByPriceNWeightNPurchaseId(Double price, Double weight, Integer purchaseId) {
 		try {
+			//TODO:Integrate Master Service
 			return iPacketRepository.updatePktsByPriceNWeightNPurchaseId(price,weight,purchaseId);
 		} catch (Exception e) {
 			log.error("Message is {} and exception is {}",e.getMessage(),e);
@@ -101,6 +107,7 @@ public class PacketServiceImpl implements IPacketService{
 	@Override
 	public boolean isAvailPacketBySKU(String sku) {
 		try {
+			//TODO:Integrate Master Service
 			return iPacketRepository.isAvailPacketBySKU(sku); 
 		} catch (Exception e) {
 			log.error("Message is {} and exception is {}",e.getMessage(),e);
@@ -112,6 +119,7 @@ public class PacketServiceImpl implements IPacketService{
 	@Override
 	public int deletePktById(Integer id) {
 		try {
+			//TODO:Integrate Master Service
 			return iPacketRepository.deletePktById(id);
 		} catch (Exception e) {
 			log.error("Message is {} and exception is {}",e.getMessage(),e);

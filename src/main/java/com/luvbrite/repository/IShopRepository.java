@@ -34,6 +34,8 @@ public interface IShopRepository{
 
 	List<Integer> getIdsFromShopsNames(String[] authorities);
 
+	List<ShopDTO> getShopListByManagerId(Integer id);
+
 
 
 

@@ -195,4 +195,14 @@ public class ShopServiceImpl implements IShopService {
 		}
 	}
 
+	@Override
+	public List<ShopDTO> getShopListByManagerId(Integer id) {
+		try {
+			return iShopRepository.getShopListByManagerId(id);
+		} catch (Exception e) {
+			log.info("message is {} and exception is {}",e.getMessage(),e);
+			return Collections.emptyList();
+		}
+	}
+
 }

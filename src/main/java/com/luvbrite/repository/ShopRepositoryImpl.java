@@ -101,16 +101,18 @@ public class ShopRepositoryImpl implements IShopRepository {
 	@Override
 	public List<ShopDTO> getAllShops() {
 		try {
-			StringBuilder ShopsListQry = new StringBuilder();
+			StringBuilder shopsListQry = new StringBuilder();
 
-			ShopsListQry.append(" SELECT ").append(" SHOPS.id, ").append(" SHOPS.shop_name, ").append(" SHOPS.domain, ")
+			shopsListQry.append(" SELECT ").append(" SHOPS.id, ").append(" SHOPS.shop_name, ").append(" SHOPS.domain, ")
 					.append("  SHOP_OWNER.name AS shopOwner, ").append(" SHOP_OWNER.email, ")
 					.append(" SHOP_OWNER.username, ").append(" USER_CREATOR.name AS shopCreator").append(" FROM Shops ")
 					.append("	JOIN USER_DETAILS AS SHOP_OWNER ON SHOPS.shop_admin_id = SHOP_OWNER.id  ")
 					.append(" JOIN USER_DETAILS AS USER_CREATOR ON SHOPS.created_by = USER_CREATOR.id  ")
 					.append(" WHERE SHOPS.is_active = true ").append(" ORDER BY   ").append(" SHOP_OWNER.id ")
 					.append(" DESC ");
-			return jdbcTemplate.query(ShopsListQry.toString(), new RowMapper<ShopDTO>() {
+			
+			log.info("Shop List Data ::>> {}",shopsListQry.toString());
+			return jdbcTemplate.query(shopsListQry.toString(), new RowMapper<ShopDTO>() {
 
 				@Override
 				public ShopDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -292,6 +294,51 @@ public class ShopRepositoryImpl implements IShopRepository {
 			log.error("Message is {} and Exception is {}", e.getMessage(), e);
 			return Collections.emptyList();
 		}
+	}
+
+	@Override
+	public List<ShopDTO> getShopListByManagerId(Integer id) {
+		try {
+			StringBuilder shopsListQry = new StringBuilder();
+
+			shopsListQry.append(" SELECT ")
+						.append(" SHOPS.id, ")
+						.append(" SHOPS.shop_name, ")
+						.append(" SHOPS.domain, ")
+						.append("  SHOP_OWNER.name AS shopOwner, ")	
+						.append(" SHOP_OWNER.email, ")
+						.append(" SHOP_OWNER.username, ")	
+						.append(" USER_CREATOR.name AS shopCreator")
+						.append(" FROM Shops ")
+						.append("	JOIN USER_DETAILS AS SHOP_OWNER ON SHOPS.shop_admin_id = SHOP_OWNER.id  ")
+						.append(" JOIN USER_DETAILS AS USER_CREATOR ON SHOPS.created_by = USER_CREATOR.id  ")
+						.append(" WHERE SHOPS.is_active = true ")
+						.append(" AND SHOPS.id IN (SELECT shop_id FROM manager_shop_access_details WHERE manager_id = ?) ")
+						.append(" ORDER BY   ")
+						.append(" SHOP_OWNER.id ")
+						.append(" DESC ");
+			
+			log.info("Shop List Data ::>> {}",shopsListQry.toString());
+			return jdbcTemplate.query(shopsListQry.toString(), new Object[] { id},new RowMapper<ShopDTO>() {
+
+				@Override
+				public ShopDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
+					ShopDTO dto = new ShopDTO();
+					dto.setShopId(rs.getInt("id"));
+					dto.setShopOwnerName(rs.getString("shopOwner"));
+					dto.setShopName(rs.getString("shop_name"));
+					dto.setShopOwnerUsername(rs.getString("username"));
+					dto.setDomain(rs.getString("domain"));
+					dto.setCreatedBy(rs.getString("shopCreator"));
+					dto.setEmail(rs.getString("email"));
+					return dto;
+				}
+			});
+		} catch (Exception e) {
+			log.error("Message is {} and Exception is {}", e.getMessage(), e);
+			return Collections.emptyList();
+		}
+
 	}
 
 }

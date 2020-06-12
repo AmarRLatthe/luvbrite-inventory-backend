@@ -22,4 +22,6 @@ public interface IShopService {
 
 	int updatePwdByshopId(Integer id, String password);
 
+	List<ShopDTO> getShopListByManagerId(Integer id);
+
 }

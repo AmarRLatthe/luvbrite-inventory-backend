@@ -43,6 +43,7 @@ public class ShopController {
 			Authentication authentication) {
 		CommonResponse commonResponse = new CommonResponse();
 		try {
+			//TODO:Integrate Tracker Service
 			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 			if (userDetails != null) {
 				shopDTO.setOwnerId("1");
@@ -67,6 +68,7 @@ public class ShopController {
 	private ResponseEntity<CommonResponse> validateNCreateShop(CreateShopDTO shopDTO, CommonResponse commonResponse) {
 		Map<String, Object> isvalidate = iShopService.validateData(shopDTO);
 		if ((boolean) isvalidate.get("isValid")) {
+			//TODO:Integrate Tracker Service
 			int addShop = iShopService.saveShop(shopDTO);
 			if (addShop > 0) {
 				commonResponse.setCode(201);
@@ -119,6 +121,7 @@ public class ShopController {
 		log.info("hello {} ", shop);
 		Map<String, Object> isValid = iShopService.isValidateForUpdate(id, shop);
 		if ((boolean) isValid.get("isValid") == true) {
+			//TODO:Integrate Tracker Service
 			int update = iShopService.updateShopById(id, shop);
 			if (update > 0) {
 				response.setCode(200);
@@ -146,6 +149,7 @@ public class ShopController {
 		log.info("id is {}", id);
 		CommonResponse response = new CommonResponse();
 		try {
+			//TODO:Integrate Tracker Service
 			int delete = iShopService.deleteShopById(id);
 			if(delete>0) {
 				response.setCode(200);
@@ -171,6 +175,7 @@ public class ShopController {
 		CommonResponse  response = new CommonResponse();
 		try {
 			if (password.getPassword().equals(password.getConfirmPassword())) {
+				//TODO:Integrate Tracker Service
 				int updatePwd = iShopService.updatePwdByshopId(id, password.getPassword());
 				if (updatePwd > 0) {
 					response.setCode(200);
@@ -194,6 +199,40 @@ public class ShopController {
 			response.setCode(500);
 			response.setMessage("Shop Owner Password is Not Updated.Please Try Again Later.");
 			response.setStatus("SERVER ERROR");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+	}
+
+	@GetMapping("/getPermittedShopsDetails")
+	public ResponseEntity<CommonResponse> getPermittedShopsDetails(Authentication authentication){
+		CommonResponse response = new CommonResponse();
+		try {
+			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
+			if(userDetails!=null) {
+				if(userDetails.getUserType().equals("MAIN ADMIN")) {
+					List<ShopDTO> list = iShopService.getAllShops();
+					if (!list.isEmpty()) {
+						response.setCode(200);
+						response.setStatus("SUCCESS");
+						response.setData(list);
+						return new ResponseEntity<>(response, HttpStatus.OK);
+					}
+				}else if(userDetails.getUserRoles().contains("ROLE_VIEW_SHOPS")) {
+					List<ShopDTO> list = iShopService.getShopListByManagerId(userDetails.getId());
+					response.setCode(200); 
+					response.setStatus("SUCCESS");
+					response.setData(list);
+					return new ResponseEntity<>(response, HttpStatus.OK);
+				}
+			}
+			response.setCode(401);
+			response.setStatus("Unauthorized");
+			response.setMessage("Please try to login and try again");
+			return new ResponseEntity<>(response,HttpStatus.OK);
+		} catch (Exception e) {
+			log.error("Message is {} and exception is {}",e.getMessage(),e);
+			response.setCode(500);
+			response.setStatus("INTERNAL SERVER ERROR");
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		}
 	}
