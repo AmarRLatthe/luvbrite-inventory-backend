@@ -39,7 +39,7 @@ public class ReturnsController {
 
 	}
 
-	@PostMapping("/addrturn")
+	@PostMapping("/addreturn")
 	ResponseEntity<CommonResponse> addReturn(@RequestParam(value = "pc", required = false) String packetCode,
 			@RequestParam(value = "reason", required = false) String reason, Authentication authentication) {
 
