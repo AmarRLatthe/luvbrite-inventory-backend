@@ -4,8 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.luvbrite.model.PaginatedPackets;
 import com.luvbrite.model.BulkPacketsCreation;
+import com.luvbrite.model.PaginatedPackets;
 import com.luvbrite.model.SinglePacketDTO;
 import com.luvbrite.repository.IPacketRepository;
 
@@ -21,18 +21,18 @@ public class PacketServiceImpl implements IPacketService{
 	@Autowired
 	private IPacketRepository iPacketRepository;
 	@Autowired
-	private Tracker tracker; 
-	
+	private Tracker tracker;
+
 	@Override
 	public int createSinglePacket(SinglePacketDTO singlePacket) {
 		try {
-			
+
 			return iPacketRepository.createSinglePkt(singlePacket);
 			
 			//TODO:Integrate Master Service
 		} catch (Exception e) {
 			log.error("Message is {} and exception is {}",e.getMessage(),e);
-			return -1;				
+			return -1;
 		}
 	}
 
@@ -62,6 +62,7 @@ public class PacketServiceImpl implements IPacketService{
 
 
 
+	@Override
 	public int updatePktById(Integer id, SinglePacketDTO singlePacket) {
 		try {
 			return iPacketRepository.updatePktById(id,singlePacket);
@@ -125,6 +126,16 @@ public class PacketServiceImpl implements IPacketService{
 			log.error("Message is {} and exception is {}",e.getMessage(),e);
 			return -1;
 		}
-		
+
 	}
+
+
+
+	@Override
+	public boolean checkIfValidBarcode(String packetCode , Integer shopID) {
+		return iPacketRepository.checkIfValidBarcode( packetCode, shopID);
+	}
+
+
+
 }

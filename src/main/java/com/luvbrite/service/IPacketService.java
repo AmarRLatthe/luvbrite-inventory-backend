@@ -1,8 +1,7 @@
 package com.luvbrite.service;
 
-import com.luvbrite.model.PaginatedPackets;
-
 import com.luvbrite.model.BulkPacketsCreation;
+import com.luvbrite.model.PaginatedPackets;
 import com.luvbrite.model.SinglePacketDTO;
 
 public interface IPacketService {
@@ -21,5 +20,7 @@ public interface IPacketService {
 	boolean isAvailPacketBySKU(String sku);
 
 	int deletePktById(Integer id);
+
+	boolean checkIfValidBarcode(String packetCode , Integer shopID);
 
 }

@@ -28,8 +28,16 @@ public interface IPacketRepository {
 
 	public int updateAmountNSaleDateNSaleIdForPacketCode(double amount ,String packetCode,String saleDate,int saleId,int shopId);
 
-	boolean checkIfPacketIsReturned(String packetCode,Integer shopId);
 
+
+
+	public boolean checkIfValidBarcode(String packetCode, Integer shopId);
+
+
+	public int returnPacket(String packetCode , String reason, Integer shopId) throws Exception;
+
+
+	long getPacketIdIfNotReturned(String packetCode, Integer shopId) throws Exception;
 
 
 

@@ -13,6 +13,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.luvbrite.exception.customexception.InvalidBarcodeException;
 import com.luvbrite.jdbcutils.PacketExtDTOMapper;
 import com.luvbrite.model.BarcodeSequenceDTO;
 import com.luvbrite.model.BulkPacketsCreation;
@@ -26,17 +27,13 @@ import com.luvbrite.model.SinglePacketDTO;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-
-
 @Repository
 @NoArgsConstructor
 @Slf4j
-public class PacketRepositoryImpl implements IPacketRepository{
+public class PacketRepositoryImpl implements IPacketRepository {
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
-
-
 
 	private Pagination pg;
 	private int itemsPerPage = 15;
@@ -52,8 +49,6 @@ public class PacketRepositoryImpl implements IPacketRepository{
 		PaginationLogic pgl = null;
 
 		try {
-
-
 
 			if (allPackets) {
 				itemsPerPage = 999; /* Setting high value to avoid pagination */
@@ -186,16 +181,12 @@ public class PacketRepositoryImpl implements IPacketRepository{
 			}
 
 			StringBuffer countString = new StringBuffer();
-			countString
-			.append("SELECT COUNT(*) ")
-			.append("FROM packet_inventory pi ")
+			countString.append("SELECT COUNT(*) ").append("FROM packet_inventory pi ")
 			.append("JOIN purchase_inventory pur ON pi.purchase_id = pur.id ")
-			.append("JOIN products p ON p.id = pur.product_id ")
-			.append("JOIN shops sp ON sp.id = pi.shop_id ")
+			.append("JOIN products p ON p.id = pur.product_id ").append("JOIN shops sp ON sp.id = pi.shop_id ")
 			.append(qWHERE);
 
-
-			System.out.println("PacketList query "+countString.toString());
+			System.out.println("PacketList query " + countString.toString());
 			int totalCount = jdbcTemplate.queryForObject(countString.toString(), Integer.class);
 
 			System.out.println("ListPackets - " + totalCount);
@@ -210,20 +201,14 @@ public class PacketRepositoryImpl implements IPacketRepository{
 			}
 
 			StringBuffer query = new StringBuffer();
-			query.append("SELECT pi.*, ")
-			.append("TO_CHAR(pi.date_added, 'MM/dd/yyyy') AS add_date, TO_CHAR(pi.date_sold, 'MM/dd/yyyy') AS sold_date, ")
-			.append("p.id AS product_id, p.product_name, ")
-			.append("sp.shop_name, ")
-			.append("COALESCE(rd.reason,'') AS return_reason ")
-			.append("FROM packet_inventory pi ")
+			query.append("SELECT pi.*, ").append(
+					"TO_CHAR(pi.date_added, 'MM/dd/yyyy') AS add_date, TO_CHAR(pi.date_sold, 'MM/dd/yyyy') AS sold_date, ")
+			.append("p.id AS product_id, p.product_name, ").append("sp.shop_name, ")
+			.append("COALESCE(rd.reason,'') AS return_reason ").append("FROM packet_inventory pi ")
 			.append("JOIN purchase_inventory pur ON pi.purchase_id = pur.id ")
-			.append("JOIN products p ON p.id = pur.product_id ")
-			.append("JOIN shops sp ON sp.id = pi.shop_id ")
-			.append("LEFT JOIN returns_detail rd ON rd.id = pi.returns_detail_id ")
-			.append(qWHERE)
-			.append(qORDERBY)
-			.append(qLIMIT)
-			.append(qOFFSET);
+			.append("JOIN products p ON p.id = pur.product_id ").append("JOIN shops sp ON sp.id = pi.shop_id ")
+			.append("LEFT JOIN returns_detail rd ON rd.id = pi.returns_detail_id ").append(qWHERE)
+			.append(qORDERBY).append(qLIMIT).append(qOFFSET);
 
 			// System.out.println("ListPackets " + queryString);
 			packetList = jdbcTemplate.query(query.toString(), new PacketExtDTOMapper());
@@ -237,8 +222,8 @@ public class PacketRepositoryImpl implements IPacketRepository{
 		return new PaginatedPackets(pg, packetList);
 	}
 
-	//	@Autowired
-	//	private MasterInventoryService inventoryService;
+	// @Autowired
+	// private MasterInventoryService inventoryService;
 
 	@Transactional
 	@Override
@@ -248,24 +233,22 @@ public class PacketRepositoryImpl implements IPacketRepository{
 			qry.append(" INSERT INTO  ")
 			.append(" packet_inventory ( purchase_id, packet_code, weight_in_grams, marked_price ,shop_id)  ")
 			.append(" VALUES (?,?,?,?,?) RETURNING id");
-			Integer pktId =  jdbcTemplate.queryForObject(qry.toString(), new Object[] {
-					singlePacket.getPurchaseId(),
-					singlePacket.getSku(),
-					singlePacket.getWeight(),
-					singlePacket.getPrice(),
-					singlePacket.getShopId()
-			},
+			Integer pktId = jdbcTemplate.queryForObject(
+					qry.toString(), new Object[] { singlePacket.getPurchaseId(), singlePacket.getSku(),
+							singlePacket.getWeight(), singlePacket.getPrice(), singlePacket.getShopId() },
 					Integer.class);
-			if((pktId!=null) && (pktId>0)) {
-				//				update =updateTrackerDetails(singlePacket.getOperatorId(),pktId,"insert","packet","New packet with id:" + pktId + ": created");
-				//				if(update>0) {
-				//					int prodId = getProdIdByPurchaseId(singlePacket.getPurchaseId());
-				//				}
-				//				 inventoryService.
+			if ((pktId != null) && (pktId > 0)) {
+				// update
+				// =updateTrackerDetails(singlePacket.getOperatorId(),pktId,"insert","packet","New
+				// packet with id:" + pktId + ": created");
+				// if(update>0) {
+				// int prodId = getProdIdByPurchaseId(singlePacket.getPurchaseId());
+				// }
+				// inventoryService.
 			}
 			return pktId;
 		} catch (Exception e) {
-			log.error("Message is {} and Exception exception is {}",e.getMessage(),e);
+			log.error("Message is {} and Exception exception is {}", e.getMessage(), e);
 			return -1;
 		}
 
@@ -276,17 +259,13 @@ public class PacketRepositoryImpl implements IPacketRepository{
 	public int updatePktById(Integer id, SinglePacketDTO singlePacket) {
 		try {
 			StringBuilder qry = new StringBuilder();
-			qry.append(" UPDATE packet_inventory  ")
-			.append(" SET ")
-			.append(" packet_code=?, ")
-			.append(" weight_in_grams=?, ")
-			.append(" marked_price=?  ")
-			.append(" WHERE ")
-			.append("  id=? ");
+			qry.append(" UPDATE packet_inventory  ").append(" SET ").append(" packet_code=?, ")
+			.append(" weight_in_grams=?, ").append(" marked_price=?  ").append(" WHERE ").append("  id=? ");
 
-			return jdbcTemplate.update(qry.toString(),singlePacket.getSku(),singlePacket.getWeight(),singlePacket.getPrice(),id);
+			return jdbcTemplate.update(qry.toString(), singlePacket.getSku(), singlePacket.getWeight(),
+					singlePacket.getPrice(), id);
 		} catch (Exception e) {
-			log.error("Message is {} and Exception is {}",e.getMessage(),e);
+			log.error("Message is {} and Exception is {}", e.getMessage(), e);
 			return -1;
 		}
 
@@ -298,11 +277,11 @@ public class PacketRepositoryImpl implements IPacketRepository{
 		try {
 			BarcodeSequenceDTO barcodeSequenceDTO = getBarcodeInfo();
 			long nextVal = createBulkPktsNRtrnNxtVl(barcodeSequenceDTO, packets);
-			int updateNextVal = updateBarcodeNextValueById(barcodeSequenceDTO.getId() , nextVal);
+			int updateNextVal = updateBarcodeNextValueById(barcodeSequenceDTO.getId(), nextVal);
 
 			return updateNextVal;
 		} catch (Exception e) {
-			log.error("Message is {} and exception is {}",e.getMessage(),e);
+			log.error("Message is {} and exception is {}", e.getMessage(), e);
 			return -1;
 		}
 
@@ -310,26 +289,24 @@ public class PacketRepositoryImpl implements IPacketRepository{
 
 	private int updateBarcodeNextValueById(Integer id, long nextVal) {
 
-		return jdbcTemplate.update("UPDATE barcode_sequence SET next_val = ? WHERE id = ?",nextVal,id);
+		return jdbcTemplate.update("UPDATE barcode_sequence SET next_val = ? WHERE id = ?", nextVal, id);
 	}
 
 	private long createBulkPktsNRtrnNxtVl(BarcodeSequenceDTO barcodeSequenceDTO, BulkPacketsCreation packets) {
 		StringBuilder createPktQry = new StringBuilder();
-		createPktQry.append(" INSERT INTO ")
-		.append(" packet_inventory ")
-		.append(" (purchase_id, packet_code, weight_in_grams, marked_price, shop_id) ")
-		.append(" VALUES ")
+		createPktQry.append(" INSERT INTO ").append(" packet_inventory ")
+		.append(" (purchase_id, packet_code, weight_in_grams, marked_price, shop_id) ").append(" VALUES ")
 		.append(" (?,?,?,?, ?)  ");
-		jdbcTemplate.batchUpdate(createPktQry.toString(),
-				new BatchPreparedStatementSetter() {
+		jdbcTemplate.batchUpdate(createPktQry.toString(), new BatchPreparedStatementSetter() {
 			Long skuNum = barcodeSequenceDTO.getNextVal();
 			String prefix = barcodeSequenceDTO.getPrefix();
+
 			@Override
 			public void setValues(PreparedStatement ps, int i) throws SQLException {
 				ps.setInt(1, packets.getPurchaseId());
-				ps.setString(2, prefix+skuNum.toString());
-				ps.setDouble(3,packets.getWeight());
-				ps.setDouble(4,packets.getPrice());
+				ps.setString(2, prefix + skuNum.toString());
+				ps.setDouble(3, packets.getWeight());
+				ps.setDouble(4, packets.getPrice());
 				ps.setInt(5, packets.getShopId());
 				skuNum++;
 				barcodeSequenceDTO.setNextVal(skuNum);
@@ -345,33 +322,32 @@ public class PacketRepositoryImpl implements IPacketRepository{
 	}
 
 	private BarcodeSequenceDTO getBarcodeInfo() {
-		return  jdbcTemplate.queryForObject("SELECT barcode_prefix, id, next_val FROM barcode_sequence WHERE avery_template = ?", new Object[] {"dymo30346"},new RowMapper<BarcodeSequenceDTO>() {
+		return jdbcTemplate.queryForObject(
+				"SELECT barcode_prefix, id, next_val FROM barcode_sequence WHERE avery_template = ?",
+				new Object[] { "dymo30346" }, new RowMapper<BarcodeSequenceDTO>() {
 
-			@Override
-			public BarcodeSequenceDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
-				BarcodeSequenceDTO  dto = new BarcodeSequenceDTO();
-				dto.setId(rs.getInt("id"));
-				dto.setNextVal(rs.getLong("next_val"));
-				dto.setPrefix(rs.getString("barcode_prefix"));
+					@Override
+					public BarcodeSequenceDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
+						BarcodeSequenceDTO dto = new BarcodeSequenceDTO();
+						dto.setId(rs.getInt("id"));
+						dto.setNextVal(rs.getLong("next_val"));
+						dto.setPrefix(rs.getString("barcode_prefix"));
 
-				return dto;
-			}
-		});
+						return dto;
+					}
+				});
 	}
 
 	@Override
 	public int updatePktsByPriceNWeightNPurchaseId(Double price, Double weight, Integer purchaseId) {
 		try {
 			StringBuilder qry = new StringBuilder();
-			qry.append(" UPDATE packet_inventory ")
-			.append(" SET marked_price=? ")
-			.append(" WHERE purchase_id=? ")
-			.append(" AND weight_in_grams=? ")
-			.append(" AND sales_id = 0 ");
+			qry.append(" UPDATE packet_inventory ").append(" SET marked_price=? ").append(" WHERE purchase_id=? ")
+			.append(" AND weight_in_grams=? ").append(" AND sales_id = 0 ");
 
-			return jdbcTemplate.update(qry.toString(), price,purchaseId,weight);
+			return jdbcTemplate.update(qry.toString(), price, purchaseId, weight);
 		} catch (Exception e) {
-			log.error("Message is {} and Exception is {}",e.getMessage(),e);
+			log.error("Message is {} and Exception is {}", e.getMessage(), e);
 			return -1;
 		}
 
@@ -380,58 +356,47 @@ public class PacketRepositoryImpl implements IPacketRepository{
 	@Override
 	public boolean isAvailPacketBySKU(String sku) {
 		try {
-			int count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM packet_inventory WHERE packet_code= ?",Integer.class,sku);
-			if(count>0) {
+			int count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM packet_inventory WHERE packet_code= ?",
+					Integer.class, sku);
+			if (count > 0) {
 				return true;
 			}
 			return false;
 		} catch (Exception e) {
-			log.error("Message is {} and Exception is {}",e.getMessage(),e);
+			log.error("Message is {} and Exception is {}", e.getMessage(), e);
 			return false;
 		}
 
 	}
-
 
 	@Transactional
 	@Override
 	public int deletePktById(Integer id) {
 		try {
 			StringBuilder qry = new StringBuilder();
-			qry.append(" DELETE ")
-			.append(" FROM ")
-			.append(" packet_inventory ")
-			.append(" WHERE ")
-			.append(" id = ? ");
+			qry.append(" DELETE ").append(" FROM ").append(" packet_inventory ").append(" WHERE ").append(" id = ? ");
 
-
-			return jdbcTemplate.update(qry.toString(),id);
+			return jdbcTemplate.update(qry.toString(), id);
 		} catch (Exception e) {
-			log.error("Message is {} and Exception is {}",e.getMessage(),e);
+			log.error("Message is {} and Exception is {}", e.getMessage(), e);
 			return -1;
 		}
 	}
 
-
-
 	@Override
-	public int updateSaleDateNSalesIdForPacketCode(String packetCode,String saleDate,int saleId,int shopId) {
+	public int updateSaleDateNSalesIdForPacketCode(String packetCode, String saleDate, int saleId, int shopId) {
 
 		StringBuffer updatePacketCodeSaleDateAndSaleId = new StringBuffer();
 
-		updatePacketCodeSaleDateAndSaleId
-		.append("UPDATE packet_inventory ")
+		updatePacketCodeSaleDateAndSaleId.append("UPDATE packet_inventory ")
 		.append("SET date_sold=to_timestamp(?,'MM/dd/yyyy HH:MI AM'), ")
-		.append("sales_id = ?, selling_price = marked_price ")
-		.append(" WHERE packet_code = ?")
-		.append(" AND shop_id = ?")
-		.append(" RETURNING id");
+		.append("sales_id = ?, selling_price = marked_price ").append(" WHERE packet_code = ?")
+		.append(" AND shop_id = ?").append(" RETURNING id");
 
-		int packetId = 	jdbcTemplate.queryForObject(updatePacketCodeSaleDateAndSaleId.toString(),
-				new Object[] {saleDate,saleId,packetCode,shopId},
-				Integer.class);
+		int packetId = jdbcTemplate.queryForObject(updatePacketCodeSaleDateAndSaleId.toString(),
+				new Object[] { saleDate, saleId, packetCode, shopId }, Integer.class);
 
-		if(packetId==0) {
+		if (packetId == 0) {
 			log.error("Could not update packetCode ,saleDate , salesId and ShopId for packetCode {}", packetCode);
 		}
 
@@ -440,48 +405,42 @@ public class PacketRepositoryImpl implements IPacketRepository{
 	}
 
 	@Override
-	public int updateAmountNSaleDateNSaleIdForPacketCode(double amount ,String packetCode,String saleDate,int saleId,int shopId) {
-
+	public int updateAmountNSaleDateNSaleIdForPacketCode(double amount, String packetCode, String saleDate, int saleId,
+			int shopId) {
 
 		StringBuffer updatePacketCodeSaleDateAndSaleId = new StringBuffer();
 
-		updatePacketCodeSaleDateAndSaleId
-		.append("UPDATE packet_inventory ")
-		.append("SET date_sold=to_timestamp(?,'MM/dd/yyyy HH:MI AM'), ")
-		.append("sales_id = ?,")
-		.append("selling_price = ? ")
-		.append(" WHERE packet_code = ?")
-		.append(" AND shop_id = ?")
+		updatePacketCodeSaleDateAndSaleId.append("UPDATE packet_inventory ")
+		.append("SET date_sold=to_timestamp(?,'MM/dd/yyyy HH:MI AM'), ").append("sales_id = ?,")
+		.append("selling_price = ? ").append(" WHERE packet_code = ?").append(" AND shop_id = ?")
 		.append(" RETURNING id");
 
+		Integer packetId = jdbcTemplate.queryForObject(updatePacketCodeSaleDateAndSaleId.toString(),
+				new Object[] { saleDate, saleId, amount, packetCode, shopId }, Integer.class);
 
-		Integer packetId = 	jdbcTemplate.queryForObject(updatePacketCodeSaleDateAndSaleId.toString(), new Object[] {saleDate,saleId,amount,packetCode,shopId},Integer.class);
-
-
-
-		if(packetId==0) {
+		if (packetId == 0) {
 			log.error("Could not update packetCode ,saleDate , salesId and ShopId for packetCode {}", packetCode);
 		}
 
 		return packetId;
 
-
 	}
 
 	@Override
-	public boolean checkIfPacketIsReturned(String packetCode, Integer shopId) {
+	public long getPacketIdIfNotReturned(String packetCode, Integer shopId) throws Exception {
 
 		StringBuffer checkIfPacketIsReturnedQuery = new StringBuffer();
-		checkIfPacketIsReturnedQuery.append("SELECT id, returns_detail_id FROM packet_inventory WHERE packet_code = ? AND shop_id = ?");
+		checkIfPacketIsReturnedQuery
+		.append("SELECT id, returns_detail_id FROM packet_inventory WHERE packet_code = ? AND shop_id = ?");
 
 		PacketInventoryDTO packet = null;
 
 		packet = jdbcTemplate.queryForObject(checkIfPacketIsReturnedQuery.toString(),
-				new Object[] {},new RowMapper<PacketInventoryDTO>() {
+				new Object[] { packetCode, shopId }, new RowMapper<PacketInventoryDTO>() {
 
 			@Override
 			public PacketInventoryDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
-				PacketInventoryDTO  dto = new PacketInventoryDTO();
+				PacketInventoryDTO dto = new PacketInventoryDTO();
 
 				dto.setId(rs.getInt("id"));
 				dto.setReturnDetailsId(rs.getInt("returns_detail_id"));
@@ -491,12 +450,74 @@ public class PacketRepositoryImpl implements IPacketRepository{
 
 		});
 
+		if (packet == null) {
 
-		if(packet==null) {
-			log.info("packetCode {} is not marked as returned",packetCode);
-			return false;
+			log.error("Not a valid barcode ", packetCode);
+			throw new InvalidBarcodeException(packetCode + " is invalid barcode");
+
+		} else if (packet.getReturnDetailsId() != 0) {
+			log.info("This packet is already marked as returned!");
+			return 0l;
+		} else {
+			log.info("This packet is NOT marked as returned! packet : {}", packetCode);
+			return packet.getId();
 		}
-		return true;
 
 	}
+
+	@Override
+	public boolean checkIfValidBarcode(String packetCode, Integer shopId) {
+
+		StringBuffer isValidBarcodeQuery = new StringBuffer(
+				"SELECT id from packet_inventory WHERE packet_code = ? AND shop_id = ?");
+
+		Integer id = jdbcTemplate.queryForObject(isValidBarcodeQuery.toString(), new Object[] { packetCode, shopId },
+				Integer.class);
+
+		if ((id == 0) || (id == null)) {
+			log.info("Not a valid barcode : " + packetCode);
+			return false;
+		}
+
+		log.info("is valid barcode " + packetCode);
+
+		return true;
+	}
+
+	@Override
+	public int returnPacket(String packetCode, String reason, Integer shopId) throws Exception {
+
+		long packetId = 0l;
+
+		packetId = getPacketIdIfNotReturned(packetCode, shopId);
+
+		if (packetId == 0) {
+			log.info("Packet Already returned");
+			return 0;
+		}
+
+		StringBuffer returnPacketQry = new StringBuffer();
+
+		returnPacketQry.append("WITH rd AS (")
+		.append("INSERT INTO returns_detail(reason,shop_id) ")
+		.append("VALUES (?,?) ")
+		.append("RETURNING id")
+		.append(") ")
+		.append("UPDATE packet_inventory pi ")
+		.append("SET returns_detail_id = (SELECT id FROM rd) WHERE pi.id = ? AND shop_id = ? ");
+
+		int updatedRows = jdbcTemplate.update(returnPacketQry.toString(), reason,shopId, packetCode, packetId,shopId);
+
+		if (updatedRows == 0) {
+			log.error("Packet could not be added as returned ");
+
+			return -1;
+		}
+
+		log.info("PacketCode {} marked as returned", packetCode);
+
+		return 1;
+
+	}
+
 }
