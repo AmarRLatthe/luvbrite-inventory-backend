@@ -21,6 +21,7 @@ import com.luvbrite.model.CommonSalesProfitDTO;
 import com.luvbrite.model.CustomerDrillDownDTO;
 import com.luvbrite.model.CustomerStatDrillDownDTO;
 import com.luvbrite.model.CustomerStatsDTO;
+import com.luvbrite.model.DispatchSalesExtDTO;
 import com.luvbrite.model.DriverStatDTO;
 import com.luvbrite.model.GetDailySalesDTO;
 import com.luvbrite.model.OrderBreakDownDTO;
@@ -1135,6 +1136,48 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
 		} catch (Exception e) {
 			log.info("Exception while getting daily sales stats ::::: {} ", e.getMessage());
 		}
+		return null;
+	}
+
+	@Override
+	public List<DispatchSalesExtDTO> getListDispatches(String startDate, String endDate) {
+		String cquery_where = "";
+        List<DispatchSalesExtDTO> result = new ArrayList<DispatchSalesExtDTO>();
+        
+        try {
+        	if (startDate.equals("")) {
+                SimpleDateFormat sd = new SimpleDateFormat("MM/dd/yyyy");
+                startDate = sd.format(Calendar.getInstance().getTime());
+            }
+
+            if (endDate.trim().equals("")) {
+                cquery_where = " >= to_date('" + startDate + "', 'MM/dd/YYYY')";
+            } else {
+                cquery_where = " >= to_date('" + startDate + "', 'MM/dd/YYYY') "
+                        + "AND  date_finished < to_date('" + endDate + "', 'MM/dd/YYYY') + interval '1 day'";
+
+            }
+            StringBuilder listDispatchQuery = new StringBuilder();
+            listDispatchQuery.append("SELECT id, dist_in_miles, lat, lng FROM dispatch_sales_info WHERE lat <> 0 ")
+            .append("AND lng <> 0 AND date_finished ").append(cquery_where).append("ORDER BY date_finished DESC ")
+            .append("LIMIT 500");
+            log.info("Executing query for dispatch sales info, query is {} ", listDispatchQuery.toString());
+            
+            result = jdbcTemplate.query(listDispatchQuery.toString(), new RowMapper<DispatchSalesExtDTO>() {
+				@Override
+				public DispatchSalesExtDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
+					DispatchSalesExtDTO ds = new DispatchSalesExtDTO();
+	                ds.setId(rs.getInt(1));
+	                ds.setDistInMiles(rs.getDouble(2));
+	                ds.setLat(rs.getDouble(3));
+	                ds.setLng(rs.getDouble(4));
+					return ds;
+				}
+			});
+            return result;
+        } catch(Exception e) {
+        	log.info("Exception while getting dispatch sales info ::::::::: {} ", e.getMessage());
+        }
 		return null;
 	}
 }
