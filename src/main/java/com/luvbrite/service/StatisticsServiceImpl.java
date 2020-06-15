@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.luvbrite.model.CustomerDrillDownDTO;
+import com.luvbrite.model.DispatchSalesExtDTO;
 import com.luvbrite.model.OrderBreakDownDTO;
 import com.luvbrite.model.SalesProfitDataExtDTO;
 import com.luvbrite.model.googlechart.DataTable;
@@ -56,5 +57,10 @@ public class StatisticsServiceImpl implements IStatisticsService {
 	@Override
 	public DataTable getDailySalesStat() {
 		return iStatisticsRepository.getDailySalesStats();
+	}
+
+	@Override
+	public List<DispatchSalesExtDTO> getDispatchSalesInfo(String startDate, String endDate) {
+		return iStatisticsRepository.getListDispatches(startDate, endDate);
 	}
 }

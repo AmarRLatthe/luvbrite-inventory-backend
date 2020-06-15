@@ -3,6 +3,7 @@ package com.luvbrite.repository;
 import java.util.List;
 
 import com.luvbrite.model.CustomerDrillDownDTO;
+import com.luvbrite.model.DispatchSalesExtDTO;
 import com.luvbrite.model.OrderBreakDownDTO;
 import com.luvbrite.model.SalesProfitDataExtDTO;
 import com.luvbrite.model.googlechart.DataTable;
@@ -26,4 +27,7 @@ public interface IStatisticsRepository {
 	public List<CustomerDrillDownDTO> getCustomerDrillDownStat(String startDate, String endDate);
 	
 	public DataTable getDailySalesStats();
+	
+	public List<DispatchSalesExtDTO> getListDispatches(String startDate, String endDate);
+	
 }

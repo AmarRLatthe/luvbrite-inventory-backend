@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.luvbrite.commonresponse.CommonResponse;
 import com.luvbrite.model.CustomerDrillDownDTO;
+import com.luvbrite.model.DispatchSalesExtDTO;
 import com.luvbrite.model.OrderBreakDownDTO;
 import com.luvbrite.model.SalesProfitDataExtDTO;
 import com.luvbrite.model.UserDetails;
@@ -289,6 +290,41 @@ public class StatisticsController {
 					response.setCode(200);
 					response.setStatus("SUCCESS");
 					response.setData(dataTable);
+					return new ResponseEntity<>(response, HttpStatus.OK);
+				}
+				response.setCode(400);
+				response.setStatus("Bad Request");
+				response.setMessage("something went wrong.please try again later");
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}
+			response.setCode(401);
+			response.setStatus("Unauthorized");
+			response.setMessage("Please try to login and try again");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (Exception e) {
+			log.error("Message is {} and Exception is {}" + e.getMessage(), e);
+			response.setCode(500);
+			response.setMessage("Daily sales stats not able to get. please try again later.");
+			response.setStatus("SERVER ERROR");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		}
+	}
+	
+	@GetMapping(value = "/plotsalesmap")
+	public ResponseEntity<CommonResponse> getPlotSalesMap(@RequestParam String startDate,
+			@RequestParam String endDate, Authentication authentication) {
+		
+		CommonResponse response = new CommonResponse();
+		
+		try {
+			UserDetails userDetails = iUserService.getByUsername(authentication.getName());
+			if (userDetails != null) {
+				List<DispatchSalesExtDTO> list =  new ArrayList<>();
+				list = iStatisticsService.getDispatchSalesInfo(startDate, endDate);
+				if ((list != null) && !list.isEmpty()) {
+					response.setCode(200);
+					response.setStatus("SUCCESS");
+					response.setData(list);
 					return new ResponseEntity<>(response, HttpStatus.OK);
 				}
 				response.setCode(400);
