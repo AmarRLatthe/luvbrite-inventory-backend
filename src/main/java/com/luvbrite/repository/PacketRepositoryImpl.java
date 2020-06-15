@@ -165,9 +165,7 @@ public class PacketRepositoryImpl implements IPacketRepository {
 					} else {
 						qWHERE += " AND  pi.sales_id = 0 AND packet_code ~* '.*" + packetCode + ".*' ";
 					}
-				}
-
-				else {
+				} else {
 					if (qWHERE.equals("")) {
 						qWHERE = " WHERE packet_code ~* '.*" + packetCode + ".*' ";
 					} else {
@@ -201,8 +199,7 @@ public class PacketRepositoryImpl implements IPacketRepository {
 			}
 
 			StringBuffer query = new StringBuffer();
-			query.append("SELECT pi.*, ").append(
-					"TO_CHAR(pi.date_added, 'MM/dd/yyyy') AS add_date, TO_CHAR(pi.date_sold, 'MM/dd/yyyy') AS sold_date, ")
+			query.append("SELECT pi.*, ").append("TO_CHAR(pi.date_added, 'MM/dd/yyyy') AS add_date, TO_CHAR(pi.date_sold, 'MM/dd/yyyy') AS sold_date, ")
 			.append("p.id AS product_id, p.product_name, ").append("sp.shop_name, ")
 			.append("COALESCE(rd.reason,'') AS return_reason ").append("FROM packet_inventory pi ")
 			.append("JOIN purchase_inventory pur ON pi.purchase_id = pur.id ")
@@ -234,8 +231,8 @@ public class PacketRepositoryImpl implements IPacketRepository {
 			.append(" packet_inventory ( purchase_id, packet_code, weight_in_grams, marked_price ,shop_id)  ")
 			.append(" VALUES (?,?,?,?,?) RETURNING id");
 			Integer pktId = jdbcTemplate.queryForObject(
-					qry.toString(), new Object[] { singlePacket.getPurchaseId(), singlePacket.getSku(),
-							singlePacket.getWeight(), singlePacket.getPrice(), singlePacket.getShopId() },
+					qry.toString(), new Object[]{singlePacket.getPurchaseId(), singlePacket.getSku(),
+							singlePacket.getWeight(), singlePacket.getPrice(), singlePacket.getShopId()},
 					Integer.class);
 			if ((pktId != null) && (pktId > 0)) {
 				// update
@@ -324,7 +321,7 @@ public class PacketRepositoryImpl implements IPacketRepository {
 	private BarcodeSequenceDTO getBarcodeInfo() {
 		return jdbcTemplate.queryForObject(
 				"SELECT barcode_prefix, id, next_val FROM barcode_sequence WHERE avery_template = ?",
-				new Object[] { "dymo30346" }, new RowMapper<BarcodeSequenceDTO>() {
+				new Object[]{"dymo30346"}, new RowMapper<BarcodeSequenceDTO>() {
 
 					@Override
 					public BarcodeSequenceDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -394,7 +391,7 @@ public class PacketRepositoryImpl implements IPacketRepository {
 		.append(" AND shop_id = ?").append(" RETURNING id");
 
 		int packetId = jdbcTemplate.queryForObject(updatePacketCodeSaleDateAndSaleId.toString(),
-				new Object[] { saleDate, saleId, packetCode, shopId }, Integer.class);
+				new Object[]{saleDate, saleId, packetCode, shopId}, Integer.class);
 
 		if (packetId == 0) {
 			log.error("Could not update packetCode ,saleDate , salesId and ShopId for packetCode {}", packetCode);
@@ -416,7 +413,7 @@ public class PacketRepositoryImpl implements IPacketRepository {
 		.append(" RETURNING id");
 
 		Integer packetId = jdbcTemplate.queryForObject(updatePacketCodeSaleDateAndSaleId.toString(),
-				new Object[] { saleDate, saleId, amount, packetCode, shopId }, Integer.class);
+				new Object[]{saleDate, saleId, amount, packetCode, shopId}, Integer.class);
 
 		if (packetId == 0) {
 			log.error("Could not update packetCode ,saleDate , salesId and ShopId for packetCode {}", packetCode);
@@ -436,7 +433,7 @@ public class PacketRepositoryImpl implements IPacketRepository {
 		PacketInventoryDTO packet = null;
 
 		packet = jdbcTemplate.queryForObject(checkIfPacketIsReturnedQuery.toString(),
-				new Object[] { packetCode, shopId }, new RowMapper<PacketInventoryDTO>() {
+				new Object[]{packetCode, shopId}, new RowMapper<PacketInventoryDTO>() {
 
 			@Override
 			public PacketInventoryDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -446,7 +443,9 @@ public class PacketRepositoryImpl implements IPacketRepository {
 				dto.setReturnDetailsId(rs.getInt("returns_detail_id"));
 
 				return dto;
-			};
+			}
+
+			;
 
 		});
 
@@ -471,7 +470,7 @@ public class PacketRepositoryImpl implements IPacketRepository {
 		StringBuffer isValidBarcodeQuery = new StringBuffer(
 				"SELECT id from packet_inventory WHERE packet_code = ? AND shop_id = ?");
 
-		Integer id = jdbcTemplate.queryForObject(isValidBarcodeQuery.toString(), new Object[] { packetCode, shopId },
+		Integer id = jdbcTemplate.queryForObject(isValidBarcodeQuery.toString(), new Object[]{packetCode, shopId},
 				Integer.class);
 
 		if ((id == 0) || (id == null)) {
@@ -506,7 +505,7 @@ public class PacketRepositoryImpl implements IPacketRepository {
 		.append("UPDATE packet_inventory pi ")
 		.append("SET returns_detail_id = (SELECT id FROM rd) WHERE pi.id = ? AND shop_id = ? ");
 
-		int updatedRows = jdbcTemplate.update(returnPacketQry.toString(), reason,shopId, packetCode, packetId,shopId);
+		int updatedRows = jdbcTemplate.update(returnPacketQry.toString(), new Object[] {reason, shopId,  packetId, shopId});
 
 		if (updatedRows == 0) {
 			log.error("Packet could not be added as returned ");
@@ -519,5 +518,6 @@ public class PacketRepositoryImpl implements IPacketRepository {
 		return 1;
 
 	}
+
 
 }
