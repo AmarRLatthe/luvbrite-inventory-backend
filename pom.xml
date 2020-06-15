@@ -134,11 +134,11 @@
 
 	<build>
 		<plugins>
-			<!-- <plugin>
+			 <plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
-			<plugin>
+			<!-- <plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>sonar-maven-plugin</artifactId>
 				<executions>
