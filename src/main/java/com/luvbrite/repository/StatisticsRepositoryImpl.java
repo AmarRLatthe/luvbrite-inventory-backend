@@ -1160,7 +1160,7 @@ public class StatisticsRepositoryImpl implements IStatisticsRepository {
             StringBuilder listDispatchQuery = new StringBuilder();
             listDispatchQuery.append("SELECT id, dist_in_miles, lat, lng FROM dispatch_sales_info WHERE lat <> 0 ")
             .append("AND lng <> 0 AND date_finished ").append(cquery_where).append("ORDER BY date_finished DESC ")
-            .append("LIMIT 500");
+            .append("LIMIT 1000");
             log.info("Executing query for dispatch sales info, query is {} ", listDispatchQuery.toString());
             
             result = jdbcTemplate.query(listDispatchQuery.toString(), new RowMapper<DispatchSalesExtDTO>() {
