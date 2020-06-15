@@ -80,19 +80,20 @@ public class IReturnsRepositoryImpl implements IReturnsRepository {
 
         StringBuffer listReturnsQry = new StringBuffer();
         listReturnsQry.append("SELECT COUNT(*) ")
-                .append("FROM returns_detail")
+                .append("FROM returns_detail ")
                 .append("WHERE shop_id = ?");
 
-        Integer totalReturnsForShop = jdbcTemplate.queryForObject(listReturnsQry.toString(), new Object[shopId], Integer.class);
+        Integer totalReturnsForShop = jdbcTemplate.queryForObject(listReturnsQry.toString(), new Object[]{shopId}, Integer.class);
 
-        //System.out.println("ListReturns - " + countString);
+        log.info("totalReturns - " + totalReturnsForShop);
         if (totalReturnsForShop > 0) {
             pgl = new PaginationLogic(totalReturnsForShop, itemsPerPage, currentPage);
+             log.info("Inside if statement");
         }
-
 
         pg = pgl.getPg();
         offset = pg.getOffset();
+
         if (offset > 0) {
             qOFFSET = " OFFSET " + offset;
         }
@@ -106,12 +107,13 @@ public class IReturnsRepositoryImpl implements IReturnsRepository {
                 .append("JOIN purchase_inventory pur ON pi.purchase_id = pur.id ")
                 .append("JOIN products p ON p.id = pur.product_id ")
                 .append(qWHERE)
-                .append(" AND rd.shop_id = ?")
+                .append(" AND rd.shop_id = ? ")
                 .append(qORDERBY)
                 .append(qLIMIT)
                 .append(qOFFSET);
 
-        returns = jdbcTemplate.query(returnedPacketsQry.toString(), new Object[shopId], new RowMapper<ReturnsDTO>() {
+        log.info("returns packet Qry :-"+returnedPacketsQry.toString()+" ShopID : "+shopId);
+        returns = jdbcTemplate.query(returnedPacketsQry.toString(), new Object[]{shopId}, new RowMapper<ReturnsDTO>() {
             @Override
             public ReturnsDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
                 ReturnsDTO returnsDTO = new ReturnsDTO();
@@ -126,7 +128,7 @@ public class IReturnsRepositoryImpl implements IReturnsRepository {
         });
         //System.out.println("ListReturns " + queryString);
 
-
+            log.info("Returns size : "+returns.size());
         return new PaginatedReturns(pg, returns);
 
 

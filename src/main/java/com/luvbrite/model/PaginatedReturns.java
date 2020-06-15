@@ -7,7 +7,24 @@ public class PaginatedReturns {
       this.pg=pg;
       this.returnedPackets=returnedPackets;
     }
-
     private Pagination pg;
     private List<ReturnsDTO> returnedPackets;
+
+    public Pagination getPg() {
+        return pg;
+    }
+
+    public void setPg(Pagination pg) {
+        this.pg = pg;
+    }
+
+    public List<ReturnsDTO> getReturnedPackets() {
+        return returnedPackets;
+    }
+
+    public void setReturnedPackets(List<ReturnsDTO> returnedPackets) {
+        this.returnedPackets = returnedPackets;
+    }
+
+
 }

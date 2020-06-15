@@ -37,12 +37,7 @@ public class ReturnsController {
     @Autowired
     private Tracker tracker;
 
-    @GetMapping("/listreturns")
-    ResponseEntity<CommonResponse> listReturns() {
 
-        return null;
-
-    }
 
     @PostMapping("/addreturn")
     ResponseEntity<CommonResponse> addReturn(@RequestBody CancelOrderDTO cancelOrderDTO,
@@ -155,7 +150,7 @@ public class ReturnsController {
 
 
     @GetMapping("/listreturns")
-    ResponseEntity<CommonResponse> listReturns(@RequestParam(value = "capage", required = true) Integer currentPage,
+    ResponseEntity<CommonResponse> listReturns(@RequestParam(value = "cpage", required = true) Integer currentPage,
                                                Authentication authentication) throws Exception {
 
         currentPage = currentPage == null ? 0 : currentPage;
@@ -215,7 +210,7 @@ public class ReturnsController {
                 /***
                  * return -1: no valid packets found ;
                  *  return -2: maybe already deleted ;
-                 *  return -3: if packetId is 0 ;
+                 *  return -3: packetId is 0 ;
                  *  return 0:  return could not be deleted successfully;
                  *  return 1:  returns deleted successfully;
                  * */
@@ -264,10 +259,6 @@ public class ReturnsController {
 
 
                 }
-
-
-
-
 
             } catch (Exception e) {
                 log.error("Exception occured while deleting packet", e);
