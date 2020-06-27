@@ -1,0 +1,236 @@
+SELECT FINAL_SHOP_INVENTORY_DETAILS.*, COALESCE(SOLD_DETAILS.sold_pkt_price,0) AS  sold_pkt_price
+
+ FROM
+   (
+      SELECT
+         PRODUCTS.id,
+         PRODUCTS.product_name,
+         PRODUCTS.category_id,
+         FINAL_PURCHASE_DETAILS.*,
+         SUM(FINAL_PURCHASE_DETAILS.packet_count + FINAL_PURCHASE_DETAILS.adjustment_count - FINAL_PURCHASE_DETAILS.sold_pkt - FINAL_PURCHASE_DETAILS.return_pkt) AS remaining,
+         SUM(FINAL_PURCHASE_DETAILS.total_packet_count_price + FINAL_PURCHASE_DETAILS.adjustment_price - FINAL_PURCHASE_DETAILS.total_sold_pkt_price - FINAL_PURCHASE_DETAILS.total_return_pkt_price) AS remaining_price 
+      FROM
+         PRODUCTS 
+         JOIN
+            (
+               SELECT
+                  PURCHASE_PACKET_INV.*,
+                  COALESCE(ADJUSTMENT_DETAILS.adjustment_count, 0) AS adjustment_count,
+                  COALESCE(ADJUSTMENT_DETAILS.adjustment_price, 0) AS adjustment_price 
+               FROM
+                  (
+                     SELECT
+                        PURCHASE_INVENTORY_DETAILS.product_id,
+                        PURCHASE_INVENTORY_DETAILS.packet_weight_in_grams,
+                        PURCHASE_INVENTORY_DETAILS.shop_id,
+                        SUM(COALESCE(PURCHASE_INVENTORY_DETAILS.packet_count, 0)) AS packet_count,
+                        SUM(PURCHASE_INVENTORY_DETAILS.total_packet_count_price) AS total_packet_count_price,
+                        SUM(COALESCE(PURCHASE_INVENTORY_DETAILS.sold_pkt, 0)) AS sold_pkt,
+                        SUM(PURCHASE_INVENTORY_DETAILS.total_sold_pkt_price) AS total_sold_pkt_price,
+                        SUM(COALESCE(PURCHASE_INVENTORY_DETAILS.return_pkt, 0)) AS return_pkt,
+                        SUM(PURCHASE_INVENTORY_DETAILS.total_return_pkt_price) AS total_return_pkt_price 
+                     FROM
+                        (
+                           SELECT
+                              PURCHASE_INVENTORY.id,
+                              PURCHASE_INVENTORY.product_id,
+                              PURCHASE_INVENTORY.unit_price,
+                              PACKET_DETAILS.packet_weight_in_grams,
+                              SUM(PACKET_DETAILS.packet_count) AS packet_count,
+                              SUM(PACKET_DETAILS.sold_pkt) AS sold_pkt,
+                              SUM(PACKET_DETAILS.return_pkt) AS return_pkt,
+                              SUM(PURCHASE_INVENTORY.unit_price*PACKET_DETAILS.packet_count) AS total_packet_count_price,
+                              SUM(PURCHASE_INVENTORY.unit_price*PACKET_DETAILS.sold_pkt) AS total_sold_pkt_price,
+                              SUM(PURCHASE_INVENTORY.unit_price*PACKET_DETAILS.return_pkt) AS total_return_pkt_price,
+                              PACKET_DETAILS.shop_id 
+                           FROM
+                              (
+                                 SELECT
+                                    PACKET_INVENTORY.purchase_id,
+                                    PACKET_INVENTORY.weight_in_grams AS packet_weight_in_grams,
+                                    PACKET_INVENTORY.shop_id,
+                                    SUM(COALESCE(PACKET_COUNT_DETAILS.packet_count, 0)) AS packet_count,
+                                    SUM(COALESCE(SOLD_PKT_DETAILS.sold_pkt, 0)) AS sold_pkt,
+                                    SUM(COALESCE(RETURN_PKT_DETAILS.return_pkt, 0)) AS return_pkt 
+                                 FROM
+                                    PACKET_INVENTORY 
+                                    JOIN
+                                       (
+                                          SELECT
+                                             id,
+                                             weight_in_grams AS pkt_cnt_weight,
+                                             1 AS packet_count,
+                                             shop_id 
+                                          FROM
+                                             packet_inventory 
+                                       )
+                                       AS PACKET_COUNT_DETAILS 
+                                       ON PACKET_INVENTORY.id = PACKET_COUNT_DETAILS.id 
+                                       AND PACKET_INVENTORY.shop_id = PACKET_COUNT_DETAILS.shop_id 
+                                       AND PACKET_INVENTORY.weight_in_grams = PACKET_COUNT_DETAILS.pkt_cnt_weight 
+                                    FULL OUTER JOIN
+                                       (
+                                          SELECT
+                                             1 AS sold_pkt,
+                                             id,
+                                             weight_in_grams AS sold_pkt_weight,
+                                             shop_id 
+                                          FROM
+                                             packet_inventory 
+                                          WHERE
+                                             sales_id != 0 
+                                             AND returns_detail_id = 0 
+                                             AND 
+                                             (
+                                                date_sold is NULL 
+                                                OR date_sold < cmpdtformat 
+                                             )
+                                             AND purchase_id > 204026 
+                                       )
+                                       AS SOLD_PKT_DETAILS 
+                                       ON PACKET_INVENTORY.id = SOLD_PKT_DETAILS.id 
+                                       AND PACKET_INVENTORY.weight_in_grams = SOLD_PKT_DETAILS.sold_pkt_weight 
+                                    LEFT JOIN
+                                       (
+                                    SELECT
+                                       1 AS return_pkt,
+                                       id,
+                                       weight_in_grams AS return_pkt_weight,
+                                       shop_id 
+                                    FROM
+                                       packet_inventory 
+                                    WHERE
+                                       returns_detail_id > 0 
+                                       AND 
+                                       (
+                                          date_sold is NULL 
+                                          OR date_sold < cmpdtformat
+                                       )
+                                 )
+                                       AS RETURN_PKT_DETAILS 
+                                       ON PACKET_INVENTORY.id = RETURN_PKT_DETAILS.id 
+                                       AND PACKET_INVENTORY.shop_id = RETURN_PKT_DETAILS.shop_id 
+                                       AND PACKET_INVENTORY.weight_in_grams = RETURN_PKT_DETAILS.return_pkt_weight 
+                                       AND PACKET_INVENTORY.purchase_id > 204026 
+                                 GROUP BY
+                                    PACKET_INVENTORY.purchase_id,
+                                    PACKET_INVENTORY.shop_id,
+                                    PACKET_INVENTORY.weight_in_grams 
+                              )
+                              AS PACKET_DETAILS 
+                              JOIN
+                                 PURCHASE_INVENTORY 
+                                 ON PACKET_DETAILS.purchase_id = PURCHASE_INVENTORY.id 
+                           WHERE
+                              PURCHASE_INVENTORY.id > 204026 
+                              AND date_added < cmpdtformat 
+                           GROUP BY
+                              PURCHASE_INVENTORY.id,
+                              PACKET_DETAILS.shop_id,
+                              PACKET_DETAILS.packet_weight_in_grams 
+                        )
+                        AS PURCHASE_INVENTORY_DETAILS 
+                     GROUP BY
+                        PURCHASE_INVENTORY_DETAILS.product_id,
+                        PURCHASE_INVENTORY_DETAILS.packet_weight_in_grams,
+                        PURCHASE_INVENTORY_DETAILS.shop_id 
+                  )
+                  AS PURCHASE_PACKET_INV 
+                  LEFT JOIN
+                     (
+                        SELECT
+                           weight_in_grams as adjustment_weight,
+                           product_id AS adjustment_prod_id,
+                           SUM(quantity) AS adjustment_count,
+                           SUM(quantity * unit_price) AS adjustment_price,
+                           shop_id 
+                        FROM
+                           purchase_inventory 
+                        WHERE
+                           growth_condition = 'Adjustment' 
+                           AND id > 204026 
+                          
+                        GROUP BY
+                           weight_in_grams,
+                           product_id,
+                           shop_id 
+                     )
+                     AS ADJUSTMENT_DETAILS 
+                     ON PURCHASE_PACKET_INV.product_id = ADJUSTMENT_DETAILS.adjustment_prod_id 
+                     AND PURCHASE_PACKET_INV.packet_weight_in_grams = ADJUSTMENT_DETAILS.adjustment_weight 
+                     AND PURCHASE_PACKET_INV.shop_id = ADJUSTMENT_DETAILS.shop_id 
+               ORDER BY
+                  return_pkt DESC 
+            )
+            AS FINAL_PURCHASE_DETAILS 
+            ON PRODUCTS.id = FINAL_PURCHASE_DETAILS.product_id 
+      GROUP By
+         PRODUCTS.product_name,
+         PRODUCTS.category_id,
+         FINAL_PURCHASE_DETAILS.product_id,
+         FINAL_PURCHASE_DETAILS.packet_weight_in_grams,
+         FINAL_PURCHASE_DETAILS.shop_id,
+         final_purchase_details.packet_count,
+         final_purchase_details.total_packet_count_price,
+         final_purchase_details.sold_pkt,
+         final_purchase_details.total_sold_pkt_price,
+         final_purchase_details.return_pkt,
+         final_purchase_details.total_return_pkt_price,
+         final_purchase_details.adjustment_count,
+         final_purchase_details.adjustment_price,
+         PRODUCTS.id 
+   )
+   AS FINAL_SHOP_INVENTORY_DETAILS 
+   LEFT JOIN
+      (
+         SELECT
+            SUM (sold_pk *unit_price) AS sold_pkt_price,
+            sold_pkt_weight,
+            sold_product_id,
+            shop_id 
+         FROM
+            (
+               SELECT
+                  product_id AS sold_product_id,
+                  unit_price,
+                  PURCHASE_INVENTORY.weight_in_grams AS sold_weight,
+                  count(PACKET_SOLD_DATA) as sold_pk,
+                  PACKET_SOLD_DATA.weight_in_grams AS sold_pkt_weight,
+                  PURCHASE_INVENTORY.shop_id 
+               FROM
+                  PURCHASE_INVENTORY 
+                  JOIN
+                     (
+                        SELECT *
+                        FROM
+                           PACKET_INVENTORY 
+                        WHERE
+                           sales_id > 0 
+                           AND purchase_id > 204026 
+						  AND date_sold < cmpdtformat 
+                     )
+                     AS PACKET_SOLD_DATA 
+                     ON PURCHASE_INVENTORY.id = PACKET_SOLD_DATA.purchase_id 
+                     AND PURCHASE_INVENTORY.shop_id = PACKET_SOLD_DATA.shop_id 
+               WHERE
+                  PURCHASE_INVENTORY.id > 204026 
+		
+               GROUP BY
+                  PURCHASE_INVENTORY.weight_in_grams,
+                  unit_price,
+                  purchase_inventory.product_id,
+                  PURCHASE_INVENTORY.shop_id,
+                  sold_pkt_weight 
+            )
+            AS SOLD_PURCHASE_DATA 
+         GROUP BY
+            sold_pkt_weight,
+            sold_purchase_data.sold_product_id,
+            shop_id 
+      )
+      AS SOLD_DETAILS 
+      ON FINAL_SHOP_INVENTORY_DETAILS.id = SOLD_DETAILS.sold_product_id 
+      AND FINAL_SHOP_INVENTORY_DETAILS.shop_id = SOLD_DETAILS.shop_id 
+      AND FINAL_SHOP_INVENTORY_DETAILS.packet_weight_in_grams = SOLD_DETAILS.sold_pkt_weight 
+      WHERE
+         FINAL_SHOP_INVENTORY_DETAILS.shop_id = ?

@@ -21,4 +21,11 @@ public class CancelOrderDTO {
         this.reason = reason;
     }
 
+	@Override
+	public String toString() {
+		return "CancelOrderDTO [packetCode=" + packetCode + ", reason=" + reason + "]";
+	}
+    
+    
+
 }

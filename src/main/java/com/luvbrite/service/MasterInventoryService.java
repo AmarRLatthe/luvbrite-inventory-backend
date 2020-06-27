@@ -199,9 +199,9 @@ public class MasterInventoryService {
 		ArrayList<ProductDetailsDTO> productDetailsList = new ArrayList<ProductDetailsDTO>();
 
 		StringBuilder sql_listOfPurchaseIdsForProd = new StringBuilder();
-		sql_listOfPurchaseIdsForProd.append("SELECT").append("id ").append("FROM ").append("purchase_inventory")
-		.append("WHERE").append("product_id = ").append("?").append("AND id > 204026").append("AND shop_id = ")
-		.append("?");
+		sql_listOfPurchaseIdsForProd.append(" SELECT ").append(" id ").append(" FROM ").append(" purchase_inventory ")
+		.append(" WHERE ").append(" product_id = ").append(" ? ").append(" AND id > 204026 ").append(" AND shop_id = ")
+		.append(" ? ");
 
 		log.info("Query sql_listOfPurchaseIdsForProd ::" + sql_listOfPurchaseIdsForProd);
 

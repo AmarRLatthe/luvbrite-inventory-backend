@@ -1,17 +1,25 @@
 package com.luvbrite.controller;
 
 import java.util.List;
+import java.util.Objects;
 
-import com.luvbrite.model.PaginatedReturns;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.luvbrite.commonresponse.CommonResponse;
 import com.luvbrite.model.CancelOrderDTO;
+import com.luvbrite.model.PaginatedReturns;
 import com.luvbrite.model.UserDetails;
 import com.luvbrite.service.IPacketService;
 import com.luvbrite.service.IReturnsService;
@@ -43,14 +51,16 @@ public class ReturnsController {
     ResponseEntity<CommonResponse> addReturn(@RequestBody CancelOrderDTO cancelOrderDTO,
                                              Authentication authentication) {
 
+        log.info("qwertyuiop ====>>>>>>>>>>> ");
         CommonResponse response = new CommonResponse();
 
         UserDetails userDetails = iUserService.getByUsername(authentication.getName());
-
+        log.info("qwertyuiop ====>>>>>>>>>>> {}",cancelOrderDTO);
         // Validation
-        if ((cancelOrderDTO == null) || StringUtils.isBlank(cancelOrderDTO.getPacketCode())
+        if (Objects.isNull(cancelOrderDTO) || StringUtils.isBlank(cancelOrderDTO.getPacketCode())
                 || StringUtils.isBlank(cancelOrderDTO.getReason())) {
 
+        	
             response.setCode(400);
             response.setData(false);
             response.setStatus("FAILED");
@@ -193,7 +203,7 @@ public class ReturnsController {
         CommonResponse response = new CommonResponse();
         UserDetails userDetails = iUserService.getByUsername(authentication.getName());
 
-        if (returnId == 0 || userDetails.getId() == 0) {
+        if (returnId == 0 ||userDetails.getId() == null ||userDetails.getId() == 0) {
             response.setCode(400);
             response.setStatus("FAILURE");
             response.setMessage("Invalid returnId/operatorId");

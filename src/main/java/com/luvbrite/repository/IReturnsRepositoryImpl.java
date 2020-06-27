@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @Slf4j
@@ -135,7 +136,8 @@ public class IReturnsRepositoryImpl implements IReturnsRepository {
     }
 
     @Override
-    public int deleteReturn(Integer returnId, Integer shopId, Integer operatorId) throws Exception {
+    @Transactional
+    public int deleteReturn(Integer returnId, Integer shopId, Integer operatorId)  {
 
         /***
           * return -1: no valid packets found ;
@@ -144,118 +146,123 @@ public class IReturnsRepositoryImpl implements IReturnsRepository {
          *  return 0:  return could not be deleted successfully;
          *  return 1:  returns deleted successfully;
          * */
+		try {
+	        int packetId = 0;
+	        String packetCode = "";
 
-        int packetId = 0;
-        String packetCode = "";
+	        //Check if the packet code is valid.
+	        StringBuffer checkIfPacketCodeIsValidQry = new StringBuffer();
+	        checkIfPacketCodeIsValidQry.append("SELECT id, packet_code FROM packet_inventory")
+	                .append(" WHERE ")
+	                .append(" returns_detail_id = ? ")
+	                .append(" AND ")
+	                .append(" shop_id = ? ");
 
-        //Check if the packet code is valid.
-        StringBuffer checkIfPacketCodeIsValidQry = new StringBuffer();
-        checkIfPacketCodeIsValidQry.append("SELECT id, packet_code FROM packet_inventory")
-                .append(" WHERE ")
-                .append("returns_detail_id = ?")
-                .append("AND")
-                .append("shop_id = ?");
+	        PacketInventoryDTO packetInventoryDTO = jdbcTemplate.queryForObject(checkIfPacketCodeIsValidQry.toString(), new Object[]{returnId, shopId}, new RowMapper<PacketInventoryDTO>() {
+	            @Override
+	            public PacketInventoryDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
+	                PacketInventoryDTO dto = new PacketInventoryDTO();
 
-        PacketInventoryDTO packetInventoryDTO = jdbcTemplate.queryForObject(checkIfPacketCodeIsValidQry.toString(), new Object[]{returnId, shopId}, new RowMapper<PacketInventoryDTO>() {
-            @Override
-            public PacketInventoryDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
-                PacketInventoryDTO dto = new PacketInventoryDTO();
+	                dto.setId(rs.getInt("id"));
+	                dto.setPacketCode(rs.getString("packet_code"));
 
-                dto.setId(rs.getInt("id"));
-                dto.setPacketCode(rs.getString("packet_code"));
+	                return dto;
+	            }
 
-                return dto;
-            }
+	        });
 
-        });
-
-        if (packetInventoryDTO != null) {
-            packetId = packetInventoryDTO.getId();
-            packetCode = packetInventoryDTO.getPacketCode();
-        } else {
-            log.error("No valid packets found.");
-            return -1;
-        }
-
-
-        if (packetId != 0) {
-
-            int deletedRows = 0;
-            //Update packet_inventory
-            StringBuffer updatePacketInvQry = new StringBuffer();
-
-            updatePacketInvQry
-                    .append("UPDATE packet_inventory SET returns_detail_id =0")
-                    .append("WHERE id = ? ")
-                    .append("AND")
-                    .append("shop_id = ?");
-
-            int updatedRows = jdbcTemplate.update(updatePacketInvQry.toString(), new Object[]{packetId, shopId});
-
-            if (updatedRows != 0) {
-
-                //Delete from returns_detail
-                StringBuffer deleteReturnIdFromReturnDetailQry = new StringBuffer();
-
-                deleteReturnIdFromReturnDetailQry
-                        .append("DELETE FROM returns_detail ")
-                        .append("WHERE id = ? ")
-                        .append("AND")
-                        .append("shop_id = ?");
-
-                deletedRows = jdbcTemplate.update(deleteReturnIdFromReturnDetailQry.toString(), new Object[]{packetId, shopId});
-
-                if (deletedRows == 0) {
-                    log.info("returns info could not be deleted from returns_detail table for packetCode {} , whose returnId is {} ", packetCode, returnId);
-                    return 0;
-                }
-
-                //TODO:Integrate Master Service
-
-                if (StringUtils.isNotBlank(packetCode)) {
-                    StringBuffer qryProductIdQry = new StringBuffer();
-
-                    qryProductIdQry
-                            .append("SELECT purinv.product_id FROM packet_inventory pktinv ")
-                            .append("JOIN purchase_inventory purinv ON purinv.id = pktinv.purchase_id ")
-                            .append("WHERE pktinv.packet_code = ? ")
-                            .append("AND ")
-                            .append("shop_id = ?");
-
-                    int productId = jdbcTemplate.queryForObject(qryProductIdQry.toString(),
-                            new Object[]{},
-                            Integer.class);
-
-                    if (productId != 0) {
-                        masterInventoryService.updateProducts(productId, shopId);
-                        log.info("Successfully updated master inventory service");
-                    }
-
-                }
+	        if (packetInventoryDTO != null) {
+	            packetId = packetInventoryDTO.getId();
+	            packetCode = packetInventoryDTO.getPacketCode();
+	        } else {
+	            log.error("No valid packets found.");
+	            return -1;
+	        }
 
 
-                ChangeTrackerDTO ct = new ChangeTrackerDTO();
-                ct.setActionDetails("Return deleted for package - " + packetCode);
-                ct.setActionType("update");
-                ct.setActionOn("packet");
-                ct.setItemId(packetId);
-                ct.setOperatorId(operatorId);
+	        if (packetId != 0) {
 
-                track.track(ct);
+	            int deletedRows = 0;
+	            //Update packet_inventory
+	            StringBuffer updatePacketInvQry = new StringBuffer();
 
-                return 1;
+	            updatePacketInvQry
+	                    .append(" UPDATE packet_inventory SET returns_detail_id =0 ")
+	                    .append(" WHERE id = ? ")
+	                    .append(" AND ")
+	                    .append(" shop_id = ? ");
 
-            } else {
-                log.error("Could not mark packet {} as  not returned ", packetCode);
-                return -3;
-            }
+	            int updatedRows = jdbcTemplate.update(updatePacketInvQry.toString(), new Object[]{packetId, shopId});
+
+	            if (updatedRows != 0) {
+
+	                //Delete from returns_detail
+	                StringBuffer deleteReturnIdFromReturnDetailQry = new StringBuffer();
+
+	                deleteReturnIdFromReturnDetailQry
+	                        .append(" DELETE FROM returns_detail ")
+	                        .append(" WHERE id = ? ")
+	                        .append(" AND ")
+	                        .append(" shop_id = ? ");
+	                log.info("Log {}",deleteReturnIdFromReturnDetailQry.toString());
+	                deletedRows = jdbcTemplate.update(deleteReturnIdFromReturnDetailQry.toString(), new Object[]{returnId, shopId});
+
+	                if (deletedRows == 0) {
+	                    log.info("returns info could not be deleted from returns_detail table for packetCode {} , whose returnId is {} ", packetCode, returnId);
+	                    return 0;
+	                }
+
+	                //TODO:Integrate Master Service
+
+	                if (StringUtils.isNotBlank(packetCode)) {
+	                    StringBuffer qryProductIdQry = new StringBuffer();
+
+	                    qryProductIdQry
+	                            .append(" SELECT purinv.product_id FROM packet_inventory pktinv ")
+	                            .append(" JOIN purchase_inventory purinv ON purinv.id = pktinv.purchase_id ")
+	                            .append(" WHERE pktinv.packet_code = ? ")
+	                            .append(" AND ")
+	                            .append(" purinv.shop_id = ?");
+
+	                    int productId = jdbcTemplate.queryForObject(qryProductIdQry.toString(),
+	                            new Object[]{packetCode, shopId},
+	                            Integer.class);
+
+	                    if (productId != 0) {
+	                        masterInventoryService.updateProducts(productId, shopId);
+	                        log.info("Successfully updated master inventory service");
+	                    }
+
+	                }
 
 
-        } else {
-            log.error("No corresponding packetId found in database for returnId : " + returnId + " for shopId :" + shopId);
-            return -2;
-        }
+	                ChangeTrackerDTO ct = new ChangeTrackerDTO();
+	                ct.setActionDetails("Return deleted for package - " + packetCode);
+	                ct.setActionType("update");
+	                ct.setActionOn("packet");
+	                ct.setItemId(packetId);
+	                ct.setOperatorId(operatorId);
 
+	                track.track(ct);
+
+	                return 1;
+
+	            } else {
+	                log.error("Could not mark packet {} as  not returned ", packetCode);
+	                return -3;
+	            }
+
+
+	        } else {
+	            log.error("No corresponding packetId found in database for returnId : " + returnId + " for shopId :" + shopId);
+	            return -2;
+	        }
+	
+		} catch (Exception e) {
+			log.error("Message is {} and Exception is {}",e.getMessage(),e);
+//			throw new Exception();
+			return 0;
+		}
 
 
     }
